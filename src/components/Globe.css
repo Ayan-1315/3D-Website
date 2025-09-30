@@ -1,0 +1,16 @@
+/* src/components/Globe.css */
+.globe-container {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  pointer-events: auto; /* canvas should accept mouse events */
+}
+
+/* small helper so the canvas stretches cleanly inside the container */
+.globe-container canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
