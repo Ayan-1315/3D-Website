@@ -1,66 +1,62 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Canvas } from '@react-three/fiber'; // <-- IMPORT CANVAS
+import React, { useRef, useState, useEffect } from "react";
 import Globe from "./components/Globe";
 import RightMenu from "./components/RightMenu";
 import "./App.css";
 
 export default function App() {
-  const globeRef = useRef(null);
+  const globeRef = useRef();
   const [loading, setLoading] = useState(true);
   const [activePage, setActivePage] = useState(null);
 
+  // loader fade (artistic orb spinner)
   useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 3000);
+    const t = setTimeout(() => setLoading(false), 2500);
     return () => clearTimeout(t);
   }, []);
 
-  const handleOpenPage = (page, uiAnchor) => {
+  const handleOpenPage = (page, anchor) => {
     setActivePage(page);
-    globeRef.current?.focusToward(uiAnchor);
+    globeRef.current?.focusToward?.(anchor);
   };
 
   const handleBack = () => {
-    globeRef.current?.unfocus();
     setActivePage(null);
+    globeRef.current?.unfocus?.();
   };
 
   return (
-    // This main div will hold our layers
-    <main className="app-container">
+    <div className="App">
       {loading && (
-        <div className="loader">
-          <div className="spinner" />
-          <p>Loading…</p>
+        <div className="loader-overlay">
+          <div className="loader-orb">
+            <div className="loader-cutout" />
+          </div>
+          <p className="loader-label">Loading</p>
         </div>
       )}
 
-      {/* LAYER 1: The 3D Canvas in the background */}
-      <div className="globe-canvas-container">
-        <Canvas camera={{ position: [0, 0, 7], fov: 50 }}>
-          <Globe ref={globeRef} dimScene={!!activePage} />
-        </Canvas>
-      </div>
+      {/* Globe */}
+      <Globe ref={globeRef} />
 
-      {/* LAYER 2: The UI on top of the canvas */}
+      {/* Right-side Menu */}
       <RightMenu
         activePage={activePage}
         onOpenPage={handleOpenPage}
         onBack={handleBack}
       />
 
-      <section className={`panel ${activePage ? "open" : ""}`}>
-        <header className="panel-header">
-          <h2>{activePage ?? ""}</h2>
-          {activePage && (
-            <button className="back-btn" onClick={handleBack}>Back</button>
-          )}
-        </header>
-        <div className="panel-content">
-          {activePage === "About" && <p>Short bio goes here.</p>}
-          {activePage === "Projects" && <p>Project grid coming next.</p>}
-          {activePage === "Contact" && <p>Drop your contact bits here.</p>}
+      {/* Optional content area (shows when activePage selected) */}
+      {activePage && (
+        <div className="page-overlay">
+          <div className="page-content">
+            <h1>{activePage}</h1>
+            <p>
+              This is the <strong>{activePage}</strong> section. Replace with
+              your actual content.
+            </p>
+          </div>
         </div>
-      </section>
-    </main>
+      )}
+    </div>
   );
 }

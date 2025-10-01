@@ -1,155 +1,132 @@
 import React, {
-  useRef,
-  useEffect,
-  useState,
   forwardRef,
   useImperativeHandle,
+  useMemo,
+  useRef,
+  Suspense,
 } from "react";
-import { useFrame, useLoader, extend } from "@react-three/fiber";
-import { Stars } from "@react-three/drei";
-import { TextureLoader, Vector3, Color } from "three";
-import { shaderMaterial } from "@react-three/drei";
+import { Canvas, useFrame, useThree } from "@react-three/fiber";
+import { useGLTF } from "@react-three/drei";
+import * as THREE from "three";
 
-// --- 1. Define the Fresnel Shader Material ---
-// This creates a reusable material component we can use in our JSX.
-const AtmosphereMaterial = shaderMaterial(
-  // Uniforms (data we pass to the shader)
-  {
-    uColor: new Color("#3088ff"), // The glow color
-    uPower: 2.5, // The power of the glow
-  },
-  // Vertex Shader (positions vertices)
-  `
-    varying vec3 vNormal;
-    void main() {
-      vNormal = normalize(normalMatrix * normal);
-      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-    }
-  `,
-  // Fragment Shader (colors pixels)
-  `
-    uniform vec3 uColor;
-    uniform float uPower;
-    varying vec3 vNormal;
-    void main() {
-      // Calculate the angle between the camera and the surface normal
-      float intensity = pow(1.0 - abs(dot(vNormal, vec3(0, 0, 1.0))), uPower);
-      gl_FragColor = vec4(uColor, 1.0) * intensity;
-    }
-  `
-);
+/** Center + scale the loaded scene to a target radius, then render it. */
+function FittedModel({ url, targetRadius = 6.5 }) {
+  const group = useRef();
+  const { scene } = useGLTF(url);
 
-// Register it with R3F so we can use it as a JSX component
-extend({ AtmosphereMaterial });
+  // Build a fitted clone once
+  const fitted = useMemo(() => {
+    const root = scene.clone(true);
 
-// --- 2. The Main Globe Component ---
-const Globe = forwardRef(function Globe({ dimScene }, ref) {
-  // --- Refs & Textures (No more glow.png!) ---
-  const groupRef = useRef();
-  const coreRef = useRef();
-  const innerTexture = useLoader(TextureLoader, "/textures/inner_core.png");
-  const outerTexture = useLoader(TextureLoader, "/textures/outer_surface.png");
+    // compute bounds
+    const box = new THREE.Box3().setFromObject(root);
+    const size = new THREE.Vector3();
+    box.getSize(size);
+    const center = new THREE.Vector3();
+    box.getCenter(center);
 
-  // --- State & Handlers (Unchanged) ---
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
-  const [targetRotation, setTargetRotation] = useState(
-    () => new Vector3(0, 0, 0)
-  );
-  useImperativeHandle(ref, () => ({
-    focusToward(uiAnchor) {
-      const x = (uiAnchor.y - 0.5) * -1.2;
-      const y = (uiAnchor.x - 0.5) * 1.2;
-      setTargetRotation(new Vector3(x, y, 0));
-    },
-    unfocus() {
-      setTargetRotation(new Vector3(0, 0, 0));
-    },
-  }));
-  useEffect(() => {
-    const handleMouseMove = (event) => {
-      const { clientX, clientY } = event;
-      const x = clientX / window.innerWidth - 0.5;
-      const y = clientY / window.innerHeight - 0.5;
-      setMousePos({ x, y });
-    };
-    window.addEventListener("mousemove", handleMouseMove);
-    return () => window.removeEventListener("mousemove", handleMouseMove);
-  }, []);
+    // recentre to origin
+    root.position.sub(center);
 
-  // --- Animation Loop (Unchanged) ---
-  useFrame((state) => {
-    const time = state.clock.getElapsedTime();
-    if (groupRef.current && coreRef.current) {
-      const pulse = Math.sin(time * 0.8) * 0.04;
-      coreRef.current.scale.set(1 + pulse, 1 + pulse, 1 + pulse);
-      const targetPosX = mousePos.x * -0.2;
-      const targetPosY = mousePos.y * 0.2;
-      groupRef.current.position.x +=
-        (targetPosX - groupRef.current.position.x) * 0.05;
-      groupRef.current.position.y +=
-        (targetPosY - groupRef.current.position.y) * 0.05;
-      groupRef.current.rotation.y += 0.0005;
-      const finalTargetY = targetRotation.y + groupRef.current.rotation.y;
-      groupRef.current.rotation.x +=
-        (targetRotation.x - groupRef.current.rotation.x) * 0.03;
-      groupRef.current.rotation.y +=
-        (finalTargetY - groupRef.current.rotation.y) * 0.03;
-    }
+    // scale to target radius
+    const radius =
+      Math.max(size.x, size.y, size.z) * 0.5 || 1; // avoid div by 0
+    const scale = targetRadius / radius;
+    root.scale.setScalar(scale);
+
+    // soften materials a bit for dark theme
+    root.traverse((obj) => {
+      if (obj.isMesh) {
+        obj.castShadow = false;
+        obj.receiveShadow = false;
+        if (obj.material && "metalness" in obj.material) {
+          obj.material.metalness = Math.min(0.3, obj.material.metalness ?? 0.3);
+          obj.material.roughness = Math.max(0.4, obj.material.roughness ?? 0.6);
+        }
+      }
+    });
+
+    return root;
+  }, [scene, targetRadius]);
+
+  // slow, classy spin (can be disabled if you like)
+  useFrame((_, dt) => {
+    if (group.current) group.current.rotation.y += dt * 0.12;
   });
 
+  return <primitive ref={group} object={fitted} />;
+}
+
+/** Scene wrapper that exposes focus/unfocus to parent via ref */
+const GlobeScene = forwardRef(function GlobeScene(
+  { modelUrl = "/models/DysonSphere.glb" },
+  ref
+) {
+  const focusRef = useRef(new THREE.Vector3(0, 0, 0)); // desired offset
+  const groupRef = useRef(); // moves the whole model group
+  const { camera } = useThree();
+
+  // Smoothly lerp model position & camera toward target each frame
+  useFrame(() => {
+    const g = groupRef.current;
+    if (!g) return;
+
+    // model position
+    g.position.lerp(focusRef.current, 0.08);
+
+    // camera x/y follow subtly, z stays fixed
+    const camTarget = new THREE.Vector3(
+      focusRef.current.x * 0.6,
+      focusRef.current.y * 0.6,
+      camera.position.z
+    );
+    camera.position.lerp(camTarget, 0.06);
+    camera.lookAt(g.position);
+  });
+
+  // public API used by App.jsx (RightMenu clicks pass a screen-space anchor)
+  useImperativeHandle(ref, () => ({
+    focusToward: ({ x, y }) => {
+      // anchor (0..1) → world-ish offset (-1..1), biased so it doesn't fly too far
+      const wx = (x - 0.5) * 2.0;
+      const wy = (0.5 - y) * 1.4; // flip Y, keep it a bit tighter
+      focusRef.current.set(wx, wy, 0);
+    },
+    unfocus: () => {
+      focusRef.current.set(0, 0, 0);
+    },
+  }));
+
   return (
-    <>
-      <Stars
-        radius={300}
-        depth={50}
-        count={6000}
-        factor={4}
-        saturation={0}
-        fade
-        speed={1}
-      />
-      <ambientLight intensity={dimScene ? 0.05 : 0.1} />
-      <pointLight position={[10, 10, 10]} intensity={dimScene ? 0.5 : 1.0} />
+    <group ref={groupRef}>
+      <FittedModel url={modelUrl} targetRadius={2.8} />
+    </group>
+  );
+});
 
-      {/* **NEW: Atmospheric Glow using the Shader** */}
-      <mesh scale={1.15}>
-        <sphereGeometry args={[2.2, 64, 64]} />
-        <atmosphereMaterial
-          uColor={new Color("#3088ff")}
-          uPower={2.5}
-          transparent={true}
-        />
-      </mesh>
+/** The exported Globe component: full-bleed Canvas with neutral lights */
+const Globe = forwardRef(function Globe(_props, ref) {
+  return (
+    <div className="globe-canvas" style={{ position: "absolute", inset: 0 }}>
+      <Canvas
+        camera={{ position: [0, 0, 10], fov: 45 }}
+        dpr={[1, 2]}
+        gl={{ antialias: true, alpha: true }}
+      >
+        {/* Lights tuned for black/grey theme; no color cast */}
+        <ambientLight intensity={0.35} />
+        <directionalLight position={[6, 8, 10]} intensity={1.0} />
+        <directionalLight position={[-4, -2, -6]} intensity={0.5} />
 
-      <group ref={groupRef}>
-
-        {/* Outer Shell */}
-        <mesh>
-          <sphereGeometry args={[2.2, 64, 64]} />
-          <meshStandardMaterial
-            map={outerTexture} // The new cellular texture
-            color="#c81313ff"
-            transparent={true}
-            opacity={0.6} // Lowered opacity for a more subtle, glassy look
-            depthWrite={false}
-            roughness={0.3} // Slightly reduced roughness for more gloss
-            metalness={0.2}
-          />
-        </mesh>
-
-        {/* Inner Core */}
-        <mesh ref={coreRef} scale={[1.5, 1.5, 1.5]}>
-          <sphereGeometry args={[1, 64, 64]} />
-          <meshStandardMaterial
-            map={innerTexture}
-            emissive="#ff4000"
-            emissiveMap={innerTexture}
-            emissiveIntensity={dimScene ? 2 : 5}
-          />
-        </mesh>
-      </group>
-    </>
+        <Suspense fallback={null}>
+          <GlobeScene ref={ref} />
+        </Suspense>
+      </Canvas>
+    </div>
   );
 });
 
 export default Globe;
+
+// Preload model for faster first render
+useGLTF.preload("/models/DysonSphere.glb");
