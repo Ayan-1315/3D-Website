@@ -1,0 +1,26 @@
+{
+  "particleSystemState": {
+    "emitters": [
+      {
+        "rate": { "numPan": { "num": 5, "isStatic": false }, "timePan": { "time": 1, "isStatic": false } },
+        "initializers": [
+          { "type": "Mass", "properties": { "min": 1, "max": 1, "isStatic": true } },
+          { "type": "Life", "properties": { "min": 2, "max": 4 } },
+          { "type": "BodySprite", "properties": { "texture": "https://raw.githubusercontent.com/creativelifeform/three-nebula/master/docs/assets/textures/dot.png" } },
+          { "type": "Radius", "properties": { "width": 10, "height": 10, "isStatic": true } },
+          { "type": "RadialVelocity", "properties": { "radius": 4, "dir": [0, 1, 0], "isStatic": true } }
+        ],
+        "behaviours": [
+          { "type": "Alpha", "properties": { "alphaA": 1, "alphaB": 0 } },
+          { "type": "Color", "properties": { "colorA": "#00aeff", "colorB": "#00aeff" } },
+          { "type": "Scale", "properties": { "scaleA": 0.05, "scaleB": 0.01 } },
+          { "type": "CrossZone", "properties": { "zone": { "type": "SphereZone", "properties": { "radius": 20 } }, "crossType": "dead" } }
+        ],
+        "position": { "x": -0.8, "y": 0, "z": 0 },
+        "rotation": { "x": 0, "y": 0, "z": 0 },
+        "id": "tha-emitter"
+      }
+    ],
+    "id": "tha-system"
+  }
+}

@@ -1,62 +1,54 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, { useState, useRef } from "react";
 import Globe from "./components/Globe";
 import RightMenu from "./components/RightMenu";
+import FPSMonitor from "./components/FPSMonitor";
 import "./App.css";
 
 export default function App() {
-  const globeRef = useRef();
-  const [loading, setLoading] = useState(true);
+  const globeRef = useRef(null);
   const [activePage, setActivePage] = useState(null);
-
-  // loader fade (artistic orb spinner)
-  useEffect(() => {
-    const t = setTimeout(() => setLoading(false), 2500);
-    return () => clearTimeout(t);
-  }, []);
+  const [isPanelOpen, setIsPanelOpen] = useState(false);
 
   const handleOpenPage = (page, anchor) => {
     setActivePage(page);
-    globeRef.current?.focusToward?.(anchor);
+    setIsPanelOpen(true);
+    // Call the focus function on the Globe component
+    globeRef.current?.focusToward(anchor);
   };
 
   const handleBack = () => {
-    setActivePage(null);
-    globeRef.current?.unfocus?.();
+    setIsPanelOpen(false);
+    // A slight delay to allow the panel to close before resetting state
+    setTimeout(() => {
+      setActivePage(null);
+      // Call the unfocus function on the Globe component
+      globeRef.current?.unfocus();
+    }, 400); // This duration should match the CSS transition
   };
 
   return (
-    <div className="App">
-      {loading && (
-        <div className="loader-overlay">
-          <div className="loader-orb">
-            <div className="loader-cutout" />
-          </div>
-          <p className="loader-label">Loading</p>
-        </div>
-      )}
+    <main className="app-container">
+      <div className="canvas-background">
+        <Globe ref={globeRef} />
+        <FPSMonitor />
+      </div>
 
-      {/* Globe */}
-      <Globe ref={globeRef} />
-
-      {/* Right-side Menu */}
       <RightMenu
         activePage={activePage}
         onOpenPage={handleOpenPage}
         onBack={handleBack}
       />
 
-      {/* Optional content area (shows when activePage selected) */}
-      {activePage && (
-        <div className="page-overlay">
-          <div className="page-content">
-            <h1>{activePage}</h1>
-            <p>
-              This is the <strong>{activePage}</strong> section. Replace with
-              your actual content.
-            </p>
-          </div>
+      <section className={`panel ${isPanelOpen ? "open" : ""}`}>
+        <header className="panel-header">
+          <h2>{activePage}</h2>
+        </header>
+        <div className="panel-content">
+          {activePage === "About" && <p>Your about page content goes here.</p>}
+          {activePage === "Projects" && <p>Your projects will be displayed here.</p>}
+          {activePage === "Contact" && <p>Your contact information goes here.</p>}
         </div>
-      )}
-    </div>
+      </section>
+    </main>
   );
 }
