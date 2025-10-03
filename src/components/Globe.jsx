@@ -3,6 +3,7 @@ import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useGLTF, Stats } from "@react-three/drei";
 import * as THREE from "three";
 import { EffectComposer, Bloom, Noise } from "@react-three/postprocessing";
+import VolumetricSmoke from "./VolumetricSmoke"; // Import the new volumetric smoke component
 
 const ANIMATION_PARAMS = {
   baseSpeed: 0.15, yawSpeed: 1, cageSpeed: 4,
@@ -27,8 +28,9 @@ function FittedModel({ url, targetRadius = 4.5 }) {
 
     const core = root.getObjectByName("sphere");
     if (core && core.material) {
+        // Ensure the core itself is very emissive to drive the Bloom effect strongly
         core.material.emissive = new THREE.Color("#00ffff");
-        core.material.emissiveIntensity = 3; // Increased intensity for a brighter glow
+        core.material.emissiveIntensity = 4; // Further increased intensity
     }
 
     return root;
@@ -81,6 +83,8 @@ const GlobeScene = forwardRef(function GlobeScene({ modelUrl }, ref) {
   return (
     <group ref={groupRef}>
       <FittedModel url={modelUrl} />
+      {/* Light from the core should be strong */}
+      <pointLight color="#00ffff" intensity={3.5} distance={15} decay={2} /> 
     </group>
   );
 });
@@ -93,14 +97,13 @@ const Globe = forwardRef(function Globe(_props, ref) {
         dpr={[1, 2]}
         gl={{ antialias: true }}
       >
-        <color attach="background" args={["#6c6c6c"]} />
-        {/* Adjusted fog for the new theme */}
-        <fog attach="fog" args={['#000000', 10, 20]} />
-
-        {/* Adjusted lighting for a darker, more focused look */}
-        <ambientLight intensity={0.05} />
-        <directionalLight position={[6, 8, 10]} intensity={0.1} />
-        <spotLight 
+        <color attach="background" args={["#101010"]} />
+        
+        {/* Adjusted ambient light to be darker overall */}
+        <ambientLight intensity={0.02} />
+        <directionalLight position={[6, 8, 10]} intensity={0.05} />
+        {/* Remove the spotLight if the core is the main light source now */}
+        {/* <spotLight 
           position={[0, 10, 5]} 
           intensity={1.5} 
           angle={0.3} 
@@ -108,15 +111,16 @@ const Globe = forwardRef(function Globe(_props, ref) {
           color="#00e5ff" 
           castShadow 
           distance={30} 
-        />
+        /> */}
 
         <Suspense fallback={null}>
           <GlobeScene ref={ref} modelUrl="/models/DysonSphere.glb" />
+          <VolumetricSmoke /> {/* Add the new volumetric smoke component */}
         </Suspense>
 
-        {/* Post-processing effects for grain and glow */}
         <EffectComposer>
-          <Bloom intensity={0.5} luminanceThreshold={0.5} luminanceSmoothing={0.025} mipmapBlur />
+          {/* Increased bloom intensity to make the glow stronger */}
+          <Bloom intensity={1.0} luminanceThreshold={0.3} luminanceSmoothing={0.05} mipmapBlur />
           <Noise opacity={0.05} />
         </EffectComposer>
 
