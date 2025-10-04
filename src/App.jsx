@@ -1,7 +1,6 @@
 import React, { useState, useRef } from "react";
 import Globe from "./components/Globe";
 import RightMenu from "./components/RightMenu";
-import FPSMonitor from "./components/FPSMonitor";
 import "./App.css";
 
 export default function App() {
@@ -12,25 +11,21 @@ export default function App() {
   const handleOpenPage = (page, anchor) => {
     setActivePage(page);
     setIsPanelOpen(true);
-    // Call the focus function on the Globe component
     globeRef.current?.focusToward(anchor);
   };
 
   const handleBack = () => {
     setIsPanelOpen(false);
-    // A slight delay to allow the panel to close before resetting state
     setTimeout(() => {
       setActivePage(null);
-      // Call the unfocus function on the Globe component
       globeRef.current?.unfocus();
-    }, 400); // This duration should match the CSS transition
+    }, 400);
   };
 
   return (
     <main className="app-container">
       <div className="canvas-background">
         <Globe ref={globeRef} />
-        <FPSMonitor />
       </div>
 
       <RightMenu
