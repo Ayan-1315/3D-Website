@@ -54,12 +54,17 @@ function FittedModel({ url, targetRadius = 4.5 }) {
 }
 
 const GlobeScene = forwardRef(function GlobeScene({ modelUrl }, ref) {
+  const particleSystemRef = useRef();
   const modelPosition = useMemo(() => new THREE.Vector3(-0.8, 0, 0), []);
   const focusRef = useRef(new THREE.Vector3().copy(modelPosition));
   const groupRef = useRef();
   const { camera } = useThree();
 
   useFrame(() => {
+    if (particleSystemRef.current && particleSystemRef.current.material.uniforms.uIntro.value < 1) {
+      particleSystemRef.current.material.uniforms.uIntro.value += 0.01;
+    }
+
     const g = groupRef.current;
     if (!g) return;
     g.position.lerp(focusRef.current, 0.08);
@@ -82,7 +87,7 @@ const GlobeScene = forwardRef(function GlobeScene({ modelUrl }, ref) {
   return (
     <group ref={groupRef}>
       <FittedModel url={modelUrl} />
-      <ParticleSystem />
+      <ParticleSystem ref={particleSystemRef} />
       <pointLight color="#00ffff" intensity={8} distance={10} decay={2} />
     </group>
   );
