@@ -3,20 +3,25 @@ import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
 /**
- ParticleSystem.jsx — fix:
- - background particles never vanish
- - red particles fade smoothly as they merge onto ribbons (no abrupt hole)
- - small jitter when snapping to rings to avoid stacking
- - slightly faster ring motion so rings don't appear static
+ ParticleSystem.jsx — full file
+ - ~10k particles (two rings + background)
+ - Red particles spiral into rings with gravity + tangential orbit
+ - No abrupt vanish: merged red leaves residual glow so ribbons don't show holes
+ - Circular points (no square edges)
+ - Rings staggered at start to avoid stacking
+ - Clamped Y/Z travel to keep particles onscreen
+ - Additive blending for neon pop
 */
 
 const RING_RADIUS = 3.4;
 const RING_PER_RING = 1200;
-const BG_COUNT = 9000;
+const TARGET_TOTAL = 10000;
+const BG_COUNT = Math.max(0, TARGET_TOTAL - RING_PER_RING * 2);
 const COUNT = RING_PER_RING * 2 + BG_COUNT;
 
 const vertexShader = `
   precision highp float;
+
   uniform float uTime;
   uniform float uIntro;
   uniform float uRingRadius;
@@ -33,11 +38,16 @@ const vertexShader = `
   varying float vMerge;        // 0..1 merge progress (1 = fully merged)
   varying float vDepth;
 
-  // small rotateY helper (keeps shader simple)
+  // small rotateY helper
   vec3 rotateY(vec3 p, float angle) {
     float c = cos(angle);
     float s = sin(angle);
     return vec3(p.x * c + p.z * s, p.y, -p.x * s + p.z * c);
+  }
+
+  // cheap hash for jitter
+  float hash1(float x) {
+    return fract(sin(x) * 43758.5453);
   }
 
   void main() {
@@ -50,32 +60,33 @@ const vertexShader = `
 
     // ---- Ring A (ribbon) ----
     if (aType < 0.5) {
-      float t = fract(aRingT + uTime * 0.0006 * aSpeed);
-      float ang = t * 6.28318530718 + uTime * 0.22 * aSpeed;
-      float wig = sin(t * 10.0 + uTime * 1.1) * 0.02;
+      float t = fract(aRingT + uTime * 0.0008 * aSpeed);
+      // stronger phase offset so rings don't overlap at start
+      float phaseOffset = (hash1(aInitialOffset.x * 12.345 + aInitialOffset.y * 7.89) - 0.5) * 0.08;
+      float ang = t * 6.28318530718 + uTime * 0.26 * aSpeed + phaseOffset;
+      float wig = sin(t * 10.0 + uTime * 1.1) * 0.04;
       float radius = uRingRadius + wig;
-      vec3 p = vec3(cos(ang) * radius, sin(ang) * radius * 0.10, sin(ang) * radius);
-      // stronger precession so rings move
-      p = rotateY(p, uTime * 0.035);
-      // lateral jitter to create ribbon rows
+      vec3 p = vec3(cos(ang) * radius, sin(ang) * radius * 0.12, sin(ang) * radius);
+      p = rotateY(p, uTime * 0.045);
       vec3 tang = normalize(vec3(-sin(ang), 0.0, cos(ang)));
-      p += tang * (sin(uTime * 1.6 + t * 18.0) * 0.02);
+      p += tang * (sin(uTime * 1.6 + t * 18.0) * 0.03 + (hash1(aRingT * 987.1) - 0.5) * 0.04);
       pos = p;
-      baseSize = 3.0;
+      baseSize = 6.5; // thicker ribbon points
     }
     // ---- Ring B (crossing ribbon) ----
     else if (aType >= 0.5 && aType < 1.5) {
-      float t = fract(aRingT - uTime * 0.00045 * aSpeed);
-      float ang = t * 6.28318530718 - uTime * 0.18 * aSpeed;
-      float wig = cos(t * 9.0 + uTime * 0.9) * 0.02;
+      float t = fract(aRingT - uTime * 0.0006 * aSpeed);
+      float phaseOffset = (hash1(aInitialOffset.x * 9.111 + aInitialOffset.y * 4.22) - 0.5) * 0.08;
+      float ang = t * 6.28318530718 - uTime * 0.22 * aSpeed + phaseOffset;
+      float wig = cos(t * 9.0 + uTime * 0.9) * 0.04;
       float radius = uRingRadius + wig;
-      vec3 p = vec3(cos(ang) * radius, sin(ang) * radius * 0.095, sin(ang) * radius);
-      p = rotateY(p, -uTime * 0.03);
-      p = vec3(p.x, p.y * 0.98, p.z);
+      vec3 p = vec3(cos(ang) * radius, sin(ang) * radius * 0.105, sin(ang) * radius);
+      p = rotateY(p, -uTime * 0.035);
+      p = vec3(p.x, p.y * 0.99, p.z);
       vec3 tang = normalize(vec3(-sin(ang), 0.0, cos(ang)));
-      p += tang * (cos(uTime * 1.4 + t * 16.0) * 0.025);
+      p += tang * (cos(uTime * 1.4 + t * 16.0) * 0.03 + (hash1(t * 33.3) - 0.5) * 0.03);
       pos = p;
-      baseSize = 3.0;
+      baseSize = 6.5;
     }
     // ---- Background flow (two-sided) ----
     else {
@@ -84,64 +95,79 @@ const vertexShader = `
       float span = 30.0;
       float travel = mod(uTime * (aSpeed * 0.6 + 0.45) + abs(aInitialOffset.x) * 0.12, span);
       p.x = dir * (span - travel);
-      p.y += sin(uTime * 0.45 + aInitialOffset.x * 0.12) * 0.44;
-      p.z += cos(uTime * 0.35 + aInitialOffset.y * 0.09) * 0.44;
 
-      // charged red: gravity-ish pull + tangential spiral; fade & snap with jitter
+      p.y += sin(uTime * 0.45 + aInitialOffset.x * 0.12) * 0.32;
+      p.z += cos(uTime * 0.35 + aInitialOffset.y * 0.09) * 0.32;
+
+      // clamp so they don't leave the camera too far
+      p.y = clamp(p.y, -6.0, 6.0);
+      p.z = clamp(p.z, -12.0, 12.0);
+
+      // red charged particles: gravity-ish pull + tangential spiral
       if (aIsRed > 0.5) {
         float dist = length(p);
         if (dist > 0.0001) {
           vec3 toCenter = -p / dist;
-          float g = 0.82 * (1.0 / pow(dist + 0.52, 1.05));
-          g = clamp(g, 0.0, 0.92);
-          p += toCenter * g;
-          vec3 up = vec3(0.0, 1.0, 0.0);
-          vec3 tang = normalize(cross(toCenter, up));
-          p += tang * (0.62 * g);
 
-          // compute a smooth merge factor: 0 when far, 1 when very close
-          float merge = 1.0 - smoothstep(uRingRadius + 0.6, uRingRadius + 0.12, dist);
+          // gravity scale tuned for spiral orbit feeling
+          float g = 1.05 * (1.0 / pow(dist + 0.38, 1.02));
+          g = clamp(g, 0.0, 1.2);
+
+          // radial pull
+          p += toCenter * g * 0.9;
+
+          // tangential to make orbit spiral; tilt axis so orbits are 3D
+          vec3 axis = normalize(vec3(0.0, 0.65, 0.25));
+          vec3 tang = normalize(cross(toCenter, axis));
+          p += tang * (0.9 * g);
+
+          // gentle angular drift
+          float angDrift = 0.6 * (hash1(aInitialOffset.y * 7.7) - 0.5);
+          p = rotateY(p, angDrift * (1.0 - smoothstep(0.0, uRingRadius + 1.8, dist)));
+
+          // smooth merge factor
+          float merge = 1.0 - smoothstep(uRingRadius + 0.85, uRingRadius + 0.12, dist);
           vMerge = clamp(merge, 0.0, 1.0);
 
-          // when very close, snap onto ring but add a tiny jitter to avoid stacking
-          if (dist < (uRingRadius + 0.28)) {
+          // snap onto ring when close, with jitter to avoid stacking
+          if (dist < (uRingRadius + 0.34)) {
             float ang = atan(p.z, p.x) + (p.x > 0.0 ? uTime * 0.9 : -uTime * 0.8);
-            float rr = uRingRadius + sin(ang * 6.0 + uTime * 1.6) * 0.02;
-            vec3 ringP = vec3(cos(ang) * rr, sin(ang) * rr * (p.x > 0.0 ? 0.10 : 0.11), sin(ang) * rr);
-            if (p.x > 0.0) ringP = rotateY(ringP, -uTime * 0.03);
-            else ringP = rotateY(ringP, uTime * 0.02);
-            // tiny jitter based on initial offset so multiple red particles don't stack
-            float jitter = (fract(sin(aInitialOffset.y * 12.9898) * 43758.5453) - 0.5) * 0.03;
+            float rr = uRingRadius + sin(ang * 6.0 + uTime * 1.6) * 0.03;
+            vec3 ringP = vec3(cos(ang) * rr, sin(ang) * rr * (p.x > 0.0 ? 0.11 : 0.115), sin(ang) * rr);
+            if (p.x > 0.0) ringP = rotateY(ringP, -uTime * 0.035);
+            else ringP = rotateY(ringP, uTime * 0.025);
+            float jitter = (fract(sin(aInitialOffset.y * 12.9898) * 43758.5453) - 0.5) * 0.04;
             ringP += normalize(ringP) * jitter;
             p = ringP;
-            // ensure merge factor hits 1 when snapped
             vMerge = 1.0;
           }
         }
       }
 
       pos = p;
-      baseSize = 8.0;
+      // make red background particles larger for visibility
+      baseSize = (aIsRed > 0.5) ? 10.0 : 8.0;
     }
 
-    // spawn spread -> final
+    // intro spawn spread -> final
     vec3 introPos = aInitialOffset * 1.6;
     vec3 finalPos = mix(introPos, pos, clamp(uIntro, 0.0, 1.0));
 
-    // pass depth influence to fragment for subtle pop
-    vDepth = clamp(1.0 - smoothstep(0.0, 12.0, length(finalPos)), 0.25, 1.0);
+    vDepth = clamp(1.0 - smoothstep(0.0, 12.0, length(finalPos)), 0.2, 1.0);
 
     vec4 modelP = modelMatrix * vec4(finalPos, 1.0);
     vec4 viewP = viewMatrix * modelP;
     gl_Position = projectionMatrix * viewP;
 
     float size = baseSize * (1.6 / max(0.001, -viewP.z));
-    gl_PointSize = clamp(size, 3.0, 48.0);
+    // clamp sizes to keep ribbons readable and avoid massive points
+    gl_PointSize = clamp(size, 5.0, 96.0);
   }
 `;
 
 const fragmentShader = `
   precision highp float;
+
   uniform float uBoost;
 
   varying vec3 vColor;
@@ -150,36 +176,49 @@ const fragmentShader = `
   varying float vDepth;
 
   void main() {
+    // center-based coords for smooth circular point
     vec2 uv = gl_PointCoord - vec2(0.5);
     float d = length(uv);
-    if (d > 0.5) discard;
-    float edge = smoothstep(0.5, 0.22, d);
 
-    // base color boosted by depth and global boost
-    vec3 base = vColor * (0.45 + 0.65 * edge) * (0.6 + 0.6 * vDepth) * (0.6 + uBoost);
+    // make circular points with smooth falloff (no square artifacts)
+    // tight center, soft rim
+    float center = smoothstep(0.0, 0.45, 0.45 - d); // stronger center
+    float rim = smoothstep(0.45, 0.6, d);
 
-    // charged red emphasis glow
+    // base color w/ depth & boost
+    vec3 base = vColor * (0.5 + 0.75 * center) * (0.5 + 0.9 * vDepth) * (0.6 + uBoost);
+
+    // red glow additive component
+    vec3 redGlow = vec3(0.0);
     if (vIsRed > 0.5) {
-      base += vec3(0.38, 0.08, 0.08) * (1.0 - d) * (0.9 + vDepth);
+      float glowFactor = 1.0 - smoothstep(0.0, 0.65, d); // stronger near center
+      redGlow = vec3(0.64, 0.14, 0.14) * glowFactor * (1.0 + vDepth * 0.9);
+      base += vec3(0.52, 0.12, 0.12) * glowFactor * (1.0 + vDepth * 0.6);
     }
 
-    // smooth fade for merge: when vMerge is 0 -> fully visible,
-    // when vMerge approaches 1 -> fade out smoothly (not abrupt)
+    // alpha: red fades while merging but keeps residual rim to avoid hole
     float alpha = 1.0;
     if (vIsRed > 0.5) {
-      // cubic fade gives a nicer curve
       float f = clamp(vMerge, 0.0, 1.0);
-      alpha = 1.0 - (f * f * (3.0 - 2.0 * f)); // smoothstep-like easing
-      // keep a tiny remnant for subtle glow even at final fade
-      alpha = max(alpha, 0.0);
+      // cubic easing
+      alpha = 1.0 - (f * f * (3.0 - 2.0 * f));
+      // residual rim and glow preserved
+      alpha = max(alpha, 0.18 + 0.22 * (1.0 - d));
+    } else {
+      alpha = 1.0; // background never fades
     }
 
-    // non-red background never vanishes
-    gl_FragColor = vec4(base, alpha);
+    // outer softening (fade alpha slightly at extreme per-point edges)
+    float outer = smoothstep(0.7, 0.95, d);
+    alpha *= (1.0 - outer);
+
+    vec3 color = base + redGlow * 0.95;
+
+    gl_FragColor = vec4(color, alpha);
   }
 `;
 
-/* core energy sphere shaders (unchanged behavior) */
+/* core energy sphere shaders (neon core) */
 const coreVertex = `
   varying vec3 vPos;
   void main() {
@@ -202,7 +241,7 @@ const coreFragment = `
     float n = pseudo(vPos * 1.5);
     float glow = smoothstep(0.12, 0.95, n);
     vec3 col = mix(uBase, uAccent, n) * (0.6 + glow);
-    float alpha = clamp(0.28 + glow * 0.42, 0.15, 0.8);
+    float alpha = clamp(0.28 + glow * 0.42, 0.15, 0.9);
     gl_FragColor = vec4(col, alpha);
   }
 `;
@@ -212,8 +251,9 @@ const ParticleSystem = forwardRef((props, ref) => {
   const coreRef = useRef();
   const lightRef = useRef();
 
+  // buffers
   const [positions, colors, speeds, types, ringT, initialOffsets, isRed] = useMemo(() => {
-    const positions = new Float32Array(COUNT * 3);
+    const positions = new Float32Array(COUNT * 3); // not used by shader directly but required for attribute
     const colors = new Float32Array(COUNT * 3);
     const speeds = new Float32Array(COUNT);
     const types = new Float32Array(COUNT);
@@ -225,24 +265,25 @@ const ParticleSystem = forwardRef((props, ref) => {
     // Ring A
     for (let r = 0; r < RING_PER_RING; r++, i++) {
       types[i] = 0.0;
-      ringT[i] = r / RING_PER_RING;
-      speeds[i] = 0.45 + Math.random() * 0.6;
-      colors[i * 3 + 0] = 1.0; colors[i * 3 + 1] = 0.06 + Math.random() * 0.03; colors[i * 3 + 2] = 0.06 + Math.random() * 0.03;
-      initialOffsets[i * 3 + 0] = (Math.random() - 0.5) * 1.2;
-      initialOffsets[i * 3 + 1] = (Math.random() - 0.5) * 0.8;
-      initialOffsets[i * 3 + 2] = (Math.random() - 0.5) * 1.2;
+      ringT[i] = r / RING_PER_RING + (Math.random() - 0.5) * 0.01; // bigger initial spread
+      speeds[i] = 0.55 + Math.random() * 0.7;
+      // warm red-ish ribbon color
+      colors[i * 3 + 0] = 0.98; colors[i * 3 + 1] = 0.06 + Math.random() * 0.03; colors[i * 3 + 2] = 0.06 + Math.random() * 0.03;
+      initialOffsets[i * 3 + 0] = (Math.random() - 0.5) * 1.6;
+      initialOffsets[i * 3 + 1] = (Math.random() - 0.5) * 0.9;
+      initialOffsets[i * 3 + 2] = (Math.random() - 0.5) * 1.6;
       isRed[i] = 0.0;
     }
 
     // Ring B
     for (let r = 0; r < RING_PER_RING; r++, i++) {
       types[i] = 1.0;
-      ringT[i] = r / RING_PER_RING;
-      speeds[i] = 0.45 + Math.random() * 0.6;
-      colors[i * 3 + 0] = 1.0; colors[i * 3 + 1] = 0.06 + Math.random() * 0.03; colors[i * 3 + 2] = 0.06 + Math.random() * 0.03;
-      initialOffsets[i * 3 + 0] = (Math.random() - 0.5) * 1.2;
-      initialOffsets[i * 3 + 1] = (Math.random() - 0.5) * 0.8;
-      initialOffsets[i * 3 + 2] = (Math.random() - 0.5) * 1.2;
+      ringT[i] = r / RING_PER_RING + (Math.random() - 0.5) * 0.01;
+      speeds[i] = 0.55 + Math.random() * 0.7;
+      colors[i * 3 + 0] = 0.98; colors[i * 3 + 1] = 0.06 + Math.random() * 0.03; colors[i * 3 + 2] = 0.06 + Math.random() * 0.03;
+      initialOffsets[i * 3 + 0] = (Math.random() - 0.5) * 1.6;
+      initialOffsets[i * 3 + 1] = (Math.random() - 0.5) * 0.9;
+      initialOffsets[i * 3 + 2] = (Math.random() - 0.5) * 1.6;
       isRed[i] = 0.0;
     }
 
@@ -250,45 +291,52 @@ const ParticleSystem = forwardRef((props, ref) => {
     for (let b = 0; b < BG_COUNT; b++, i++) {
       types[i] = 2.0;
       ringT[i] = 0.0;
-      speeds[i] = 0.6 + Math.random() * 1.0;
+      speeds[i] = 0.6 + Math.random() * 1.2;
       const side = Math.random() < 0.5 ? -1 : 1;
       const sx = side * (10 + Math.random() * 18);
       const sy = (Math.random() - 0.5) * 12;
-      const sz = (Math.random() - 0.5) * 28;
+      const sz = (Math.random() - 0.5) * 24;
       initialOffsets[i * 3 + 0] = sx;
       initialOffsets[i * 3 + 1] = sy;
       initialOffsets[i * 3 + 2] = sz;
 
       const r = Math.random();
       if (r < 0.05) {
+        // red charged particles (sparse)
         colors[i * 3 + 0] = 1.0; colors[i * 3 + 1] = 0.18; colors[i * 3 + 2] = 0.18;
         isRed[i] = 1.0;
       } else if (r < 0.06) {
+        // occasional cyan accent
         colors[i * 3 + 0] = 0.05; colors[i * 3 + 1] = 0.9; colors[i * 3 + 2] = 1.0;
         isRed[i] = 0.0;
       } else {
-        const shade = 0.14 + Math.random() * 0.06;
+        // dark background particles
+        const shade = 0.12 + Math.random() * 0.06;
         colors[i * 3 + 0] = shade; colors[i * 3 + 1] = shade; colors[i * 3 + 2] = shade;
         isRed[i] = 0.0;
       }
     }
 
+    // positions array can be zeros; shader uses aInitialOffset for motion
     return [positions, colors, speeds, types, ringT, initialOffsets, isRed];
   }, []);
 
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
+
     if (shaderRef.current) {
       shaderRef.current.uniforms.uTime.value = t;
-      shaderRef.current.uniforms.uIntro.value = Math.min(1.0, t * 0.35);
+      shaderRef.current.uniforms.uIntro.value = Math.min(1.0, t * 0.45);
       shaderRef.current.uniforms.uRingRadius.value = RING_RADIUS;
-      shaderRef.current.uniforms.uBoost.value = 0.18;
+      shaderRef.current.uniforms.uBoost.value = 0.28;
     }
     if (coreRef.current) coreRef.current.uniforms.uTime.value = t;
     if (lightRef.current) {
       const tt = clock.getElapsedTime();
-      lightRef.current.intensity = 0.9 + Math.sin(tt * 1.1) * 0.25;
+      lightRef.current.intensity = 1.0 + Math.sin(tt * 1.1) * 0.32;
       lightRef.current.position.set(Math.sin(tt * 0.6) * 0.12, Math.cos(tt * 0.9) * 0.08, 0.18);
+      // slightly warm neon tint
+      lightRef.current.color.setRGB(1.0, 0.36, 0.36);
     }
   });
 
@@ -318,7 +366,7 @@ const ParticleSystem = forwardRef((props, ref) => {
           transparent={true}
           depthWrite={false}
           depthTest={true}
-          blending={THREE.NormalBlending}
+          blending={THREE.AdditiveBlending} // neon additive pop
         />
       </points>
 
@@ -340,7 +388,8 @@ const ParticleSystem = forwardRef((props, ref) => {
         />
       </mesh>
 
-      <pointLight ref={lightRef} color={0xff3f3f} intensity={0.9} distance={12} decay={2} />
+      {/* neon point light for extra punch */}
+      <pointLight ref={lightRef} color={0xff3f3f} intensity={1.0} distance={12} decay={2} />
     </group>
   );
 });
