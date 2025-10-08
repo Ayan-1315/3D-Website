@@ -1,11 +1,17 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+
+:root {
+  color-scheme: light;
+}
 
 html, body, #root {
   height: 100%;
   margin: 0;
   padding: 0;
   font-family: 'Inter', sans-serif;
-  background-color: #000000;
+  background: #fbf8f3;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 body {
@@ -18,119 +24,37 @@ body {
   position: relative;
 }
 
+/* container for the 3D canvas / samurai model area */
 .canvas-background {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  inset: 0;
   z-index: 1;
+  background-image:
+    /* subtle paper grain using SVG data URL to avoid external file */
+    linear-gradient(transparent, rgba(0,0,0,0.01)),
+    radial-gradient(circle at 10% 20%, rgba(0,0,0,0.01), transparent 2%),
+    linear-gradient(180deg, #fffefc 0%, #f6f3ee 100%);
+  background-blend-mode: normal;
 }
 
-.right-menu {
-  position: fixed;
-  top: 0; right: 0;
-  height: 100dvh;
-  width: clamp(220px, 18vw, 300px);
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 0 5vw;
-  z-index: 3;
-  background: linear-gradient(270deg, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0));
-}
-
-.brand {
-  position: absolute;
-  top: 40px;
-  right: 5vw;
-  letter-spacing: 0.2em;
-  font-weight: 700;
-  color: #e9e9e9;
-}
-
-.menu {
-  list-style: none;
-  margin: 0;
-  padding: 0;
-  display: grid;
-  gap: 24px;
-  width: 100%;
-}
-
-.menu-item {
-  width: 100%;
-  text-align: left;
-  padding: 12px 0;
-  border: none;
-  border-bottom: 1px solid #555;
-  background: transparent;
-  color: #999;
-  cursor: pointer;
-  transition: all 160ms ease;
-  font-weight: 400;
-  letter-spacing: 0.1em;
-  font-size: 1.1rem;
-}
-
-.menu-item:hover {
-  border-color: #fff;
-  color: #fff;
-}
-
-.menu-item.active {
-  border-color: #00e5ff;
-  color: #00e5ff;
-}
-
+/* simple panel style (content area that opens) */
 .panel {
-  position: fixed; top: 0; left: 0;
-  height: 100dvh; width: clamp(320px, 30vw, 450px);
-  background: rgba(10, 10, 10, 0.85);
-  border-right: 1px solid #222;
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
-  transform: translateX(-102%);
-  transition: transform 420ms cubic-bezier(.22, 1, .36, 1);
-  z-index: 2; color: #ccc;
+  position: fixed;
+  top: 10vh;
+  left: 6vw;
+  width: min(640px, 62vw);
+  max-height: 80vh;
+  overflow: auto;
+  background: linear-gradient(180deg, #fffefc, #f6f3ee);
+  border: 1px solid rgba(0,0,0,0.04);
+  box-shadow: 0 12px 36px rgba(20,20,20,0.08);
+  padding: 26px;
+  z-index: 40;
+  display: none;
 }
-.panel.open { transform: translateX(0); }
+.panel.open { display: block; }
 
-.panel-header {
-  padding: 24px 30px;
-  border-bottom: 1px solid #222;
-}
+.panel h2 { margin-top: 0; color: #1b1b1b; }
 
-.panel-header h2 {
-  margin: 0;
-  letter-spacing: .15em;
-  font-size: 1.5rem;
-  text-transform: uppercase;
-}
-
-.panel-content {
-  padding: 30px;
-  line-height: 1.7;
-  font-weight: 300;
-  font-size: 1.1rem;
-}
-
-.back-fab {
-  position: absolute;
-  bottom: 40px;
-  right: 5vw;
-  border: 1px solid #555;
-  border-radius: 999px;
-  width: 42px; height: 42px;
-  color: #999;
-  background: transparent;
-  cursor: pointer;
-  transition: all 160ms ease;
-  font-size: 1.5rem;
-}
-
-.back-fab:hover {
-  color: #fff;
-  border-color: #fff;
-}
+/* keep interactive items on top */
+.right-menu { z-index: 50; }

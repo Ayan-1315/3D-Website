@@ -1,0 +1,25 @@
+/* HomePage.css */
+.homepage { min-height: 100vh; position: relative; overflow: hidden; }
+
+/* subtle paper crease using linear gradients */
+.canvas-background {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* panel content */
+.panel-content {
+  color: #222;
+  line-height: 1.6;
+  font-size: 1rem;
+}
+
+/* responsive tweaks */
+@media (max-width: 800px) {
+  .right-menu { width: clamp(120px, 28vw, 220px) !important; }
+  .panel { left: 3vw; width: 86vw; }
+}
