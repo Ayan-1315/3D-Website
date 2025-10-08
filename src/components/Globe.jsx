@@ -97,7 +97,7 @@ const Globe = forwardRef(function Globe(_props, ref) {
   return (
     <div className="globe-canvas" style={{ position: "absolute", inset: 0 }}>
       <Canvas
-        onCreated={({ scene }) => scene.background = new THREE.Color('#ffffff')}
+        onCreated={({ scene }) => scene.background = new THREE.Color('#101010')}
         camera={{ position: [0, 0, 12], fov: 45 }}
         dpr={[1, 1.5]}
         gl={{ antialias: false }}

@@ -1,12 +1,12 @@
-import React, { forwardRef, useRef, useMemo } from "react";
+import React, { forwardRef, useRef, useMemo, useEffect } from "react";
 import { useFrame } from "@react-three/fiber";
 import * as THREE from "three";
 
 /**
- ParticleSystem.jsx
- - red particles always visible & glowing (no transparency fade)
- - both ribbons share same radius (2.7) with 45° angular offset
- - particles never vanish in the middle
+ ParticleSystem.jsx — updated
+ - Keeps ribbon angle exactly 45° (RING_ANGULAR_OFFSET)
+ - Adds a spotlight that targets the dyson-sphere (core mesh)
+ - Small safety: use abs(viewP.z) for point-size calculation
 */
 
 const RING_RADIUS = 2.7;
@@ -16,7 +16,7 @@ const BG_COUNT = Math.max(0, TARGET_TOTAL - RING_PER_RING * 2);
 const COUNT = RING_PER_RING * 2 + BG_COUNT;
 
 // ring angular offset in radians (45°)
-const RING_ANGULAR_OFFSET = Math.PI / 4.0;
+const RING_ANGULAR_OFFSET = Math.PI / 4.0; // exactly 45°
 
 const vertexShader = `
   precision highp float;
@@ -39,7 +39,6 @@ const vertexShader = `
     float s = sin(angle);
     return vec3(p.x * c + p.z * s, p.y, -p.x * s + p.z * c);
   }
-  float hash1(float x) { return fract(sin(x)*43758.5453); }
 
   void main() {
     vColor = aColor;
@@ -58,9 +57,10 @@ const vertexShader = `
       pos = rotateY(pos, uTime * 0.055);
       baseSize = 7.5;
     }
-    // RING B — same radius, 45° offset
+    // RING B — same radius, exact 45° offset
     else if (aType < 1.5) {
       float t = fract(aRingT - uTime * 0.0009 * aSpeed);
+      // literal 45° offset is injected from JS constant; ensures exactness
       float ang = t * 6.28318530718 - uTime * 0.24 * aSpeed + ${RING_ANGULAR_OFFSET};
       float wig = cos(t * 9.0 + uTime * 0.9) * 0.04;
       float radius = uRingRadius + wig;
@@ -84,33 +84,36 @@ const vertexShader = `
       // gravity for red only
       if(aIsRed>0.5){
         float dist=length(p);
-        vec3 toCenter=-normalize(p);
-        float g=1.15*(1.0/pow(dist+0.36,1.02));
-        g=clamp(g,0.0,1.3);
-        p+=toCenter*g*0.95;
-        vec3 axis=normalize(vec3(0.0,0.66,0.24));
-        vec3 tang=normalize(cross(toCenter,axis));
-        p+=tang*(0.95*g);
-        if(dist<(uRingRadius+0.36)){
-          float ang=atan(p.z,p.x);
-          float rr=uRingRadius+sin(ang*6.0+uTime*1.6)*0.035;
-          p=vec3(cos(ang)*rr,sin(ang)*rr*0.12,sin(ang)*rr);
+        vec3 toCenter = (dist > 0.0001) ? -normalize(p) : vec3(0.0);
+        float g = 1.15*(1.0/pow(dist+0.36,1.02));
+        g = clamp(g,0.0,1.3);
+        p += toCenter * g * 0.95;
+        vec3 axis = normalize(vec3(0.0,0.66,0.24));
+        vec3 tang = normalize(cross(toCenter,axis));
+        p += tang * (0.95 * g);
+        if(dist < (uRingRadius + 0.36)){
+          float ang = atan(p.z,p.x);
+          float rr = uRingRadius + sin(ang*6.0 + uTime*1.6) * 0.035;
+          p = vec3(cos(ang)*rr, sin(ang)*rr*0.12, sin(ang)*rr);
         }
       }
 
-      pos=p;
-      baseSize=(aIsRed>0.5)?11.0:8.5;
+      pos = p;
+      baseSize = (aIsRed>0.5) ? 11.0 : 8.5;
     }
 
-    vec3 introPos=aInitialOffset*1.6;
-    vec3 finalPos=mix(introPos,pos,clamp(uIntro,0.0,1.0));
-    vDepth=clamp(1.0-smoothstep(0.0,12.0,length(finalPos)),0.2,1.0);
+    vec3 introPos = aInitialOffset * 1.6;
+    vec3 finalPos = mix(introPos, pos, clamp(uIntro,0.0,1.0));
+    vDepth = clamp(1.0 - smoothstep(0.0,12.0,length(finalPos)),0.2,1.0);
 
-    vec4 modelP=modelMatrix*vec4(finalPos,1.0);
-    vec4 viewP=viewMatrix*modelP;
-    gl_Position=projectionMatrix*viewP;
-    float size=baseSize*(1.6/max(0.001,-viewP.z));
-    gl_PointSize=clamp(size,2.0,128.0);
+    vec4 modelP = modelMatrix * vec4(finalPos, 1.0);
+    vec4 viewP = viewMatrix * modelP;
+    gl_Position = projectionMatrix * viewP;
+
+    // safety: use abs(viewP.z) so size doesn't collapse if sign is unexpected
+    float z = max(0.001, abs(viewP.z));
+    float size = baseSize * (1.6 / z);
+    gl_PointSize = clamp(size, 2.0, 128.0);
   }
 `;
 
@@ -124,23 +127,23 @@ const fragmentShader = `
   void main(){
     vec2 uv=gl_PointCoord-vec2(0.5);
     float d=length(uv);
-    if(d>0.5)discard;
+    if(d>0.5) discard;
     float edge=smoothstep(0.48,0.2,d);
     vec3 base=vColor*(0.8+1.1*(1.0-edge))*(0.7+1.2*vDepth)*(0.85+uBoost);
     // red always glowing & opaque
     if(vIsRed>0.5){
-      base+=vec3(1.0,0.25,0.25)*(1.0-d)*1.5;
+      base += vec3(1.0,0.25,0.25) * (1.0 - d) * 1.5;
     }
-    float alpha=1.0; // no transparency for red or black
-    gl_FragColor=vec4(base,alpha);
+    float alpha = 1.0; // fully opaque for visibility
+    gl_FragColor = vec4(base, alpha);
   }
 `;
 
 const coreVertex = `
   varying vec3 vPos;
   void main(){
-    vPos=position;
-    gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);
+    vPos = position;
+    gl_Position = projectionMatrix * modelViewMatrix * vec4(position,1.0);
   }
 `;
 const coreFragment = `
@@ -153,18 +156,20 @@ const coreFragment = `
     return 0.5+0.5*sin(p.x*3.0+uTime*2.0)*cos(p.y*2.5-uTime*1.4);
   }
   void main(){
-    float n=pseudo(vPos*1.5);
-    float glow=smoothstep(0.12,0.95,n);
-    vec3 col=mix(uBase,uAccent,n)*(0.6+glow);
-    float alpha=clamp(0.28+glow*0.42,0.15,0.9);
-    gl_FragColor=vec4(col,alpha);
+    float n = pseudo(vPos*1.5);
+    float glow = smoothstep(0.12,0.95,n);
+    vec3 col = mix(uBase,uAccent,n) * (0.6+glow);
+    float alpha = clamp(0.28 + glow*0.42, 0.15, 0.9);
+    gl_FragColor = vec4(col, alpha);
   }
 `;
 
 const ParticleSystem = forwardRef((props, ref) => {
   const shaderRef = useRef();
-  const coreRef = useRef();
-  const lightRef = useRef();
+  const coreRef = useRef();      // shader material ref for core (uniform updates)
+  const coreMeshRef = useRef();  // mesh ref for the dyson-sphere mesh (target)
+  const spotRef = useRef();      // spotlight ref
+  const targetRef = useRef();    // invisible mesh target for the spotlight
 
   const [positions, colors, speeds, types, ringT, initialOffsets, isRed] = useMemo(() => {
     const positions = new Float32Array(COUNT * 3);
@@ -220,6 +225,16 @@ const ParticleSystem = forwardRef((props, ref) => {
     return [positions, colors, speeds, types, ringT, initialOffsets, isRed];
   }, []);
 
+  // ensure spotlight target is set once both exist
+  useEffect(() => {
+    if (spotRef.current && targetRef.current) {
+      // the WebGL light's target is an Object3D; assign the target object
+      spotRef.current.target = targetRef.current;
+      // if using shadows, enable target updates
+      spotRef.current.target.updateMatrixWorld();
+    }
+  }, []);
+
   useFrame(({ clock }) => {
     const t = clock.getElapsedTime();
     if (shaderRef.current) {
@@ -229,11 +244,9 @@ const ParticleSystem = forwardRef((props, ref) => {
       shaderRef.current.uniforms.uBoost.value = 0.6;
     }
     if (coreRef.current) coreRef.current.uniforms.uTime.value = t;
-    if (lightRef.current) {
-      const tt = clock.getElapsedTime();
-      lightRef.current.intensity = 1.0 + Math.sin(tt * 1.1) * 0.32;
-      lightRef.current.position.set(Math.sin(tt * 0.6) * 0.12, Math.cos(tt * 0.9) * 0.08, 0.18);
-      lightRef.current.color.setRGB(1.0, 0.36, 0.36);
+    if (spotRef.current) {
+      // subtle breathing on the spotlight intensity for life
+      spotRef.current.intensity = 1.6 + Math.sin(t * 0.9) * 0.25;
     }
   });
 
@@ -249,6 +262,7 @@ const ParticleSystem = forwardRef((props, ref) => {
           <bufferAttribute attach="attributes-aInitialOffset" array={initialOffsets} count={initialOffsets.length / 3} itemSize={3} />
           <bufferAttribute attach="attributes-aIsRed" array={isRed} count={isRed.length} itemSize={1} />
         </bufferGeometry>
+
         <shaderMaterial
           ref={shaderRef}
           vertexShader={vertexShader}
@@ -265,7 +279,9 @@ const ParticleSystem = forwardRef((props, ref) => {
           blending={THREE.NormalBlending}
         />
       </points>
-      <mesh position={[0, 0, 0]}>
+
+      {/* Core sphere (dyson-sphere). coreMeshRef used as visual target */}
+      <mesh ref={coreMeshRef} position={[0, 0, 0]}>
         <sphereGeometry args={[1.2, 48, 48]} />
         <shaderMaterial
           ref={coreRef}
@@ -281,7 +297,25 @@ const ParticleSystem = forwardRef((props, ref) => {
           blending={THREE.AdditiveBlending}
         />
       </mesh>
-      <pointLight ref={lightRef} color={0xff3f3f} intensity={1.0} distance={12} decay={2} />
+
+      {/* invisible mesh as a reliable light target (ensure Object3D exists) */}
+      <mesh ref={targetRef} position={[0, 0, 0]} visible={false} />
+
+      {/* Spotlight aimed at the dyson-sphere */}
+      <spotLight
+        ref={spotRef}
+        color={[1.0, 0.7, 0.6]}
+        intensity={1.6}
+        distance={12}
+        angle={Math.PI / 6}      // focused cone
+        penumbra={0.4}
+        decay={2}
+        position={[2.2, 1.4, 2.6]} // gives a slightly angled key-light
+        castShadow={false}
+      />
+
+      {/* small fill pinkish point to keep the core warm */}
+      <pointLight position={[-1.2, -0.6, -0.8]} intensity={0.28} color={0xff7a7a} distance={8} decay={2} />
     </group>
   );
 });
