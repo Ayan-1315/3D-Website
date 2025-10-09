@@ -2,9 +2,9 @@ import React, { useEffect, useRef } from "react";
 
 /**
  * MouseTrail.jsx
- * - adds a full-screen canvas overlay
- * - draws a black ink brush stroke following pointer/touch
- * - strokes fade out
+ * - full-screen canvas following mouse
+ * - draws black ink-like brush stroke
+ * - now renders BEHIND main scene
  */
 export default function MouseTrail() {
   const canvasRef = useRef(null);
@@ -19,7 +19,7 @@ export default function MouseTrail() {
     canvas.style.width = "100%";
     canvas.style.height = "100%";
     canvas.style.pointerEvents = "none";
-    canvas.style.zIndex = 40;
+    canvas.style.zIndex = "0"; // changed from 40 → 0 (behind hero image)
     document.body.appendChild(canvas);
     canvasRef.current = canvas;
 
@@ -33,7 +33,7 @@ export default function MouseTrail() {
     };
     resize();
     window.addEventListener("resize", resize);
-
+    
     // eslint-disable-next-line
     let isDown = false;
     const addPoint = (x, y, pressure = 1) => {
@@ -48,7 +48,9 @@ export default function MouseTrail() {
       addPoint(x, y, e.pressure ?? 1);
       isDown = true;
     };
-    const handleUp = () => { isDown = false; };
+    const handleUp = () => {
+      isDown = false;
+    };
 
     window.addEventListener("pointermove", handleMove, { passive: true });
     window.addEventListener("pointerdown", handleMove, { passive: true });
@@ -56,14 +58,14 @@ export default function MouseTrail() {
 
     const draw = () => {
       rafRef.current = requestAnimationFrame(draw);
-      // fade the canvas slightly to create trailing fade
-      ctx.fillStyle = "rgba(250,250,247,0.06)"; // a tiny white wash (paper) to fade ink slowly
+
+      // fade canvas slightly each frame for a trailing effect
+      ctx.fillStyle = "rgba(250,250,247,0.06)";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
       const pts = pointsRef.current;
       if (!pts.length) return;
 
-      // draw strokes as smooth bezier between points
       ctx.lineJoin = "round";
       ctx.lineCap = "round";
 
@@ -71,8 +73,8 @@ export default function MouseTrail() {
         const p0 = pts[i];
         const p1 = pts[i + 1];
 
-        const age = (performance.now() - p0.t) / 1200; // older strokes fade more
-        const alpha = Math.max(0, 1 - age); // 1 to 0
+        const age = (performance.now() - p0.t) / 1200;
+        const alpha = Math.max(0, 1 - age);
         const width = Math.max(1.2, 18 * (1 - age * 0.9) * (p1.p || 1));
 
         ctx.strokeStyle = `rgba(10,10,10,${0.92 * alpha})`;
@@ -80,14 +82,12 @@ export default function MouseTrail() {
 
         ctx.beginPath();
         ctx.moveTo(p0.x, p0.y);
-        // use midpoint for smoother curves
         const midX = (p0.x + p1.x) / 2;
         const midY = (p0.y + p1.y) / 2;
         ctx.quadraticCurveTo(p0.x, p0.y, midX, midY);
         ctx.stroke();
       }
 
-      // purge really old points
       const now = performance.now();
       pointsRef.current = pts.filter((p) => now - p.t < 1800);
     };

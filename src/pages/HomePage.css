@@ -1,25 +1,120 @@
-/* HomePage.css */
-.homepage { min-height: 100vh; position: relative; overflow: hidden; }
+/* Clean cinematic layout for single front image */
 
-/* subtle paper crease using linear gradients */
-.canvas-background {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
+.homepage {
+  min-height: 100vh;
+  position: relative;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 40%, #222 0%, #0b0b0b 60%);
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-/* panel content */
+/* red ambient glow behind the figure */
+.red-glow {
+  position: absolute;
+  width: 50vmin;
+  height: 50vmin;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(255, 28, 28, 0.3) 0%, rgba(255, 28, 28, 0.08) 40%, transparent 70%);
+  filter: blur(80px);
+  transform: translateY(-5vmin);
+  z-index: 1;
+  mix-blend-mode: screen;
+}
+
+/* container for front image */
+.front-container {
+  position: relative;
+  z-index: 20; /* raised above mouse trail */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.front-card {
+  position: relative;
+  display: inline-block;
+  pointer-events: none;
+}
+
+/* main image */
+.front {
+  height: 82vh;
+  object-fit: contain;
+  transform-origin: center bottom;
+  filter: drop-shadow(0 0 28px rgba(255, 28, 28, 0.4))
+          drop-shadow(0 12px 40px rgba(0, 0, 0, 0.7));
+  display: block;
+}
+
+/* subtle red reflection overlay */
+.front-reflection {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 28, 28, 0.08) 0%,
+    rgba(255, 28, 28, 0.06) 15%,
+    transparent 40%
+  );
+  mix-blend-mode: screen;
+  filter: blur(8px);
+  border-radius: 2px;
+}
+
+/* breathing animation */
+@keyframes breathe {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  50% {
+    transform: translateY(-1.5%) scale(1.025);
+  }
+}
+.breathing {
+  animation: breathe 5s ease-in-out infinite;
+}
+
+/* panel and menu styling (kept from old version) */
 .panel-content {
-  color: #222;
+  color: #ddd;
   line-height: 1.6;
   font-size: 1rem;
 }
 
-/* responsive tweaks */
+/* responsiveness */
 @media (max-width: 800px) {
-  .right-menu { width: clamp(120px, 28vw, 220px) !important; }
-  .panel { left: 3vw; width: 86vw; }
+  .front {
+    height: 68vh;
+  }
+  .red-glow {
+    width: 70vmin;
+    height: 70vmin;
+    filter: blur(60px);
+    opacity: 0.8;
+  }
+}
+
+/* reduced motion users */
+@media (prefers-reduced-motion: reduce) {
+  .breathing {
+    animation: none;
+  }
+}
+
+/* --- FIXED STACK ORDER --- */
+
+/* ensure app sits above the mouse trail canvas */
+.app-container,
+.homepage {
+  position: relative;
+  z-index: 10;
+}
+
+/* force mouse trail canvas behind everything else */
+canvas[style*="position: fixed"] {
+  z-index: 0 !important;
+  pointer-events: none !important;
 }
