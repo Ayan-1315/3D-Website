@@ -1,5 +1,6 @@
-/* Clean cinematic layout for single front image */
+/* Clean cinematic layout for single front image with explicit stacking */
 
+/* -------------- base -------------- */
 .homepage {
   min-height: 100vh;
   position: relative;
@@ -10,23 +11,57 @@
   justify-content: center;
 }
 
-/* red ambient glow behind the figure */
+/* keep app container stacking context higher than body canvases */
+.app-container,
+.homepage {
+  position: relative;
+  z-index: 50; /* base stacking context for app content */
+}
+
+/* -------------- background layer (lowest) -------------- */
+.background-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 10; /* below shader and samurai */
+  pointer-events: none;
+}
 .red-glow {
   position: absolute;
   width: 50vmin;
   height: 50vmin;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(255, 28, 28, 0.3) 0%, rgba(255, 28, 28, 0.08) 40%, transparent 70%);
+  background: radial-gradient(circle, rgba(255, 28, 28, 0.28) 0%, rgba(255, 28, 28, 0.06) 30%, rgba(0,0,0,0) 70%);
   filter: blur(80px);
   transform: translateY(-5vmin);
-  z-index: 1;
+  z-index: 10;
   mix-blend-mode: screen;
 }
 
-/* container for front image */
+/* -------------- SamuraiScene shader base (under the samurai image) -------------- */
+.samurai-scene {
+  position: absolute;
+  left: 50%;
+  top: 62%; /* place slightly below center where feet would be */
+  transform: translate(-50%, -50%);
+  width: 58vmin;
+  height: 18vmin;
+  z-index: 20; /* under the samurai image (30) */
+  pointer-events: none;
+  display: block;
+  will-change: transform, opacity;
+}
+
+/* Canvas inside SamuraiScene is full of its element; style kept minimal */
+.samurai-scene canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+/* -------------- Samurai image (above shader) -------------- */
 .front-container {
   position: relative;
-  z-index: 20; /* raised above mouse trail */
+  z-index: 30; /* samurai picture on top of shader */
   display: flex;
   align-items: center;
   justify-content: center;
@@ -64,20 +99,52 @@
   border-radius: 2px;
 }
 
-/* breathing animation */
+/* -------------- Mouse trail canvas (between top text and samurai) -------------- */
+/* Note: MouseTrail appends a fixed canvas to body. We force it behind the samurai but above background. */
+canvas[style*="position: fixed"] {
+  z-index: 25 !important; /* sits between shader(20) and samurai(30) */
+  pointer-events: none !important;
+}
+
+/* -------------- top text (highest) -------------- */
+.top-text {
+  position: absolute;
+  top: 6vh;
+  left: 6vw;
+  z-index: 60; /* highest */
+  pointer-events: none;
+  text-align: left;
+  filter: drop-shadow(0 6px 16px rgba(0,0,0,0.6));
+  color: #fff;
+}
+.top-text .title {
+  font-family: "Inter", system-ui, -apple-system, "Hiragino Kaku Gothic ProN", sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  font-size: 1rem;
+  opacity: 0.95;
+  margin-bottom: 6px;
+}
+.top-text .katakana {
+  font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "Noto Sans JP", serif;
+  font-size: 3.8rem;
+  color: rgba(255, 28, 28, 0.95);
+  letter-spacing: 0.03em;
+  transform: translateY(-8px);
+  mix-blend-mode: screen;
+  text-shadow: 0 8px 28px rgba(255,28,28,0.12);
+}
+
+/* breathing animation for the samurai image */
 @keyframes breathe {
-  0%, 100% {
-    transform: translateY(0) scale(1);
-  }
-  50% {
-    transform: translateY(-1.5%) scale(1.025);
-  }
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-1.5%) scale(1.025); }
 }
 .breathing {
   animation: breathe 5s ease-in-out infinite;
 }
 
-/* panel and menu styling (kept from old version) */
+/* panel and menu content kept */
 .panel-content {
   color: #ddd;
   line-height: 1.6;
@@ -86,35 +153,13 @@
 
 /* responsiveness */
 @media (max-width: 800px) {
-  .front {
-    height: 68vh;
-  }
-  .red-glow {
-    width: 70vmin;
-    height: 70vmin;
-    filter: blur(60px);
-    opacity: 0.8;
-  }
+  .front { height: 68vh; }
+  .red-glow { width: 72vmin; height: 72vmin; filter: blur(64px); }
+  .samurai-scene { width: 80vmin; height: 20vmin; top: 68%; }
+  .top-text .katakana { font-size: 3rem; }
 }
 
-/* reduced motion users */
+/* reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .breathing {
-    animation: none;
-  }
-}
-
-/* --- FIXED STACK ORDER --- */
-
-/* ensure app sits above the mouse trail canvas */
-.app-container,
-.homepage {
-  position: relative;
-  z-index: 10;
-}
-
-/* force mouse trail canvas behind everything else */
-canvas[style*="position: fixed"] {
-  z-index: 0 !important;
-  pointer-events: none !important;
+  .breathing { animation: none; }
 }
