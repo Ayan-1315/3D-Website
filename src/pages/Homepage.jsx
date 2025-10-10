@@ -43,7 +43,9 @@ export default function Homepage() {
       {/* 3) Samurai image */}
       <div className="front-container">
         <div className="front-card">
-          <img src={frontPath} alt="Samurai Front" className="front breathing" />
+          <img src={frontPath} alt="Samurai Front" className="front" />
+          <div className="sword-glow" aria-hidden />
+          <div className="sword-rim" aria-hidden />
           <div className="front-reflection" />
         </div>
       </div>
@@ -58,7 +60,11 @@ export default function Homepage() {
       </div>
 
       {/* Right menu */}
-      <RightMenu activePage={activePage} onOpenPage={handleOpenPage} onBack={handleBack} />
+      <RightMenu
+        activePage={activePage}
+        onOpenPage={handleOpenPage}
+        onBack={handleBack}
+      />
 
       {/* Panel */}
       <section className={`panel ${isPanelOpen ? "open" : ""}`}>
@@ -66,9 +72,13 @@ export default function Homepage() {
           <h2>{activePage}</h2>
         </header>
         <div className="panel-content">
-          {activePage === "About" && <p>About content — write something minimal and poetic.</p>}
+          {activePage === "About" && (
+            <p>About content — write something minimal and poetic.</p>
+          )}
           {activePage === "Projects" && <p>Projects will be displayed here.</p>}
-          {activePage === "Contact" && <p>Contact me at your-email@example.com</p>}
+          {activePage === "Contact" && (
+            <p>Contact me at your-email@example.com</p>
+          )}
         </div>
       </section>
     </main>

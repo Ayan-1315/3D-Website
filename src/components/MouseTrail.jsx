@@ -1,16 +1,15 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 
 /**
- * MouseTrail.jsx
- * - full-screen canvas following mouse
- * - draws black ink-like brush stroke
- * - now renders BEHIND main scene
+ * MouseTrail.jsx — black ink with red halo
+ *
+ * - No permanent marks (canvas fades)
+ * - Stronger, black core stroke
+ * - Soft red shadow/halo around stroke (matches sword)
+ * - Prevents initial blobs and jitter
  */
-export default function MouseTrail() {
-  const canvasRef = useRef(null);
-  const pointsRef = useRef([]);
-  const rafRef = useRef(null);
 
+export default function MouseTrail() {
   useEffect(() => {
     const canvas = document.createElement("canvas");
     canvas.style.position = "fixed";
@@ -19,88 +18,187 @@ export default function MouseTrail() {
     canvas.style.width = "100%";
     canvas.style.height = "100%";
     canvas.style.pointerEvents = "none";
-    canvas.style.zIndex = "0"; // changed from 40 → 0 (behind hero image)
+    canvas.style.zIndex = "5";
     document.body.appendChild(canvas);
-    canvasRef.current = canvas;
 
-    const ctx = canvas.getContext("2d");
+    const DPR = Math.max(1, window.devicePixelRatio || 1);
+    const ctx = canvas.getContext("2d", { alpha: true });
 
     const resize = () => {
-      const dpr = Math.max(1, window.devicePixelRatio || 1);
-      canvas.width = Math.floor(window.innerWidth * dpr);
-      canvas.height = Math.floor(window.innerHeight * dpr);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      const w = Math.floor(window.innerWidth * DPR);
+      const h = Math.floor(window.innerHeight * DPR);
+      if (canvas.width !== w || canvas.height !== h) {
+        canvas.width = w;
+        canvas.height = h;
+        canvas.style.width = `${window.innerWidth}px`;
+        canvas.style.height = `${window.innerHeight}px`;
+      }
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
     };
     resize();
     window.addEventListener("resize", resize);
-    
-    // eslint-disable-next-line
-    let isDown = false;
-    const addPoint = (x, y, pressure = 1) => {
-      pointsRef.current.push({ x, y, t: performance.now(), p: pressure });
-      if (pointsRef.current.length > 240) pointsRef.current.shift();
-    };
 
-    const handleMove = (e) => {
-      const x = e.clientX ?? (e.touches && e.touches[0].clientX);
-      const y = e.clientY ?? (e.touches && e.touches[0].clientY);
-      if (x == null) return;
-      addPoint(x, y, e.pressure ?? 1);
-      isDown = true;
-    };
-    const handleUp = () => {
-      isDown = false;
-    };
+    let lastX = 0;
+    let lastY = 0;
+    let lastT = 0;
+    let hasLast = false;
+    let animating = false;
+    let raf = null;
+    let idleTimeout = null;
 
-    window.addEventListener("pointermove", handleMove, { passive: true });
-    window.addEventListener("pointerdown", handleMove, { passive: true });
-    window.addEventListener("pointerup", handleUp);
+    const PAGE_FADE_COLOR = "rgba(250,248,244,";
+    const FADE_ALPHA = 0.13;
+    const MOVEMENT_THRESHOLD = 1.6;
 
-    const draw = () => {
-      rafRef.current = requestAnimationFrame(draw);
-
-      // fade canvas slightly each frame for a trailing effect
-      ctx.fillStyle = "rgba(250,250,247,0.06)";
+    const fadeStep = () => {
+      ctx.fillStyle = PAGE_FADE_COLOR + FADE_ALPHA + ")";
       ctx.fillRect(0, 0, canvas.width, canvas.height);
+    };
 
-      const pts = pointsRef.current;
-      if (!pts.length) return;
-
-      ctx.lineJoin = "round";
+    const drawSegment = (x, y, px, py, width, alpha) => {
+      // draw core black stroke
+      ctx.save();
       ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.strokeStyle = `rgba(10,10,10,${alpha})`;
+      ctx.lineWidth = width;
+      ctx.shadowColor = "rgba(0,0,0,0)"; // no shadow for core
+      ctx.shadowBlur = 0;
+      ctx.beginPath();
+      const midX = (px + x) / 2;
+      const midY = (py + y) / 2;
+      ctx.moveTo(px, py);
+      ctx.quadraticCurveTo(px, py, midX, midY);
+      ctx.stroke();
+      ctx.restore();
 
-      for (let i = 0; i < pts.length - 1; i++) {
-        const p0 = pts[i];
-        const p1 = pts[i + 1];
+      // draw soft red halo using shadow and lighter stroke
+      ctx.save();
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.strokeStyle = `rgba(255,40,40,${Math.max(0.08, alpha * 0.9)})`;
+      ctx.lineWidth = Math.max(6, width * 1.6);
+      // soft halo with shadow blur to spread the glow
+      ctx.shadowColor = "rgba(255,32,32,0.35)";
+      ctx.shadowBlur = 18;
+      ctx.beginPath();
+      ctx.moveTo(px, py);
+      ctx.quadraticCurveTo(px, py, midX, midY);
+      ctx.stroke();
+      ctx.restore();
 
-        const age = (performance.now() - p0.t) / 1200;
-        const alpha = Math.max(0, 1 - age);
-        const width = Math.max(1.2, 18 * (1 - age * 0.9) * (p1.p || 1));
+      // a subtle faint outer glow stroke (very soft)
+      ctx.save();
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.strokeStyle = `rgba(255,80,80,${Math.max(0.02, alpha * 0.45)})`;
+      ctx.lineWidth = Math.max(14, width * 2.6);
+      ctx.shadowColor = "rgba(255,40,40,0.18)";
+      ctx.shadowBlur = 24;
+      ctx.beginPath();
+      ctx.moveTo(px, py);
+      ctx.quadraticCurveTo(px, py, midX, midY);
+      ctx.stroke();
+      ctx.restore();
+    };
 
-        ctx.strokeStyle = `rgba(10,10,10,${0.92 * alpha})`;
-        ctx.lineWidth = width;
-
-        ctx.beginPath();
-        ctx.moveTo(p0.x, p0.y);
-        const midX = (p0.x + p1.x) / 2;
-        const midY = (p0.y + p1.y) / 2;
-        ctx.quadraticCurveTo(p0.x, p0.y, midX, midY);
-        ctx.stroke();
-      }
+    const handlePointerMove = (e) => {
+      const x = e.clientX ?? (e.touches && e.touches[0]?.clientX);
+      const y = e.clientY ?? (e.touches && e.touches[0]?.clientY);
+      if (typeof x !== "number" || typeof y !== "number") return;
 
       const now = performance.now();
-      pointsRef.current = pts.filter((p) => now - p.t < 1800);
+
+      if (!hasLast) {
+        lastX = x;
+        lastY = y;
+        lastT = now;
+        hasLast = true;
+        if (!animating) {
+          animating = true;
+          raf = requestAnimationFrame(frameLoop);
+        }
+        return;
+      }
+
+      const dx = x - lastX;
+      const dy = y - lastY;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+      if (dist < MOVEMENT_THRESHOLD) {
+        lastX = x;
+        lastY = y;
+        lastT = now;
+        return;
+      }
+
+      const dt = Math.max(1, now - lastT);
+      const speed = dist / dt;
+      const width = Math.max(1.2, Math.min(20, 14 - speed * 8));
+      const alpha = Math.max(0.08, Math.min(0.28, 0.16 - speed * 0.02 + (Math.random() - 0.5) * 0.03));
+
+      drawSegment(x, y, lastX, lastY, width, alpha);
+
+      lastX = x;
+      lastY = y;
+      lastT = now;
+
+      if (!animating) {
+        animating = true;
+        raf = requestAnimationFrame(frameLoop);
+      }
+
+      if (idleTimeout) clearTimeout(idleTimeout);
+      idleTimeout = setTimeout(() => {
+        setTimeout(() => {
+          if (raf) cancelAnimationFrame(raf);
+          raf = null;
+          animating = false;
+          hasLast = false;
+          ctx.fillStyle = PAGE_FADE_COLOR + (FADE_ALPHA * 1.6) + ")";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }, 120);
+      }, 220);
     };
 
-    draw();
+    const frameLoop = () => {
+      fadeStep();
+      raf = requestAnimationFrame(frameLoop);
+    };
+
+    const handlePointerUp = () => {
+      if (idleTimeout) clearTimeout(idleTimeout);
+      idleTimeout = setTimeout(() => {
+        if (raf) cancelAnimationFrame(raf);
+        raf = null;
+        animating = false;
+        hasLast = false;
+        ctx.fillStyle = PAGE_FADE_COLOR + (FADE_ALPHA * 1.6) + ")";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+      }, 140);
+    };
+
+    window.addEventListener("pointermove", handlePointerMove, { passive: true });
+    window.addEventListener("pointerdown", handlePointerMove, { passive: true });
+    window.addEventListener("pointerup", handlePointerUp);
+    window.addEventListener("touchend", handlePointerUp);
+
+    // initial fill (clean)
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = PAGE_FADE_COLOR + "1)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = PAGE_FADE_COLOR + (FADE_ALPHA * 0.6) + ")";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     return () => {
-      cancelAnimationFrame(rafRef.current);
       window.removeEventListener("resize", resize);
-      window.removeEventListener("pointermove", handleMove);
-      window.removeEventListener("pointerdown", handleMove);
-      window.removeEventListener("pointerup", handleUp);
-      if (canvas && canvas.parentNode) canvas.parentNode.removeChild(canvas);
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerdown", handlePointerMove);
+      window.removeEventListener("pointerup", handlePointerUp);
+      window.removeEventListener("touchend", handlePointerUp);
+      if (raf) cancelAnimationFrame(raf);
+      if (idleTimeout) clearTimeout(idleTimeout);
+      // eslint-disable-next-line
+      try { canvas.remove(); } catch (e) {}
     };
   }, []);
 
