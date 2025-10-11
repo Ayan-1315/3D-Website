@@ -1,86 +1,47 @@
-import React, { useState } from "react";
-import RightMenu from "../components/RightMenu";
-import MouseTrail from "../components/MouseTrail";
-import SamuraiScene from "../components/SamuraiScene";
-import "./HomePage.css";
+import React, { useRef, useMemo, useEffect } from 'react';
+import { Physics } from '@react-three/rapier';
+import Leaf from '../components/Leaf';
+import DomCollider from '../components/DomCollider';
+import './HomePage.css';
 
-/**
- * Homepage - stacking order:
- * 1) top text UI (z: 60)
- * 2) mouse trail canvas (z: 40)
- * 3) samurai image (z: 30)
- * 4) SamuraiScene shader base (z: 20)
- * 5) background red glow & bg (z: 10)
- */
+const LEAF_COUNT = 36;
 
-export default function Homepage() {
-  const [activePage, setActivePage] = useState(null);
-  const [isPanelOpen, setIsPanelOpen] = useState(false);
-
-  const handleOpenPage = (page) => {
-    setActivePage(page);
-    setIsPanelOpen(true);
-  };
-
-  const handleBack = () => {
-    setIsPanelOpen(false);
-    setTimeout(() => setActivePage(null), 300);
-  };
-
-  // If your FrontSide.png is in public/textures/FrontSide.png
-  const frontPath = "/textures/Samurai.png";
+function HomePageScene({ titleRef, subtitleRef }) {
+  const leafPositions = useMemo(() => {
+    const arr = [];
+    for (let i = 0; i < LEAF_COUNT; i++) {
+      arr.push([(Math.random() - 0.5) * 12, 6 + Math.random() * 4, (Math.random() - 0.5) * 3]);
+    }
+    return arr;
+  }, []);
 
   return (
-    <main className="app-container homepage cinematic">
-      {/* 5) Background glow */}
-      <div className="background-layer" aria-hidden>
-        <div className="red-glow" />
-      </div>
+    <Physics gravity={[0, -1.6, 0]}>
+      {leafPositions.map((pos, i) => (
+        <Leaf key={i} position={pos} />
+      ))}
+      <DomCollider elementRef={titleRef} />
+      <DomCollider elementRef={subtitleRef} />
+    </Physics>
+  );
+}
 
-      {/* 4) SamuraiScene (shader base) */}
-      <SamuraiScene />
+export default function HomePage({ setScene }) {
+  const titleRef = useRef(null);
+  const subtitleRef = useRef(null);
 
-      {/* 3) Samurai image */}
-      <div className="front-container">
-        <div className="front-card">
-          <img src={frontPath} alt="Samurai Front" className="front" />
-          <div className="sword-glow" aria-hidden />
-          <div className="sword-rim" aria-hidden />
-          <div className="front-reflection" />
-        </div>
-      </div>
+  useEffect(() => {
+    // attach the 3D scene (React element) to app canvas
+    setScene(<HomePageScene titleRef={titleRef} subtitleRef={subtitleRef} />);
+    return () => setScene(null);
+  }, [setScene]);
 
-      {/* 2) Mouse brush trail (canvas appended to body). It will be behind the samurai image. */}
-      <MouseTrail />
-
-      {/* 1) Top text overlay (Katakana + small UI text) */}
-      <div className="top-text">
-        <div className="katakana">サムライ</div>
-        <div className="title">AYAN — Quiet Blade</div>
-      </div>
-
-      {/* Right menu */}
-      <RightMenu
-        activePage={activePage}
-        onOpenPage={handleOpenPage}
-        onBack={handleBack}
-      />
-
-      {/* Panel */}
-      <section className={`panel ${isPanelOpen ? "open" : ""}`}>
-        <header>
-          <h2>{activePage}</h2>
-        </header>
-        <div className="panel-content">
-          {activePage === "About" && (
-            <p>About content — write something minimal and poetic.</p>
-          )}
-          {activePage === "Projects" && <p>Projects will be displayed here.</p>}
-          {activePage === "Contact" && (
-            <p>Contact me at your-email@example.com</p>
-          )}
-        </div>
-      </section>
-    </main>
+  return (
+    <div className="page-content">
+      <div className="paper-overlay" />
+      <h1 ref={titleRef} className="sumi-title">墨</h1>
+      <h2 ref={subtitleRef} className="sumi-sub">Sumi — Home</h2>
+      <p className="lead">A simple demonstration of sumi ink trails and seasonal leaves.</p>
+    </div>
   );
 }

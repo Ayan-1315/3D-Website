@@ -1,60 +1,27 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
-
 :root {
-  color-scheme: light;
+  --bg: #fff;
+  --ui-z: 1000;
 }
 
 html, body, #root {
   height: 100%;
   margin: 0;
-  padding: 0;
-  font-family: 'Inter', sans-serif;
-  background: #fbf8f3;
+  background: var(--bg);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-body {
-  overflow: hidden;
-}
-
-.app-container {
-  width: 100vw;
-  height: 100vh;
+.ui-container {
   position: relative;
+  z-index: 100; /* above canvas but below mouse canvas (mouse canvas has very high z-index) */
+  pointer-events: auto;
 }
 
-/* container for the 3D canvas / samurai model area */
-.canvas-background {
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  background-image:
-    /* subtle paper grain using SVG data URL to avoid external file */
-    linear-gradient(transparent, rgba(0,0,0,0.01)),
-    radial-gradient(circle at 10% 20%, rgba(0,0,0,0.01), transparent 2%),
-    linear-gradient(180deg, #fffefc 0%, #f6f3ee 100%);
-  background-blend-mode: normal;
+/* Keep Three.js canvas behind UI */
+canvas {
+  display: block;
 }
 
-/* simple panel style (content area that opens) */
-.panel {
-  position: fixed;
-  top: 10vh;
-  left: 6vw;
-  width: min(640px, 62vw);
-  max-height: 80vh;
-  overflow: auto;
-  background: linear-gradient(180deg, #fffefc, #f6f3ee);
-  border: 1px solid rgba(0,0,0,0.04);
-  box-shadow: 0 12px 36px rgba(20,20,20,0.08);
-  padding: 26px;
-  z-index: 40;
-  display: none;
-}
-.panel.open { display: block; }
-
-.panel h2 { margin-top: 0; color: #1b1b1b; }
-
-/* keep interactive items on top */
-.right-menu { z-index: 50; }
+/* small helpers for anchors */
+a { cursor: pointer; }
