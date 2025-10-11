@@ -8,7 +8,7 @@ import {
 } from "react-router-dom";
 import { Canvas } from "@react-three/fiber";
 
-// import HomePage from "./pages/HomePage.jsx";
+import HomePage from "./pages/HomePage.jsx";
 import AboutPage from "./pages/AboutPage.jsx";
 import LeavesTransition from "./components/LeavesTransition.jsx";
 import FPSMonitor from "./components/FPSMonitor.jsx";
