@@ -1,7 +1,8 @@
+// src/pages/HomePage.jsx
 import React, { useRef, useMemo, useEffect } from 'react';
 import { Physics } from '@react-three/rapier';
-import Leaf from '../components/Leaf';
-import DomCollider from '../components/DomCollider';
+import Leaf from '../components/Leaf.jsx';
+import DomCollider from '../components/DomCollider.jsx';
 import './HomePage.css';
 
 const LEAF_COUNT = 36;
@@ -31,7 +32,6 @@ export default function HomePage({ setScene }) {
   const subtitleRef = useRef(null);
 
   useEffect(() => {
-    // attach the 3D scene (React element) to app canvas
     setScene(<HomePageScene titleRef={titleRef} subtitleRef={subtitleRef} />);
     return () => setScene(null);
   }, [setScene]);

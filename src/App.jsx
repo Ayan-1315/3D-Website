@@ -1,12 +1,13 @@
+// src/App.jsx
 import React, { useState, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useNavigate } from 'react-router-dom';
 import { Canvas } from '@react-three/fiber';
 
-import HomePage from './pages/HomePage';
-import AboutPage from './pages/AboutPage';
-import LeavesTransition from './components/LeavesTransition';
-import FPSMonitor from './components/FPSMonitor';
-import MouseBrushStroke from './components/MouseBrushStroke';
+import HomePage from './pages/HomePage.jsx';
+import AboutPage from './pages/AboutPage.jsx';
+import LeavesTransition from './components/LeavesTransition.jsx';
+import FPSMonitor from './components/FPSMonitor.jsx';
+import MouseBrushStroke from './components/MouseBrushStroke.jsx';
 import './App.css';
 
 function AppContent() {
@@ -51,7 +52,6 @@ function AppContent() {
         </Routes>
       </div>
 
-      {/* Three.js Canvas sits behind UI (zIndex lower than UI container) */}
       <Canvas camera={{ position: [0, 0, 10], fov: 55 }} style={{ position: 'fixed', zIndex: 1 }}>
         <ambientLight intensity={1.2} />
         <directionalLight position={[0, 0, 5]} intensity={1} />
