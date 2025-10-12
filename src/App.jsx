@@ -84,7 +84,12 @@ function AppContent() {
 
       <Canvas
         camera={{ position: [0, 0, 10], fov: 55 }}
-        style={{ position: "fixed", zIndex: 1 }}
+        style={{
+          position: "fixed",
+          inset: 0, // fills viewport
+          zIndex: 0, // sit below the UI container
+          pointerEvents: "none", // don't block interactions
+        }}
       >
         <ambientLight intensity={1.2} />
         <directionalLight position={[0, 0, 5]} intensity={1} />

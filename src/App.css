@@ -14,7 +14,7 @@ html, body, #root {
 
 .ui-container {
   position: relative;
-  z-index: 100; /* above canvas but below mouse canvas (mouse canvas has very high z-index) */
+  z-index: 10;   /* must be > Canvas zIndex (Canvas uses 0 above) */
   pointer-events: auto;
 }
 

@@ -1,11 +1,9 @@
-// src/components/MouseBrushStroke.jsx
 import React, { useEffect, useRef } from 'react';
 
 /**
  * MouseBrushStroke
- * - Fixed DPI / scaling issues so strokes are visible on all displays
- * - Responsive sampling and smoothing for a sumi-ink look
- * - Uses an offscreen canvas to accumulate strokes (trails fade out)
+ * - fixes DPI scaling
+ * - resets stroke width when user resumes moving after idle
  */
 export default function MouseBrushStroke({
   minWidth = 3,
@@ -13,19 +11,21 @@ export default function MouseBrushStroke({
   smoothing = 0.88,
   fadeAlpha = 0.03,
   zIndex = 9999,
+  idleResetMs = 220, // consider pointer idle if no move for this ms
 }) {
   const canvasRef = useRef(null);
   const offRef = useRef(null);
   const ptsRef = useRef([]);
   const widthEMA = useRef(maxWidth);
   const running = useRef(true);
+  const lastMoveAt = useRef(0);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d', { alpha: true });
 
-    // Create offscreen canvas which accumulates strokes (gives trailing)
+    // offscreen canvas accumulates strokes so trail persists
     const off = document.createElement('canvas');
     const offCtx = off.getContext('2d', { alpha: true });
     offRef.current = { canvas: off, ctx: offCtx };
@@ -38,13 +38,11 @@ export default function MouseBrushStroke({
       cssW = window.innerWidth;
       cssH = window.innerHeight;
 
-      // Actual pixel size
       canvas.width = Math.round(cssW * dpr);
       canvas.height = Math.round(cssH * dpr);
       canvas.style.width = `${cssW}px`;
       canvas.style.height = `${cssH}px`;
 
-      // Reset transform and scale to use CSS pixel coords in drawing calls
       ctx.setTransform(1, 0, 0, 1, 0, 0);
       ctx.scale(dpr, dpr);
 
@@ -57,7 +55,9 @@ export default function MouseBrushStroke({
 
       offCtx.lineCap = 'round';
       offCtx.lineJoin = 'round';
-      ptsRef.current = []; // reset points so stroke resumes cleanly
+
+      ptsRef.current = [];
+      widthEMA.current = maxWidth;
     };
     resize();
 
@@ -84,7 +84,6 @@ export default function MouseBrushStroke({
     };
 
     const velToWidth = (v) => {
-      // map velocity to stroke width (faster -> thinner)
       const scale = 0.7;
       const inv = 1 / (1 + v * 1500 * scale);
       const wVal = minWidth + (maxWidth - minWidth) * inv;
@@ -98,13 +97,11 @@ export default function MouseBrushStroke({
       const c = offRef.current.ctx;
       c.save();
       c.lineWidth = Math.max(1, w);
-      // Sumi ink: nearly-black stroke with subtle shadow for softness
       c.strokeStyle = 'rgba(8,8,8,0.995)';
       c.shadowBlur = Math.min(14, w * 0.6);
       c.shadowColor = 'rgba(0,0,0,0.6)';
       c.beginPath();
       c.moveTo(p0.x, p0.y);
-      // Quadratic smoothing: curve from p0 -> p2 with p1 as control
       const cx = (p1.x + p2.x) / 2;
       const cy = (p1.y + p2.y) / 2;
       c.quadraticCurveTo(p1.x, p1.y, cx, cy);
@@ -116,28 +113,40 @@ export default function MouseBrushStroke({
     const render = () => {
       if (!running.current) return;
 
-      // Fade the offscreen canvas slightly (destination-out) for trail dissolve
+      // fade the offscreen canvas slightly for trailing
       const offc = offRef.current.ctx;
       offc.save();
       offc.globalCompositeOperation = 'destination-out';
-      // fill using CSS pixel extents (off canvas is scaled internally)
       offc.fillStyle = `rgba(0,0,0,${fadeAlpha})`;
       offc.fillRect(0, 0, cssW, cssH);
       offc.restore();
 
-      // Clear visible canvas (in CSS pixel coords), then draw accumulated offscreen
       ctx.clearRect(0, 0, cssW, cssH);
-      // drawImage will draw the offscreen content scaled appropriately because
-      // both contexts are scaled with ctx.scale(dpr,dpr)
       ctx.drawImage(offRef.current.canvas, 0, 0, cssW, cssH);
 
       rafId = requestAnimationFrame(render);
     };
     render();
 
-    // pointer events
+    const idleCheckAndReset = (now) => {
+      // if pointer was idle for longer than idleResetMs, reset width EMA
+      if (now - lastMoveAt.current > idleResetMs) {
+        widthEMA.current = maxWidth;
+        // also clear pts so the next stroke is fresh
+        ptsRef.current = [];
+      }
+    };
+
     const onPointerMove = (e) => {
-      // Use clientX/clientY which are in CSS pixels
+      const now = performance.now();
+      // if gap since last move larger than threshold, reset width/start fresh
+      if (now - lastMoveAt.current > idleResetMs) {
+        widthEMA.current = maxWidth;
+        // keep points minimal so the first strokes are chunky
+        ptsRef.current = [];
+      }
+      lastMoveAt.current = now;
+
       addPoint(e.clientX, e.clientY);
       const pts = ptsRef.current;
       if (pts.length < 3) return;
@@ -151,24 +160,38 @@ export default function MouseBrushStroke({
     };
 
     const onPointerDown = (e) => {
+      // pointer down should give a bold starting stroke
+      widthEMA.current = maxWidth;
       addPoint(e.clientX, e.clientY);
+      lastMoveAt.current = performance.now();
     };
 
-    // Ensure we have initial pointer registration when the user moves over the page
+    // If pointer stops moving, ensure next resume resets visually
+    const onPointerLeaveOrUp = () => {
+      lastMoveAt.current = performance.now();
+    };
+
     window.addEventListener('pointermove', onPointerMove, { passive: true });
     window.addEventListener('pointerdown', onPointerDown, { passive: true });
+    window.addEventListener('pointerup', onPointerLeaveOrUp);
+    window.addEventListener('pointerleave', onPointerLeaveOrUp);
     window.addEventListener('resize', resize);
+
+    // small interval to nudge idle reset if browser throttles RAF during inactivity
+    const idleTimer = setInterval(() => idleCheckAndReset(performance.now()), 150);
 
     return () => {
       running.current = false;
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerdown', onPointerDown);
+      window.removeEventListener('pointerup', onPointerLeaveOrUp);
+      window.removeEventListener('pointerleave', onPointerLeaveOrUp);
       window.removeEventListener('resize', resize);
       if (rafId) cancelAnimationFrame(rafId);
+      clearInterval(idleTimer);
     };
-  }, [minWidth, maxWidth, smoothing, fadeAlpha, zIndex]);
+  }, [minWidth, maxWidth, smoothing, fadeAlpha, zIndex, idleResetMs]);
 
-  // pointerEvents none so it doesn't block clicks
   return (
     <canvas
       ref={canvasRef}
