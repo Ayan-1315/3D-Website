@@ -1,17 +1,12 @@
-import React, { useEffect, useRef } from 'react';
+// src/components/MouseBrushStroke.jsx
+import { useEffect, useRef } from 'react';
 
-/**
- * MouseBrushStroke
- * - fixes DPI scaling
- * - resets stroke width when user resumes moving after idle
- */
 export default function MouseBrushStroke({
   minWidth = 3,
   maxWidth = 36,
   smoothing = 0.88,
   fadeAlpha = 0.03,
-  zIndex = 9999,
-  idleResetMs = 220, // consider pointer idle if no move for this ms
+  idleResetMs = 220,
 }) {
   const canvasRef = useRef(null);
   const offRef = useRef(null);
@@ -19,13 +14,33 @@ export default function MouseBrushStroke({
   const widthEMA = useRef(maxWidth);
   const running = useRef(true);
   const lastMoveAt = useRef(0);
+  const resizeObserverRef = useRef(null);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
+    // Create canvas in body to avoid any app stacking/context issues
+    const canvas = document.createElement('canvas');
+    canvas.setAttribute('aria-hidden', 'true');
+    canvas.className = 'sumi-mouse-canvas';
+    // critical styles - make it always visible and on top but non-interactive
+    Object.assign(canvas.style, {
+      position: 'fixed',
+      left: '0px',
+      top: '0px',
+      width: '100vw',
+      height: '100vh',
+      zIndex: '2147483647',
+      pointerEvents: 'none',
+      background: 'transparent',
+      display: 'block',
+      visibility: 'visible',
+      opacity: '1',
+    });
+    document.body.appendChild(canvas);
+    canvasRef.current = canvas;
+
     const ctx = canvas.getContext('2d', { alpha: true });
 
-    // offscreen canvas accumulates strokes so trail persists
+    // offscreen accumulator canvas
     const off = document.createElement('canvas');
     const offCtx = off.getContext('2d', { alpha: true });
     offRef.current = { canvas: off, ctx: offCtx };
@@ -59,7 +74,13 @@ export default function MouseBrushStroke({
       ptsRef.current = [];
       widthEMA.current = maxWidth;
     };
+
     resize();
+    window.addEventListener('resize', resize);
+    if ('ResizeObserver' in window) {
+      resizeObserverRef.current = new ResizeObserver(resize);
+      resizeObserverRef.current.observe(document.body);
+    }
 
     const addPoint = (x, y) => {
       ptsRef.current.push({ x, y, t: performance.now() });
@@ -112,8 +133,6 @@ export default function MouseBrushStroke({
     let rafId = null;
     const render = () => {
       if (!running.current) return;
-
-      // fade the offscreen canvas slightly for trailing
       const offc = offRef.current.ctx;
       offc.save();
       offc.globalCompositeOperation = 'destination-out';
@@ -128,21 +147,10 @@ export default function MouseBrushStroke({
     };
     render();
 
-    const idleCheckAndReset = (now) => {
-      // if pointer was idle for longer than idleResetMs, reset width EMA
-      if (now - lastMoveAt.current > idleResetMs) {
-        widthEMA.current = maxWidth;
-        // also clear pts so the next stroke is fresh
-        ptsRef.current = [];
-      }
-    };
-
     const onPointerMove = (e) => {
       const now = performance.now();
-      // if gap since last move larger than threshold, reset width/start fresh
       if (now - lastMoveAt.current > idleResetMs) {
         widthEMA.current = maxWidth;
-        // keep points minimal so the first strokes are chunky
         ptsRef.current = [];
       }
       lastMoveAt.current = now;
@@ -160,13 +168,11 @@ export default function MouseBrushStroke({
     };
 
     const onPointerDown = (e) => {
-      // pointer down should give a bold starting stroke
       widthEMA.current = maxWidth;
       addPoint(e.clientX, e.clientY);
       lastMoveAt.current = performance.now();
     };
 
-    // If pointer stops moving, ensure next resume resets visually
     const onPointerLeaveOrUp = () => {
       lastMoveAt.current = performance.now();
     };
@@ -175,10 +181,14 @@ export default function MouseBrushStroke({
     window.addEventListener('pointerdown', onPointerDown, { passive: true });
     window.addEventListener('pointerup', onPointerLeaveOrUp);
     window.addEventListener('pointerleave', onPointerLeaveOrUp);
-    window.addEventListener('resize', resize);
 
-    // small interval to nudge idle reset if browser throttles RAF during inactivity
-    const idleTimer = setInterval(() => idleCheckAndReset(performance.now()), 150);
+    const idleTimer = setInterval(() => {
+      const now = performance.now();
+      if (now - lastMoveAt.current > idleResetMs) {
+        widthEMA.current = maxWidth;
+        ptsRef.current = [];
+      }
+    }, 150);
 
     return () => {
       running.current = false;
@@ -187,16 +197,13 @@ export default function MouseBrushStroke({
       window.removeEventListener('pointerup', onPointerLeaveOrUp);
       window.removeEventListener('pointerleave', onPointerLeaveOrUp);
       window.removeEventListener('resize', resize);
+      if (resizeObserverRef.current) resizeObserverRef.current.disconnect();
       if (rafId) cancelAnimationFrame(rafId);
       clearInterval(idleTimer);
+      try { if (canvas && canvas.parentElement) canvas.parentElement.removeChild(canvas); } catch (err) {err()}
     };
-  }, [minWidth, maxWidth, smoothing, fadeAlpha, zIndex, idleResetMs]);
+  }, [minWidth, maxWidth, smoothing, fadeAlpha, idleResetMs]);
 
-  return (
-    <canvas
-      ref={canvasRef}
-      style={{ position: 'fixed', inset: 0, zIndex, pointerEvents: 'none' }}
-      aria-hidden
-    />
-  );
+  // this component renders nothing into the React tree
+  return null;
 }

@@ -87,8 +87,8 @@ function AppContent() {
         style={{
           position: "fixed",
           inset: 0, // fills viewport
-          zIndex: 0, // sit below the UI container
-          pointerEvents: "none", // don't block interactions
+          zIndex: 0, // behind UI container
+          pointerEvents: "none", // don't block clicks
         }}
       >
         <ambientLight intensity={1.2} />

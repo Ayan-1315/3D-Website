@@ -12,11 +12,7 @@ html, body, #root {
   -moz-osx-font-smoothing: grayscale;
 }
 
-.ui-container {
-  position: relative;
-  z-index: 10;   /* must be > Canvas zIndex (Canvas uses 0 above) */
-  pointer-events: auto;
-}
+.ui-container { position: relative; z-index: 10; pointer-events: auto; }
 
 /* Keep Three.js canvas behind UI */
 canvas {
