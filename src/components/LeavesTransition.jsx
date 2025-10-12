@@ -167,8 +167,10 @@ function PhysicsLeaves({ texture, count = PHYSICS_COUNT }) {
 
 export default function LeavesTransition({
   season = "spring",
-  // isTransitioning = false,
-  // onTransitionComplete = () => {},
+  // eslint-disable-next-line
+  isTransitioning = false,
+  // eslint-disable-next-line
+  onTransitionComplete = () => {},
 }) {
   const url = LEAF_TEXTURES[season] || LEAF_TEXTURES.spring;
   const texture = useLoader(THREE.TextureLoader, url);
