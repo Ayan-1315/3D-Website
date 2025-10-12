@@ -1,155 +1,202 @@
 // src/components/LeavesTransition.jsx
-import React, { useRef, useMemo, useEffect } from 'react';
-import { useFrame, useLoader } from '@react-three/fiber';
-import * as THREE from 'three';
+import React, { useMemo, useRef, useEffect } from "react";
+import { useFrame, useLoader } from "@react-three/fiber";
+import { Physics, RigidBody } from "@react-three/rapier";
+import * as THREE from "three";
 
-const LEAF_COUNT = 120;
+/**
+ * Smooth, non-jumping LeavesTransition
+ * - Instanced leaves are driven by base state + smooth trigs (no state mutation surprises)
+ * - Wrap by shifting (x += width) rather than teleport-to-fixed to avoid jumps
+ * - Small set of physics leaves for collisions; keep count low for performance
+ */
 
-export default function LeavesTransition({
-  season = 'spring',
-  isTransitioning = false,
-  onTransitionComplete = () => {},
-}) {
-  const pointsRef = useRef();
-  const texMap = {
-    spring: '/textures/leaf_pink.png',
-    autumn: '/textures/leaf_yellow.png',
-    fall: '/textures/leaf_red.png',
-  };
-  const texture = useLoader(THREE.TextureLoader, texMap[season] || texMap.spring);
+const INSTANCED_COUNT = 100;
+const PHYSICS_COUNT = 8;
+const PHYSICS_ITERATIONS = 2;
 
-  const particles = useMemo(() =>
-    new Array(LEAF_COUNT).fill().map(() => ({
-      x: THREE.MathUtils.randFloat(12, 28),
-      // tighter vertical range so they don't "fall from top"
-      y: THREE.MathUtils.randFloat(-2.5, 2.5),
-      z: THREE.MathUtils.randFloat(-3, 3),
-      baseSpeed: THREE.MathUtils.randFloat(0.03, 0.09),
-      speed: 0,
-      flutter: THREE.MathUtils.randFloat(0.6, 1.4),
-      rotZ: THREE.MathUtils.randFloat(-0.5, 0.5),
-      rotZSpeed: THREE.MathUtils.randFloat(-0.02, 0.02),
-      finished: false,
-      // eslint-disable-next-line
-    })), [season]
-  );
+const HORIZ_WRAP = 40; // world units width to loop across
+const VERT_WRAP = 22; // vertical span to loop across
 
-  const positions = useMemo(() => new Float32Array(LEAF_COUNT * 3), []);
-  useEffect(() => {
-    for (let i = 0; i < LEAF_COUNT; i++) {
-      const p = particles[i];
-      positions[i * 3] = p.x;
-      positions[i * 3 + 1] = p.y;
-      positions[i * 3 + 2] = p.z;
-      p.finished = false;
+const LEAF_TEXTURES = {
+  spring: "/textures/leaf_pink.png",
+  autumn: "/textures/leaf_yellow.png",
+  fall: "/textures/leaf_red.png",
+};
+
+function InstancedLeaves({ texture, count = INSTANCED_COUNT }) {
+  const meshRef = useRef();
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+
+  // Create immutable seed base state per instance
+  const seeds = useMemo(() => {
+    const arr = new Array(count);
+    for (let i = 0; i < count; i++) {
+      const baseX = THREE.MathUtils.randFloatSpread(HORIZ_WRAP); // -W/2 .. W/2
+      const baseY = THREE.MathUtils.randFloatSpread(VERT_WRAP); // -H/2 .. H/2
+      const baseZ = THREE.MathUtils.randFloat(-5, 5);
+      const speedX = THREE.MathUtils.randFloat(0.008, 0.04); // horizontal drift
+      const swayFreq = THREE.MathUtils.randFloat(0.3, 1.2);
+      const swayAmp = THREE.MathUtils.randFloat(0.08, 0.6);
+      const rotBase = THREE.MathUtils.randFloat(0, Math.PI * 2);
+      const rotFreq = THREE.MathUtils.randFloat(0.2, 0.9);
+      const rotAmp = THREE.MathUtils.randFloat(0.15, 0.7);
+      const scale = THREE.MathUtils.randFloat(0.45, 1.12);
+      arr[i] = {
+        baseX,
+        baseY,
+        baseZ,
+        speedX,
+        swayFreq,
+        swayAmp,
+        rotBase,
+        rotFreq,
+        rotAmp,
+        scale,
+        // small phase offsets for de-synchronization
+        phase: Math.random() * Math.PI * 2,
+      };
     }
-  }, [particles, positions]);
+    return arr;
+  }, [count]);
 
-  const finishedRef = useRef(false);
-  const transitionStartedRef = useRef(false);
-  const finishedCountRef = useRef(0);
+  // We keep a *runtime* X offset for continuity instead of mutating baseX directly.
+  // That avoids jumps when wrapping.
+  const runtimeOffsets = useMemo(() => new Float32Array(count).fill(0), [count]);
 
   useFrame((state) => {
-    if (!pointsRef.current) return;
-    const posAttr = pointsRef.current.geometry.attributes.position.array;
+    if (!meshRef.current) return;
+    const t = state.clock.elapsedTime;
+    for (let i = 0; i < count; i++) {
+      const s = seeds[i];
 
-    if (!isTransitioning) {
-      if (transitionStartedRef.current) {
-        transitionStartedRef.current = false;
-        finishedRef.current = false;
-        finishedCountRef.current = 0;
-        for (let i = 0; i < LEAF_COUNT; i++) {
-          particles[i].finished = false;
-          if (particles[i].x < -14) {
-            particles[i].x = THREE.MathUtils.randFloat(12, 28);
-            particles[i].y = THREE.MathUtils.randFloat(-2.5, 2.5);
-            particles[i].z = THREE.MathUtils.randFloat(-3, 3);
-          }
-        }
+      // Move horizontally: runtime offset increases over time according to speed
+      runtimeOffsets[i] -= s.speedX;
+      // compute continuous x by baseX + runtimeOffset
+      let x = s.baseX + runtimeOffsets[i];
+
+      // wrap smoothly: when x < -HORIZ_WRAP/2 push it forward by HORIZ_WRAP
+      // adding HORIZ_WRAP preserves continuity (no reset to unrelated value)
+      const halfW = HORIZ_WRAP / 2;
+      if (x < -halfW) {
+        runtimeOffsets[i] += HORIZ_WRAP; // shift forward by full width
+        x = s.baseX + runtimeOffsets[i];
+      } else if (x > halfW) {
+        runtimeOffsets[i] -= HORIZ_WRAP;
+        x = s.baseX + runtimeOffsets[i];
       }
 
-      for (let i = 0; i < LEAF_COUNT; i++) {
-        const p = particles[i];
-        p.x -= p.baseSpeed * (0.9 + Math.sin((state.clock.elapsedTime + i) * p.flutter) * 0.06);
-        p.y += Math.sin((state.clock.elapsedTime + i * 0.25) * p.flutter) * 0.02;
-        p.rotZ += p.rotZSpeed;
+      // Vertical: compute as baseY + sin oscillation (no accumulated mutation)
+      const y = s.baseY + Math.sin(t * s.swayFreq + s.phase) * s.swayAmp * (1 + (s.baseZ / 6));
 
-        if (p.x < -14) {
-          p.x = THREE.MathUtils.randFloat(12, 28);
-          p.y = THREE.MathUtils.randFloat(-2.5, 2.5);
-          p.z = THREE.MathUtils.randFloat(-3, 3);
-        }
+      // Z depth remains baseZ but add a tiny bob so leaves feel alive
+      const z = s.baseZ + Math.sin(t * (0.4 + s.swayFreq * 0.1) + s.phase * 0.5) * 0.06;
 
-        posAttr[i * 3] = p.x;
-        posAttr[i * 3 + 1] = p.y;
-        posAttr[i * 3 + 2] = p.z;
-      }
-    } else {
-      if (!transitionStartedRef.current) {
-        transitionStartedRef.current = true;
-        finishedCountRef.current = 0;
-        for (let i = 0; i < LEAF_COUNT; i++) {
-          particles[i].finished = false;
-          particles[i].speed = THREE.MathUtils.randFloat(0.12, 0.28);
-          particles[i].x += THREE.MathUtils.randFloat(0, 2.5);
-        }
-      }
+      // Rotation = base rotation + small oscillation (no persistent mutation)
+      const rotZ = s.rotBase + Math.sin(t * s.rotFreq + s.phase * 0.7) * s.rotAmp;
 
-      for (let i = 0; i < LEAF_COUNT; i++) {
-        const p = particles[i];
-        if (p.finished) {
-          posAttr[i * 3] = p.x;
-          posAttr[i * 3 + 1] = p.y;
-          posAttr[i * 3 + 2] = p.z;
-          continue;
-        }
+      dummy.position.set(x, y, z);
+      dummy.rotation.set(0, 0, rotZ);
+      dummy.scale.setScalar(s.scale);
 
-        p.x -= p.speed + Math.sin(state.clock.elapsedTime * p.flutter + i) * 0.02;
-        p.y += Math.sin((state.clock.elapsedTime + i * 0.3) * p.flutter) * 0.03;
-        p.rotZ += p.rotZSpeed * 0.5;
-
-        posAttr[i * 3] = p.x;
-        posAttr[i * 3 + 1] = p.y;
-        posAttr[i * 3 + 2] = p.z;
-
-        if (p.x < -14) {
-          p.finished = true;
-          finishedCountRef.current += 1;
-        }
-      }
-
-      if (!finishedRef.current && finishedCountRef.current >= LEAF_COUNT) {
-        finishedRef.current = true;
-        setTimeout(() => {
-          try { onTransitionComplete(); } catch (e) {e()}
-        }, 60);
-      }
+      dummy.updateMatrix();
+      meshRef.current.setMatrixAt(i, dummy.matrix);
     }
-
-    pointsRef.current.geometry.attributes.position.needsUpdate = true;
+    meshRef.current.instanceMatrix.needsUpdate = true;
   });
 
-  if (!texture) return null;
+  return (
+    <instancedMesh ref={meshRef} args={[null, null, count]}>
+      <planeGeometry args={[0.6, 0.6]} />
+      <meshStandardMaterial
+        map={texture}
+        side={THREE.DoubleSide}
+        transparent={true}
+        alphaTest={0.03}
+        depthWrite={false}
+      />
+    </instancedMesh>
+  );
+}
 
-  texture.encoding = THREE.sRGBEncoding;
-  texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
-  texture.needsUpdate = true;
+function PhysicsLeaves({ texture, count = PHYSICS_COUNT }) {
+  // place physics leaves across full frame but keep initial positions close to natural band
+  const leaves = useMemo(() => {
+    const arr = [];
+    for (let i = 0; i < count; i++) {
+      arr.push({
+        x: THREE.MathUtils.randFloatSpread(HORIZ_WRAP),
+        y: THREE.MathUtils.randFloatSpread(VERT_WRAP),
+        z: THREE.MathUtils.randFloat(-3, 3),
+        rotZ: THREE.MathUtils.randFloat(-0.5, 0.5),
+        scale: THREE.MathUtils.randFloat(0.6, 1.15),
+      });
+    }
+    return arr;
+  }, [count]);
 
   return (
-    <points ref={pointsRef} frustumCulled={false}>
-      <bufferGeometry>
-        <bufferAttribute attach="attributes-position" count={LEAF_COUNT} array={positions} itemSize={3} />
-      </bufferGeometry>
-      <pointsMaterial
-        size={1.0}
-        map={texture}
-        transparent={true}
-        opacity={1.0}
-        depthWrite={false}
-        depthTest={false}
-        sizeAttenuation={true}
-        alphaTest={0.01}
-      />
-    </points>
+    <>
+      {leaves.map((l, idx) => (
+        <RigidBody
+          key={idx}
+          type="dynamic"
+          position={[l.x, l.y, l.z]}
+          rotation={[0, 0, l.rotZ]}
+          restitution={0.06}
+          friction={1.0}
+          linearDamping={0.45}
+          angularDamping={0.8}
+          colliders="cuboid"
+        >
+          <mesh scale={[l.scale, l.scale, l.scale]}>
+            <planeGeometry args={[0.6, 0.6]} />
+            <meshStandardMaterial
+              map={texture}
+              side={THREE.DoubleSide}
+              transparent={true}
+              alphaTest={0.03}
+              depthWrite={false}
+            />
+          </mesh>
+        </RigidBody>
+      ))}
+    </>
+  );
+}
+
+export default function LeavesTransition({
+  season = "spring",
+  // isTransitioning = false,
+  // onTransitionComplete = () => {},
+}) {
+  const url = LEAF_TEXTURES[season] || LEAF_TEXTURES.spring;
+  const texture = useLoader(THREE.TextureLoader, url);
+
+  useEffect(() => {
+    if (texture) {
+      texture.encoding = THREE.sRGBEncoding;
+      texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
+      texture.needsUpdate = true;
+    }
+  }, [texture]);
+
+  // invisible wide floor so physics leaves settle naturally
+  const floorSize = HORIZ_WRAP * 1.2;
+
+  return (
+    <>
+      {texture && <InstancedLeaves texture={texture} count={INSTANCED_COUNT} />}
+
+      <Physics gravity={[0, -3.2, 0]} iterations={PHYSICS_ITERATIONS}>
+        {texture && <PhysicsLeaves texture={texture} count={PHYSICS_COUNT} />}
+        <RigidBody type="fixed" colliders="cuboid" position={[0, -VERT_WRAP / 2 - 2, 0]}>
+          <mesh scale={[floorSize, 0.5, 10]} visible={false}>
+            <boxGeometry args={[1, 1, 1]} />
+            <meshStandardMaterial transparent opacity={0} />
+          </mesh>
+        </RigidBody>
+      </Physics>
+    </>
   );
 }

@@ -1,10 +1,11 @@
 // src/App.jsx
-import React, { useState, Suspense } from "react";
+import React, { useState, Suspense, useRef, useEffect, useCallback } from "react";
 import {
   BrowserRouter as Router,
   Routes,
   Route,
   useNavigate,
+  useLocation,
 } from "react-router-dom";
 import { Canvas } from "@react-three/fiber";
 
@@ -17,50 +18,93 @@ import MouseBrushStroke from "./components/MouseBrushStroke.jsx";
 import "./App.css";
 
 const SEASONS = ["spring", "autumn", "fall"];
+const TRANSITION_FALLBACK_MS = 3000; // safety fallback to avoid stuck transitions
 
-function pickRandomSeason() {
-  return SEASONS[Math.floor(Math.random() * SEASONS.length)];
+function pickRandomSeason(exclude = null) {
+  const candidates = SEASONS.filter((s) => s !== exclude);
+  if (candidates.length === 0) return SEASONS[0];
+  return candidates[Math.floor(Math.random() * candidates.length)];
 }
 
 function AppContent() {
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [transitionSeason, setTransitionSeason] = useState("spring");
+  const [transitionSeason, setTransitionSeason] = useState(() => pickRandomSeason(null));
   const [nextPath, setNextPath] = useState("/");
-  const navigate = useNavigate();
   const [pageScene, setPageScene] = useState(null);
 
-  // click handler for nav links
-  // if `season` argument is provided we use it; otherwise we randomize
-  const handleLinkClick = (path, season = null) => (e) => {
-    e.preventDefault();
-    if (isTransitioning) return;
-    setNextPath(path);
-    setTransitionSeason(season || pickRandomSeason());
-    setIsTransitioning(true);
-  };
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  // called by LeavesTransition when sweep finishes
-  const onTransitionComplete = () => {
-    // navigate after the sweep finished
-    navigate(nextPath);
-    // allow a short tick for the new route to mount before clearing transition
-    requestAnimationFrame(() => {
-      setIsTransitioning(false);
-    });
+  const currentSeasonRef = useRef(transitionSeason);
+  const fallbackTimerRef = useRef(null);
+
+  // Clear any fallback timer (safe)
+  const clearFallback = useCallback(() => {
+    if (fallbackTimerRef.current) {
+      clearTimeout(fallbackTimerRef.current);
+      fallbackTimerRef.current = null;
+    }
+  }, []);
+
+  // Called by LeavesTransition when sweep finishes
+  const onTransitionComplete = useCallback(() => {
+    // navigate to the intended path
+    try {
+      navigate(nextPath);
+    } catch (e) {
+      e
+      // swallow navigation errors — but still clear state
+    }
+    // clear safety fallback and reset transitioning
+    clearFallback();
+    setIsTransitioning(false);
+    // update current season tracker
+    currentSeasonRef.current = transitionSeason;
+  }, [nextPath, transitionSeason, navigate, clearFallback]);
+
+  // Safety: if the transition doesn't report completion, force reset after a timeout
+  useEffect(() => {
+    if (isTransitioning) {
+      // ensure we have a fallback to avoid a stuck UI
+      clearFallback();
+      fallbackTimerRef.current = setTimeout(() => {
+        // fallback navigation if LeavesTransition didn't call completion
+        try {
+          navigate(nextPath);
+        } catch (e) {e}
+        setIsTransitioning(false);
+        fallbackTimerRef.current = null;
+        // sync current season to the one we tried to use
+        currentSeasonRef.current = transitionSeason;
+      }, TRANSITION_FALLBACK_MS);
+    } else {
+      clearFallback();
+    }
+    return clearFallback;
+  }, [isTransitioning, nextPath, transitionSeason, navigate, clearFallback]);
+
+  // click handler — pick random season that is different from the current
+  const handleLinkClick = (path) => (e) => {
+    e.preventDefault();
+    // if already at path or a transition is active, ignore
+    if (location.pathname === path || isTransitioning) return;
+    setNextPath(path);
+    const chosen = pickRandomSeason(currentSeasonRef.current);
+    setTransitionSeason(chosen);
+    // set transitioning true to start the sweep
+    setIsTransitioning(true);
   };
 
   return (
     <>
-      {/* Top-level brush (appends a canvas to document.body) */}
       <MouseBrushStroke />
 
-      {/* UI sits above the Three canvas */}
       <div className="ui-container">
         <nav className="main-nav">
-          <a href="/" onClick={handleLinkClick("/", "spring")}>
+          <a href="/" onClick={handleLinkClick("/")}>
             Home
           </a>
-          <a href="/about" onClick={handleLinkClick("/about", "fall")}>
+          <a href="/about" onClick={handleLinkClick("/about")}>
             About
           </a>
           <a href="/contact" onClick={handleLinkClick("/contact")}>
@@ -69,25 +113,13 @@ function AppContent() {
         </nav>
 
         <div className="social-links">
-          <a
-            href="https://github.com"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <a href="https://github.com" target="_blank" rel="noopener noreferrer">
             GH
           </a>
-          <a
-            href="https://twitter.com"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <a href="https://twitter.com" target="_blank" rel="noopener noreferrer">
             TW
           </a>
-          <a
-            href="https://linkedin.com"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
+          <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">
             IN
           </a>
         </div>
@@ -99,22 +131,14 @@ function AppContent() {
         </Routes>
       </div>
 
-      {/* Three.js canvas (fills viewport; behind UI; pointerEvents none so it doesn't block clicks) */}
       <Canvas
         camera={{ position: [0, 0, 10], fov: 55 }}
-        style={{
-          position: "fixed",
-          inset: 0,
-          zIndex: 0,
-          pointerEvents: "none",
-        }}
+        style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }}
       >
         <ambientLight intensity={1.2} />
         <directionalLight position={[0, 0, 5]} intensity={1} />
         <Suspense fallback={null}>
-          {/* mount per-page scene (set by pages via setScene) */}
           {pageScene}
-          {/* LeavesTransition handles both continuous background and one-shot sweeps */}
           <LeavesTransition
             isTransitioning={isTransitioning}
             onTransitionComplete={onTransitionComplete}

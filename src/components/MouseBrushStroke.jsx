@@ -1,17 +1,19 @@
 // src/components/MouseBrushStroke.jsx
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef } from "react";
 
 /**
- * Body-appended mouse brush. Appends a top-level canvas to document.body so it's always visible.
- * Leaves a short-lived watermark (residual ink) that fades away a few seconds after pointer stops.
+ * MouseBrushStroke with mobile touch support.
+ * - Appends a top-level canvas to document.body (so it's never hidden)
+ * - Uses pointer events where available; falls back to touch events for mobile
+ * - Starts a bold stroke on pointer/touch start, then thins with velocity
+ * - Leaves a short-lived watermark after the user lifts the finger/mouse
  */
 export default function MouseBrushStroke({
   minWidth = 3,
   maxWidth = 36,
   smoothing = 0.88,
-  baseFadeAlpha = 0.03, // normal fade
-  watermarkHoldMs = 900, // how long to preserve watermark before starting stronger fade
-  watermarkFadeMs = 900, // fade duration
+  baseFadeAlpha = 0.03,
+  watermarkHoldMs = 500,
   idleResetMs = 220,
 }) {
   const canvasRef = useRef(null);
@@ -24,29 +26,30 @@ export default function MouseBrushStroke({
   const watermarkTimer = useRef(null);
 
   useEffect(() => {
-    const canvas = document.createElement('canvas');
-    canvas.setAttribute('aria-hidden', 'true');
-    canvas.className = 'sumi-mouse-canvas';
+    // create canvas on body
+    const canvas = document.createElement("canvas");
+    canvas.className = "sumi-mouse-canvas";
+    canvas.setAttribute("aria-hidden", "true");
     Object.assign(canvas.style, {
-      position: 'fixed',
-      left: '0px',
-      top: '0px',
-      width: '100vw',
-      height: '100vh',
-      zIndex: '2147483647',
-      pointerEvents: 'none',
-      background: 'transparent',
-      display: 'block',
-      visibility: 'visible',
-      opacity: '1',
+      position: "fixed",
+      left: "0",
+      top: "0",
+      width: "100vw",
+      height: "100vh",
+      zIndex: "2147483647",
+      pointerEvents: "none",
+      background: "transparent",
+      display: "block",
+      visibility: "visible",
+      touchAction: "auto", // allow scroll by default; change to 'none' if you want to lock drawing
     });
     document.body.appendChild(canvas);
     canvasRef.current = canvas;
 
-    const ctx = canvas.getContext('2d', { alpha: true });
+    const ctx = canvas.getContext("2d", { alpha: true });
 
-    const off = document.createElement('canvas');
-    const offCtx = off.getContext('2d', { alpha: true });
+    const off = document.createElement("canvas");
+    const offCtx = off.getContext("2d", { alpha: true });
     offRef.current = { canvas: off, ctx: offCtx };
 
     const dpr = Math.max(1, window.devicePixelRatio || 1);
@@ -72,17 +75,17 @@ export default function MouseBrushStroke({
       offCtx.setTransform(1, 0, 0, 1, 0, 0);
       offCtx.scale(dpr, dpr);
 
-      offCtx.lineCap = 'round';
-      offCtx.lineJoin = 'round';
+      offCtx.lineCap = "round";
+      offCtx.lineJoin = "round";
 
       ptsRef.current = [];
       widthEMA.current = maxWidth;
     };
 
     resize();
-    window.addEventListener('resize', resize);
+    window.addEventListener("resize", resize);
 
-    // points helpers
+    // helpers
     const addPoint = (x, y) => {
       ptsRef.current.push({ x, y, t: performance.now() });
       if (ptsRef.current.length > 64) ptsRef.current.shift();
@@ -116,29 +119,28 @@ export default function MouseBrushStroke({
     };
 
     const drawSegment = (p0, p1, p2, w) => {
-      const c = offRef.current.ctx;
-      c.save();
-      c.lineWidth = Math.max(1, w);
-      c.strokeStyle = 'rgba(8,8,8,0.995)';
-      c.shadowBlur = Math.min(14, w * 0.6);
-      c.shadowColor = 'rgba(0,0,0,0.6)';
-      c.beginPath();
-      c.moveTo(p0.x, p0.y);
+      const oc = offRef.current.ctx;
+      oc.save();
+      oc.lineWidth = Math.max(1, w);
+      oc.strokeStyle = "rgba(8,8,8,0.995)";
+      oc.shadowBlur = Math.min(14, w * 0.6);
+      oc.shadowColor = "rgba(0,0,0,0.6)";
+      oc.beginPath();
+      oc.moveTo(p0.x, p0.y);
       const cx = (p1.x + p2.x) / 2;
       const cy = (p1.y + p2.y) / 2;
-      c.quadraticCurveTo(p1.x, p1.y, cx, cy);
-      c.stroke();
-      c.restore();
+      oc.quadraticCurveTo(p1.x, p1.y, cx, cy);
+      oc.stroke();
+      oc.restore();
     };
 
     // render loop
     let rafId = null;
     const render = () => {
       if (!running.current) return;
-
       const offc = offRef.current.ctx;
       offc.save();
-      offc.globalCompositeOperation = 'destination-out';
+      offc.globalCompositeOperation = "destination-out";
       offc.fillStyle = `rgba(0,0,0,${fadeAlpha.current})`;
       offc.fillRect(0, 0, cssW, cssH);
       offc.restore();
@@ -150,33 +152,35 @@ export default function MouseBrushStroke({
     };
     render();
 
-    // watermark fade orchestration
+    // watermark fade
     const scheduleWatermarkFade = () => {
       if (watermarkTimer.current) clearTimeout(watermarkTimer.current);
-      // hold watermark low fade for a bit (preserve a mark)
       fadeAlpha.current = baseFadeAlpha * 0.25;
       watermarkTimer.current = setTimeout(() => {
-        // ramp to a stronger fade to clear mark over watermarkFadeMs
         const steps = 18;
         const start = fadeAlpha.current;
-        const target = baseFadeAlpha * 6.0; // stronger clearing
+        const target = baseFadeAlpha * 6.0;
         let step = 0;
         const tick = () => {
           step++;
           fadeAlpha.current = start + (target - start) * (step / steps);
-          if (step < steps) {
-            requestAnimationFrame(tick);
-          } else {
-            // after fully faded, restore base fade
-            fadeAlpha.current = baseFadeAlpha;
-          }
+          if (step < steps) requestAnimationFrame(tick);
+          else fadeAlpha.current = baseFadeAlpha;
         };
         tick();
       }, watermarkHoldMs);
     };
 
-    // pointer handlers
+    // pointer handlers (primary)
+    const getXYFromEvent = (e) => {
+      if (e && typeof e.clientX === "number" && typeof e.clientY === "number")
+        return { x: e.clientX, y: e.clientY };
+      return null;
+    };
+
     const onPointerMove = (e) => {
+      const pt = getXYFromEvent(e);
+      if (!pt) return;
       const now = performance.now();
       if (now - lastMoveAt.current > idleResetMs) {
         widthEMA.current = maxWidth;
@@ -184,7 +188,7 @@ export default function MouseBrushStroke({
       }
       lastMoveAt.current = now;
 
-      addPoint(e.clientX, e.clientY);
+      addPoint(pt.x, pt.y);
       const pts = ptsRef.current;
       if (pts.length < 3) return;
       const n = pts.length;
@@ -197,21 +201,68 @@ export default function MouseBrushStroke({
     };
 
     const onPointerDown = (e) => {
+      const pt = getXYFromEvent(e);
+      if (!pt) return;
       widthEMA.current = maxWidth;
-      addPoint(e.clientX, e.clientY);
+      addPoint(pt.x, pt.y);
       lastMoveAt.current = performance.now();
     };
 
-    const onPointerLeaveOrUp = () => {
+    const onPointerUpOrLeave = () => {
       lastMoveAt.current = performance.now();
-      // start watermark fade cycle
       scheduleWatermarkFade();
     };
 
-    window.addEventListener('pointermove', onPointerMove, { passive: true });
-    window.addEventListener('pointerdown', onPointerDown, { passive: true });
-    window.addEventListener('pointerup', onPointerLeaveOrUp);
-    window.addEventListener('pointerleave', onPointerLeaveOrUp);
+    // touch fallbacks (for older browsers/dev envs where pointer events get captured by overlays)
+    const getXYFromTouch = (touchEvent) => {
+      if (!touchEvent || !touchEvent.touches || touchEvent.touches.length === 0) return null;
+      const t = touchEvent.touches[0];
+      return { x: t.clientX, y: t.clientY };
+    };
+
+    const onTouchStart = (e) => {
+      const pt = getXYFromTouch(e);
+      if (!pt) return;
+      widthEMA.current = maxWidth;
+      addPoint(pt.x, pt.y);
+      lastMoveAt.current = performance.now();
+    };
+
+    const onTouchMove = (e) => {
+      const pt = getXYFromTouch(e);
+      if (!pt) return;
+      const now = performance.now();
+      if (now - lastMoveAt.current > idleResetMs) {
+        widthEMA.current = maxWidth;
+        ptsRef.current = [];
+      }
+      lastMoveAt.current = now;
+      addPoint(pt.x, pt.y);
+      const pts = ptsRef.current;
+      if (pts.length < 3) return;
+      const n = pts.length;
+      const p0 = pts[n - 3];
+      const p1 = pts[n - 2];
+      const p2 = pts[n - 1];
+      const v = computeVel();
+      const w = velToWidth(v);
+      drawSegment(p0, p1, p2, w);
+    };
+
+    const onTouchEnd = () => {
+      lastMoveAt.current = performance.now();
+      scheduleWatermarkFade();
+    };
+
+    // Attach listeners to document so dev overlays/iframes are less likely to grab events
+    document.addEventListener("pointermove", onPointerMove, { passive: true });
+    document.addEventListener("pointerdown", onPointerDown, { passive: true });
+    document.addEventListener("pointerup", onPointerUpOrLeave);
+    document.addEventListener("pointerleave", onPointerUpOrLeave);
+
+    document.addEventListener("touchstart", onTouchStart, { passive: true });
+    document.addEventListener("touchmove", onTouchMove, { passive: true });
+    document.addEventListener("touchend", onTouchEnd, { passive: true });
 
     const idleChecker = setInterval(() => {
       const now = performance.now();
@@ -223,20 +274,25 @@ export default function MouseBrushStroke({
 
     return () => {
       running.current = false;
-      window.removeEventListener('pointermove', onPointerMove);
-      window.removeEventListener('pointerdown', onPointerDown);
-      window.removeEventListener('pointerup', onPointerLeaveOrUp);
-      window.removeEventListener('pointerleave', onPointerLeaveOrUp);
-      window.removeEventListener('resize', resize);
-      if (rafId) cancelAnimationFrame(rafId);
+
+      document.removeEventListener("pointermove", onPointerMove);
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("pointerup", onPointerUpOrLeave);
+      document.removeEventListener("pointerleave", onPointerUpOrLeave);
+
+      document.removeEventListener("touchstart", onTouchStart);
+      document.removeEventListener("touchmove", onTouchMove);
+      document.removeEventListener("touchend", onTouchEnd);
+
+      window.removeEventListener("resize", resize);
       clearInterval(idleChecker);
       if (watermarkTimer.current) clearTimeout(watermarkTimer.current);
+      if (rafId) cancelAnimationFrame(rafId);
       try {
         if (canvas && canvas.parentElement) canvas.parentElement.removeChild(canvas);
-      } catch (err) {err(console.warn(err))}
+      } catch (err) {err}
     };
-  }, [minWidth, maxWidth, smoothing, baseFadeAlpha, watermarkHoldMs, watermarkFadeMs, idleResetMs]);
+  }, [minWidth, maxWidth, smoothing, baseFadeAlpha, watermarkHoldMs, idleResetMs]);
 
-  // This component does not render into React DOM — it's top-level canvas appended to body.
   return null;
 }
