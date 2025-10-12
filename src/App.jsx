@@ -1,5 +1,5 @@
 // src/App.jsx
-import React, { useState, Suspense, useRef, useEffect, useCallback } from "react";
+import React, { useState, Suspense, useRef, useCallback } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -18,82 +18,44 @@ import MouseBrushStroke from "./components/MouseBrushStroke.jsx";
 import "./App.css";
 
 const SEASONS = ["spring", "autumn", "fall"];
-const TRANSITION_FALLBACK_MS = 3000; // safety fallback to avoid stuck transitions
-
-function pickRandomSeason(exclude = null) {
-  const candidates = SEASONS.filter((s) => s !== exclude);
-  if (candidates.length === 0) return SEASONS[0];
-  return candidates[Math.floor(Math.random() * candidates.length)];
-}
+const pickRandomSeason = (exclude = null) => {
+  const options = SEASONS.filter((s) => s !== exclude);
+  return options[Math.floor(Math.random() * options.length)];
+};
 
 function AppContent() {
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [transitionSeason, setTransitionSeason] = useState(() => pickRandomSeason(null));
-  const [nextPath, setNextPath] = useState("/");
+  const [transitionSeason, setTransitionSeason] = useState(() =>
+    pickRandomSeason(null)
+  );
   const [pageScene, setPageScene] = useState(null);
-
   const navigate = useNavigate();
   const location = useLocation();
-
   const currentSeasonRef = useRef(transitionSeason);
-  const fallbackTimerRef = useRef(null);
 
-  // Clear any fallback timer (safe)
-  const clearFallback = useCallback(() => {
-    if (fallbackTimerRef.current) {
-      clearTimeout(fallbackTimerRef.current);
-      fallbackTimerRef.current = null;
-    }
-  }, []);
-
-  // Called by LeavesTransition when sweep finishes
-  const onTransitionComplete = useCallback(() => {
-    // navigate to the intended path
-    try {
-      navigate(nextPath);
-    } catch (e) {
-      e
-      // swallow navigation errors — but still clear state
-    }
-    // clear safety fallback and reset transitioning
-    clearFallback();
-    setIsTransitioning(false);
-    // update current season tracker
-    currentSeasonRef.current = transitionSeason;
-  }, [nextPath, transitionSeason, navigate, clearFallback]);
-
-  // Safety: if the transition doesn't report completion, force reset after a timeout
-  useEffect(() => {
-    if (isTransitioning) {
-      // ensure we have a fallback to avoid a stuck UI
-      clearFallback();
-      fallbackTimerRef.current = setTimeout(() => {
-        // fallback navigation if LeavesTransition didn't call completion
-        try {
-          navigate(nextPath);
-        } catch (e) {e}
-        setIsTransitioning(false);
-        fallbackTimerRef.current = null;
-        // sync current season to the one we tried to use
-        currentSeasonRef.current = transitionSeason;
-      }, TRANSITION_FALLBACK_MS);
-    } else {
-      clearFallback();
-    }
-    return clearFallback;
-  }, [isTransitioning, nextPath, transitionSeason, navigate, clearFallback]);
-
-  // click handler — pick random season that is different from the current
   const handleLinkClick = (path) => (e) => {
     e.preventDefault();
-    // if already at path or a transition is active, ignore
     if (location.pathname === path || isTransitioning) return;
-    setNextPath(path);
-    const chosen = pickRandomSeason(currentSeasonRef.current);
-    setTransitionSeason(chosen);
-    // set transitioning true to start the sweep
+
+    // Pick a new, different season
+    const nextSeason = pickRandomSeason(currentSeasonRef.current);
+    currentSeasonRef.current = nextSeason;
+    setTransitionSeason(nextSeason);
+
+    // Trigger visual transition
     setIsTransitioning(true);
+
+    // Navigate instantly — no artificial delay
+    navigate(path);
+
+    // End transition flag after a tick to allow leaves animation to start
+    requestAnimationFrame(() => setIsTransitioning(false));
   };
+
+  const onTransitionComplete = useCallback(() => {
+    // just a safeguard if something calls it; state already resets via RAF
+    setIsTransitioning(false);
+  }, []);
 
   return (
     <>
@@ -119,7 +81,11 @@ function AppContent() {
           <a href="https://twitter.com" target="_blank" rel="noopener noreferrer">
             TW
           </a>
-          <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">
+          <a
+            href="https://linkedin.com"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             IN
           </a>
         </div>
@@ -127,7 +93,10 @@ function AppContent() {
         <Routes>
           <Route path="/" element={<HomePage setScene={setPageScene} />} />
           <Route path="/about" element={<AboutPage setScene={setPageScene} />} />
-          <Route path="/contact" element={<ContactPage setScene={setPageScene} />} />
+          <Route
+            path="/contact"
+            element={<ContactPage setScene={setPageScene} />}
+          />
         </Routes>
       </div>
 
