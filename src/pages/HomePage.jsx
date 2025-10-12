@@ -4,23 +4,30 @@ import { Physics } from '@react-three/rapier';
 import Leaf from '../components/Leaf.jsx';
 import DomCollider from '../components/DomCollider.jsx';
 import './HomePage.css';
+import * as THREE from 'three';
 
 const LEAF_COUNT = 36;
 
 function HomePageScene({ titleRef, subtitleRef }) {
-  const leafPositions = useMemo(() => {
+  // spawn leaves in a band above the viewport, varied z for depth
+  const leafSpawns = useMemo(() => {
     const arr = [];
     for (let i = 0; i < LEAF_COUNT; i++) {
-      arr.push([(Math.random() - 0.5) * 12, 6 + Math.random() * 4, (Math.random() - 0.5) * 3]);
+      const x = THREE.MathUtils.randFloatSpread(14); // spread across horizontal
+      const y = 10 + Math.random() * 6; // above view
+      const z = -6 + Math.random() * 8; // depth from -6 .. +2
+      const size = 0.6 + Math.random() * 1.2;
+      arr.push({ position: [x, y, z], size });
     }
     return arr;
   }, []);
 
   return (
-    <Physics gravity={[0, -1.6, 0]}>
-      {leafPositions.map((pos, i) => (
-        <Leaf key={i} position={pos} />
+    <Physics gravity={[0, -3.8, 0]}>
+      {leafSpawns.map((s, i) => (
+        <Leaf key={i} position={s.position} size={s.size} season={'spring'} />
       ))}
+      {/* create physical boxes for text elements */}
       <DomCollider elementRef={titleRef} />
       <DomCollider elementRef={subtitleRef} />
     </Physics>

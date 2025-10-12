@@ -1,11 +1,17 @@
 // src/components/MouseBrushStroke.jsx
 import { useEffect, useRef } from 'react';
 
+/**
+ * Body-appended mouse brush. Appends a top-level canvas to document.body so it's always visible.
+ * Leaves a short-lived watermark (residual ink) that fades away a few seconds after pointer stops.
+ */
 export default function MouseBrushStroke({
   minWidth = 3,
   maxWidth = 36,
   smoothing = 0.88,
-  fadeAlpha = 0.03,
+  baseFadeAlpha = 0.03, // normal fade
+  watermarkHoldMs = 900, // how long to preserve watermark before starting stronger fade
+  watermarkFadeMs = 900, // fade duration
   idleResetMs = 220,
 }) {
   const canvasRef = useRef(null);
@@ -14,14 +20,13 @@ export default function MouseBrushStroke({
   const widthEMA = useRef(maxWidth);
   const running = useRef(true);
   const lastMoveAt = useRef(0);
-  const resizeObserverRef = useRef(null);
+  const fadeAlpha = useRef(baseFadeAlpha);
+  const watermarkTimer = useRef(null);
 
   useEffect(() => {
-    // Create canvas in body to avoid any app stacking/context issues
     const canvas = document.createElement('canvas');
     canvas.setAttribute('aria-hidden', 'true');
     canvas.className = 'sumi-mouse-canvas';
-    // critical styles - make it always visible and on top but non-interactive
     Object.assign(canvas.style, {
       position: 'fixed',
       left: '0px',
@@ -40,7 +45,6 @@ export default function MouseBrushStroke({
 
     const ctx = canvas.getContext('2d', { alpha: true });
 
-    // offscreen accumulator canvas
     const off = document.createElement('canvas');
     const offCtx = off.getContext('2d', { alpha: true });
     offRef.current = { canvas: off, ctx: offCtx };
@@ -77,11 +81,8 @@ export default function MouseBrushStroke({
 
     resize();
     window.addEventListener('resize', resize);
-    if ('ResizeObserver' in window) {
-      resizeObserverRef.current = new ResizeObserver(resize);
-      resizeObserverRef.current.observe(document.body);
-    }
 
+    // points helpers
     const addPoint = (x, y) => {
       ptsRef.current.push({ x, y, t: performance.now() });
       if (ptsRef.current.length > 64) ptsRef.current.shift();
@@ -130,13 +131,15 @@ export default function MouseBrushStroke({
       c.restore();
     };
 
+    // render loop
     let rafId = null;
     const render = () => {
       if (!running.current) return;
+
       const offc = offRef.current.ctx;
       offc.save();
       offc.globalCompositeOperation = 'destination-out';
-      offc.fillStyle = `rgba(0,0,0,${fadeAlpha})`;
+      offc.fillStyle = `rgba(0,0,0,${fadeAlpha.current})`;
       offc.fillRect(0, 0, cssW, cssH);
       offc.restore();
 
@@ -147,6 +150,32 @@ export default function MouseBrushStroke({
     };
     render();
 
+    // watermark fade orchestration
+    const scheduleWatermarkFade = () => {
+      if (watermarkTimer.current) clearTimeout(watermarkTimer.current);
+      // hold watermark low fade for a bit (preserve a mark)
+      fadeAlpha.current = baseFadeAlpha * 0.25;
+      watermarkTimer.current = setTimeout(() => {
+        // ramp to a stronger fade to clear mark over watermarkFadeMs
+        const steps = 18;
+        const start = fadeAlpha.current;
+        const target = baseFadeAlpha * 6.0; // stronger clearing
+        let step = 0;
+        const tick = () => {
+          step++;
+          fadeAlpha.current = start + (target - start) * (step / steps);
+          if (step < steps) {
+            requestAnimationFrame(tick);
+          } else {
+            // after fully faded, restore base fade
+            fadeAlpha.current = baseFadeAlpha;
+          }
+        };
+        tick();
+      }, watermarkHoldMs);
+    };
+
+    // pointer handlers
     const onPointerMove = (e) => {
       const now = performance.now();
       if (now - lastMoveAt.current > idleResetMs) {
@@ -175,6 +204,8 @@ export default function MouseBrushStroke({
 
     const onPointerLeaveOrUp = () => {
       lastMoveAt.current = performance.now();
+      // start watermark fade cycle
+      scheduleWatermarkFade();
     };
 
     window.addEventListener('pointermove', onPointerMove, { passive: true });
@@ -182,13 +213,13 @@ export default function MouseBrushStroke({
     window.addEventListener('pointerup', onPointerLeaveOrUp);
     window.addEventListener('pointerleave', onPointerLeaveOrUp);
 
-    const idleTimer = setInterval(() => {
+    const idleChecker = setInterval(() => {
       const now = performance.now();
       if (now - lastMoveAt.current > idleResetMs) {
         widthEMA.current = maxWidth;
         ptsRef.current = [];
       }
-    }, 150);
+    }, 160);
 
     return () => {
       running.current = false;
@@ -197,13 +228,15 @@ export default function MouseBrushStroke({
       window.removeEventListener('pointerup', onPointerLeaveOrUp);
       window.removeEventListener('pointerleave', onPointerLeaveOrUp);
       window.removeEventListener('resize', resize);
-      if (resizeObserverRef.current) resizeObserverRef.current.disconnect();
       if (rafId) cancelAnimationFrame(rafId);
-      clearInterval(idleTimer);
-      try { if (canvas && canvas.parentElement) canvas.parentElement.removeChild(canvas); } catch (err) {err()}
+      clearInterval(idleChecker);
+      if (watermarkTimer.current) clearTimeout(watermarkTimer.current);
+      try {
+        if (canvas && canvas.parentElement) canvas.parentElement.removeChild(canvas);
+      } catch (err) {err(console.warn(err))}
     };
-  }, [minWidth, maxWidth, smoothing, fadeAlpha, idleResetMs]);
+  }, [minWidth, maxWidth, smoothing, baseFadeAlpha, watermarkHoldMs, watermarkFadeMs, idleResetMs]);
 
-  // this component renders nothing into the React tree
+  // This component does not render into React DOM — it's top-level canvas appended to body.
   return null;
 }
