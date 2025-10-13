@@ -1,8 +1,7 @@
 /* src/pages/HomePage.css
-   Transparent homepage UI so 3D scene and ink show through cleanly.
+   Clean, transparent homepage UI so 3D scene and ink show through.
 */
 
-/* Page container — fully transparent background */
 .page-content {
   position: relative;
   padding: 96px 32px;
@@ -16,17 +15,6 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Optional paper grain — keep extremely faint so leaves remain visible */
-.paper-overlay {
-  position: absolute;
-  inset: 0;
-  background-image: url('/textures/paper_texture.png'); /* optional */
-  background-repeat: repeat;
-  opacity: 0.02;           /* very subtle grain; set to 0 to hide */
-  pointer-events: none;
-  z-index: 1;
-}
-
 /* Main title (large, floating) */
 .sumi-title {
   font-size: clamp(3.6rem, 8vw, 6rem);
@@ -36,7 +24,6 @@
   position: relative;
   letter-spacing: -6px;
   color: rgba(0, 0, 0, 0.92);
-  text-shadow: 0 2px 6px rgba(255, 255, 255, 0.18); /* subtle highlight for contrast */
   pointer-events: auto;
   -webkit-user-select: text;
   user-select: text;
@@ -65,7 +52,7 @@
   pointer-events: auto;
 }
 
-/* Small helper: keep content elements above the subtle paper overlay */
+/* Ensure child content stacks above canvas */
 .page-content > * {
   position: relative;
   z-index: 12;
@@ -133,6 +120,47 @@
   outline: none;
 }
 
+/* Primary button (used on home) */
+.sumi-button {
+  display: inline-block;
+  background: rgba(0, 0, 0, 0.9);
+  color: #fff;
+  border: none;
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 14px 28px;
+  border-radius: 10px;
+  cursor: pointer;
+  letter-spacing: 0.5px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.15s ease, background 0.25s ease;
+  z-index: 15;
+}
+
+.sumi-button::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    circle at 30% 30%,
+    rgba(255, 255, 255, 0.12),
+    transparent 60%
+  );
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.sumi-button:hover {
+  background: #111;
+  transform: translateY(-2px);
+}
+
+.sumi-button:hover::before {
+  opacity: 1;
+}
+
 /* Accessibility & small-screen tweaks */
 @media (max-width: 880px) {
   .page-content {
@@ -153,11 +181,23 @@
 }
 
 /* Focus-visible state for keyboard users */
-a:focus-visible {
+a:focus-visible,
+button:focus-visible {
   outline: 2px dashed rgba(30, 30, 30, 0.6);
   outline-offset: 3px;
   border-radius: 6px;
 }
 
-/* tiny helper to ensure canvas remains interactive layer-wise:
-   Canvas itself should have pointer-events: none in App.jsx so the UI registers clicks. */
+/* small helper: if you want a subtle entrance for title/button, uncomment below */
+/*
+.sumi-title, .sumi-button {
+  transform: translateY(8px);
+  opacity: 0;
+  transition: transform 420ms cubic-bezier(.16,.84,.44,1), opacity 420ms ease;
+}
+.page-content.ready .sumi-title,
+.page-content.ready .sumi-button {
+  transform: translateY(0);
+  opacity: 1;
+}
+*/

@@ -10,6 +10,7 @@ import {
 import { Canvas } from "@react-three/fiber";
 
 import HomePage from "./pages/HomePage.jsx";
+import ProjectsPage from "./pages/ProjectsPage.jsx";
 import AboutPage from "./pages/AboutPage.jsx";
 import ContactPage from "./pages/ContactPage.jsx";
 import LeavesTransition from "./components/LeavesTransition.jsx";
@@ -93,6 +94,7 @@ function AppContent() {
         <Routes>
           <Route path="/" element={<HomePage setScene={setPageScene} />} />
           <Route path="/about" element={<AboutPage setScene={setPageScene} />} />
+          <Route path="/projects" element={<ProjectsPage setScene={setPageScene} />} />
           <Route
             path="/contact"
             element={<ContactPage setScene={setPageScene} />}
