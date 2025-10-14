@@ -101,3 +101,26 @@
 .projects-scroller > :last-child {
   margin-right: var(--pad);
 }
+
+.projects-page::before,
+.projects-page::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: var(--pad); /* Use the existing --pad variable for consistency */
+  z-index: 10; /* Ensure it's above the cards but below other UI */
+  pointer-events: none; /* Allows clicking through the shadow */
+}
+
+/* Left-side shadow */
+.projects-page::before {
+  left: 0;
+  background: linear-gradient(to right, rgba(245, 245, 245, 1) 20%, rgba(245, 245, 245, 0));
+}
+
+/* Right-side shadow */
+.projects-page::after {
+  right: 0;
+  background: linear-gradient(to left, rgba(245, 245, 245, 1) 20%, rgba(245, 245, 245, 0));
+}
