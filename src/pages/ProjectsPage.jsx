@@ -8,114 +8,78 @@ export default function ProjectsPage({ setScene }) {
   const sphereRef = useRef(null);
 
   useEffect(() => {
+    setScene(null); // keep 3D leaves behind; physics disabled by App.jsx for this page
+
     const scroller = scrollerRef.current;
     const thumb = thumbRef.current;
     const sphere = sphereRef.current;
     if (!scroller || !thumb || !sphere) return;
 
     let scheduled = false;
-
-    const applyPos = () => {
-      const maxScroll = Math.max(
-        1,
-        scroller.scrollWidth - scroller.clientWidth
-      );
+    const apply = () => {
+      scheduled = false;
+      const maxScroll = Math.max(1, scroller.scrollWidth - scroller.clientWidth);
       const pct = scroller.scrollLeft / maxScroll;
       const trackWidth = scroller.clientWidth - 48;
       const x = pct * trackWidth;
       thumb.style.transform = `translateX(${x}px)`;
-      sphere.style.transform = `translateX(${x + 26}px)`;
-      scheduled = false;
+      sphere.style.transform = `translateX(${x + 24}px)`;
     };
 
     const onScroll = () => {
       if (!scheduled) {
         scheduled = true;
-        requestAnimationFrame(applyPos);
+        requestAnimationFrame(apply);
       }
     };
 
-    // set initial position
-    requestAnimationFrame(applyPos);
     scroller.addEventListener("scroll", onScroll, { passive: true });
+    // initial pos
+    requestAnimationFrame(apply);
 
     return () => {
       scroller.removeEventListener("scroll", onScroll);
     };
   }, [setScene]);
 
-  // keyboard left/right control for scroller
-  useEffect(() => {
-    const scroller = scrollerRef.current;
-    if (!scroller) return;
-    const onKey = (e) => {
-      if (e.key === "ArrowRight") {
-        scroller.scrollBy({
-          left: scroller.clientWidth * 0.6,
-          behavior: "smooth",
-        });
-      } else if (e.key === "ArrowLeft") {
-        scroller.scrollBy({
-          left: -scroller.clientWidth * 0.6,
-          behavior: "smooth",
-        });
-      }
-    };
-    scroller.addEventListener("keydown", onKey);
-    return () => scroller.removeEventListener("keydown", onKey);
-  }, []);
+  // sample projects array (replace with your data)
+  const projects = [
+    {
+      title: "Interactive Sumi Canvas",
+      desc: "WebGL ink painting with brush trails and particle effects.",
+    },
+    {
+      title: "Whispering Leaves",
+      desc: "Wind-swept petals with layered depth and soft collisions.",
+    },
+    {
+      title: "AI Brush Bot",
+      desc: "Assistive generator for brush-inspired sketches.",
+    },
+    {
+      title: "Studio Experiments",
+      desc: "Small tools, shaders, and prototypes.",
+    },
+  ];
 
   return (
     <div className="projects-page">
       <header className="projects-header">
         <h1 className="sumi-title">Projects</h1>
-        <p className="projects-lead">
-          A collection of experiments, ideas, and visual stories built with
-          code.
-        </p>
+        <p className="projects-lead">Selected experiments — click to open.</p>
       </header>
 
-      <div
-        className="projects-scroller"
-        ref={scrollerRef}
-        tabIndex={0}
-        aria-label="Projects carousel (horizontal scroll)"
-      >
-        {/* sample cards — duplicate/replace as needed */}
-        <article className="project-card">
-          <h2 className="project-title">Interactive Sumi Canvas</h2>
-          <p className="project-desc">
-            A WebGL ink-painting demo blending cursor motion with particle
-            physics.
-          </p>
-        </article>
-
-        <article className="project-card">
-          <h2 className="project-title">Whispering Leaves</h2>
-          <p className="project-desc">
-            A real-time 3D wind field simulation driving thousands of cherry
-            petals.
-          </p>
-        </article>
-
-        <article className="project-card">
-          <h2 className="project-title">AI Brush Bot</h2>
-          <p className="project-desc">
-            A conversational art assistant trained on brush-stroke datasets.
-          </p>
-        </article>
-
-        <article className="project-card">
-          <h2 className="project-title">Experimental Studio</h2>
-          <p className="project-desc">
-            Short experiments and utilities for generative visuals.
-          </p>
-        </article>
-
-        {/* add more cards as needed */}
+      <div className="projects-scroller" ref={scrollerRef} tabIndex={0} aria-label="Projects carousel">
+        {projects.map((p, i) => (
+          <article key={i} className="project-card" tabIndex={0} role="button" aria-pressed="false">
+            <div className="card-inner">
+              <h3 className="project-title">{p.title}</h3>
+              <p className="project-desc">{p.desc}</p>
+            </div>
+          </article>
+        ))}
       </div>
 
-      {/* Custom scrollbar track (bottom of page) */}
       <div className="custom-scrollbar" aria-hidden="true">
         <div className="scroll-track">
           <div className="scroll-thumb" ref={thumbRef} />
