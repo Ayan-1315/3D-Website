@@ -63,23 +63,68 @@ function AppContent() {
       <MouseBrushStroke />
 
       <div className="ui-container">
-        <nav className="main-nav">
-          <a href="/" onClick={handleLinkClick("/")}>
-            Home
-          </a>
-          <a href="/about" onClick={handleLinkClick("/about")}>
-            About
-          </a>
-          <a href="/contact" onClick={handleLinkClick("/contact")}>
-            Contact
-          </a>
+        {/* replace existing <nav className="main-nav"> ... </nav> with this block */}
+        <nav className="bottom-nav" role="navigation" aria-label="Primary">
+          <div className="nav-inner">
+            <a
+              className={`nav-item${
+                location.pathname === "/" ? " active" : ""
+              }`}
+              href="/"
+              onClick={handleLinkClick("/")}
+            >
+              <span className="nav-dot" aria-hidden="true" />
+              <span className="nav-label">Home</span>
+            </a>
+
+            <a
+              className={`nav-item${
+                location.pathname === "/projects" ? " active" : ""
+              }`}
+              href="/projects"
+              onClick={handleLinkClick("/projects")}
+            >
+              <span className="nav-dot" aria-hidden="true" />
+              <span className="nav-label">Projects</span>
+            </a>
+
+            <a
+              className={`nav-item${
+                location.pathname === "/about" ? " active" : ""
+              }`}
+              href="/about"
+              onClick={handleLinkClick("/about")}
+            >
+              <span className="nav-dot" aria-hidden="true" />
+              <span className="nav-label">About</span>
+            </a>
+
+            <a
+              className={`nav-item${
+                location.pathname === "/contact" ? " active" : ""
+              }`}
+              href="/contact"
+              onClick={handleLinkClick("/contact")}
+            >
+              <span className="nav-dot" aria-hidden="true" />
+              <span className="nav-label">Contact</span>
+            </a>
+          </div>
         </nav>
 
         <div className="social-links">
-          <a href="https://github.com" target="_blank" rel="noopener noreferrer">
+          <a
+            href="https://github.com"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             GH
           </a>
-          <a href="https://twitter.com" target="_blank" rel="noopener noreferrer">
+          <a
+            href="https://twitter.com"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
             TW
           </a>
           <a
@@ -93,8 +138,14 @@ function AppContent() {
 
         <Routes>
           <Route path="/" element={<HomePage setScene={setPageScene} />} />
-          <Route path="/about" element={<AboutPage setScene={setPageScene} />} />
-          <Route path="/projects" element={<ProjectsPage setScene={setPageScene} />} />
+          <Route
+            path="/about"
+            element={<AboutPage setScene={setPageScene} />}
+          />
+          <Route
+            path="/projects"
+            element={<ProjectsPage setScene={setPageScene} />}
+          />
           <Route
             path="/contact"
             element={<ContactPage setScene={setPageScene} />}
@@ -104,7 +155,12 @@ function AppContent() {
 
       <Canvas
         camera={{ position: [0, 0, 10], fov: 55 }}
-        style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "none" }}
+        style={{
+          position: "fixed",
+          inset: 0,
+          zIndex: 0,
+          pointerEvents: "none",
+        }}
       >
         <ambientLight intensity={1.2} />
         <directionalLight position={[0, 0, 5]} intensity={1} />

@@ -1,79 +1,144 @@
-.projects-wrapper {
+/* src/pages/ProjectsPage.css
+   Full viewport transparent projects page + horizontal scroller
+*/
+
+:root{
+  --page-pad: 6vw;
+  --card-w: 360px;
+  --card-gap: 34px;
+  --track-height: 56px;
+}
+
+/* container */
+.projects-page {
   position: relative;
-  min-height: 100vh;
-  padding: 100px 32px;
-  max-width: 1100px;
-  margin: 0 auto;
-  background-color: #faf7f2; /* soft paper-like tone */
+  width: 100%;
+  height: 100vh;
+  overflow: hidden; /* no vertical scroll */
+  background: transparent; /* show leaves behind */
   color: #111;
-  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  padding: 72px var(--page-pad);
+  box-sizing: border-box;
+  z-index: 5;
 }
 
-.projects-header {
-  margin-bottom: 60px;
-  text-align: left;
+/* header */
+.projects-header { z-index: 6; margin-bottom: 32px; }
+.sumi-title { font-size: clamp(3.6rem, 8vw, 6rem); margin: 0 0 8px; }
+.projects-lead { margin: 0 0 18px; color: rgba(40,40,40,0.85); max-width: 70ch; }
+
+/* scroller */
+.projects-scroller {
+  height: calc(100vh - 220px);
+  display: flex;
+  align-items: flex-start;
+  gap: var(--card-gap);
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 20px;
+  box-sizing: border-box;
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+  touch-action: pan-x;
+  -ms-overflow-style: none;  /* IE/Edge */
+  scrollbar-width: none;     /* Firefox */
 }
 
-.sumi-title {
-  font-size: clamp(3.8rem, 9vw, 6rem);
-  letter-spacing: -4px;
-  line-height: 0.9;
-  margin: 0;
-  color: #000;
-}
+/* hide native scrollbars visually */
+.projects-scroller::-webkit-scrollbar { display: none; }
+.projects-scroller { -webkit-overflow-scrolling: auto; }
 
-.projects-lead {
-  font-size: 1.1rem;
-  color: rgba(40, 40, 40, 0.85);
-  max-width: 60ch;
-  margin-top: 12px;
-  line-height: 1.6;
-}
-
-/* Grid of projects */
-.projects-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 28px;
-}
-
+/* cards */
 .project-card {
-  background: rgba(255, 255, 255, 0.65);
-  -webkit-backdrop-filter: blur(6px);
-  backdrop-filter: blur(6px);
-  border: 1px solid rgba(0, 0, 0, 0.06);
+  flex: 0 0 var(--card-w);
+  scroll-snap-align: start;
+  background: rgba(255,255,255,0.94);
   border-radius: 16px;
-  padding: 24px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04);
-  transition: transform 0.2s ease, box-shadow 0.25s ease;
+  padding: 28px;
+  box-shadow: 0 12px 30px rgba(0,0,0,0.06);
+  border: 1px solid rgba(0,0,0,0.035);
+  min-height: calc(100% - 60px);
+  box-sizing: border-box;
+  transition: transform .22s ease, box-shadow .22s ease;
 }
 
-.project-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+/* comfortable outer spacing */
+.projects-scroller > :first-child { margin-left: var(--page-pad); }
+.projects-scroller > :last-child { margin-right: var(--page-pad); }
+
+/* hover */
+.project-card:hover { transform: translateY(-8px); box-shadow: 0 22px 44px rgba(0,0,0,0.09); }
+
+.project-title { margin: 0 0 10px; font-size: 1.25rem; font-weight: 700; }
+.project-desc { margin: 0; color: rgba(30,30,30,0.78); line-height: 1.6; }
+
+/* projects page (transparent background) - important parts only shown here */
+/* scroll track placed above the nav so they don't overlap */
+.custom-scrollbar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 68px; /* moved up so nav doesn't collide with the track */
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 60;
 }
 
-.project-title {
-  font-size: 1.25rem;
-  margin: 0 0 8px;
-  color: #111;
+.scroll-track {
+  position: relative;
+  width: clamp(420px, 70vw, 1100px);
+  height: 12px;
+  background: rgba(0,0,0,0.045);
+  border-radius: 999px;
+  padding: 6px;
+  box-sizing: border-box;
+  pointer-events: auto;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.06); /* subtle */
 }
 
-.project-desc {
-  font-size: 0.98rem;
-  line-height: 1.6;
-  color: rgba(30, 30, 30, 0.8);
+/* lower-shadow, smaller thumb */
+.scroll-thumb {
+  position: absolute;
+  left: 6px;
+  top: 6px;
+  width: 120px;
+  height: 8px;
+  background: linear-gradient(180deg, rgba(250,245,240,0.98), rgba(235,225,210,0.96));
+  border-radius: 999px;
+  box-shadow: 0 6px 14px rgba(0,0,0,0.08);
+  transform: translateX(0);
+  transition: transform 200ms cubic-bezier(.16,.84,.44,1);
 }
 
-/* Responsive tweaks */
-@media (max-width: 720px) {
-  .projects-wrapper {
-    padding: 60px 20px;
-  }
-  .projects-header {
-    margin-bottom: 40px;
-  }
-  .projects-lead {
-    font-size: 1rem;
-  }
+/* smaller sphere, subtler shadow */
+.scroll-sphere {
+  position: absolute;
+  left: 6px;
+  top: -2px;
+  width: 16px;
+  height: 16px;
+  background: linear-gradient(180deg,#23110b,#0f0704);
+  border-radius: 50%;
+  box-shadow: 0 8px 18px rgba(0,0,0,0.12);
+  transform: translateX(26px);
+  transition: transform 260ms cubic-bezier(.16,.84,.44,1);
+}
+
+
+/* subtle hover effect when pointer over the track to show affordance */
+.scroll-track:hover .scroll-thumb { transform: translateY(-4px) scale(1.02); }
+.scroll-track:hover .scroll-sphere { transform: translateX(calc(var(--sphere-x, 26px))) translateY(-4px); }
+
+/* adjust sizes on small screens */
+@media (max-width: 880px) {
+  :root { --card-w: 300px; --card-gap: 22px; --track-height: 56px; }
+  .projects-page { padding: 56px 4vw; }
+  .scroll-track { width: 86vw; }
+  .scroll-thumb { width: 120px; }
+  .scroll-sphere { width: 16px; height: 16px; }
 }
