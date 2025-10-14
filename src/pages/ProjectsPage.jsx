@@ -7,6 +7,16 @@ export default function ProjectsPage({ setScene }) {
   const trackRef = useRef(null);
   const sphereRef = useRef(null);
 
+  const projects = [
+    { title: "Interactive Sumi Canvas", desc: "WebGL ink painting with brush trails and particle effects." },
+    { title: "Whispering Leaves", desc: "Wind-swept petals with layered depth and soft collisions." },
+    { title: "AI Brush Bot", desc: "Assistive generator for brush-inspired sketches." },
+    { title: "Studio Experiments", desc: "Small tools, shaders, and prototypes." }
+  ];
+
+  // 1. Duplicate projects to create the seamless loop effect
+  const extendedProjects = [...projects, ...projects, ...projects];
+
   useEffect(() => {
     setScene(null);
 
@@ -16,12 +26,35 @@ export default function ProjectsPage({ setScene }) {
     if (!scroller || !track || !sphere) return;
 
     let scheduled = false;
+    let isRepositioning = false;
+    let blockWidth = 0;
 
-    // update sphere position based on scroller.scrollLeft
+    const setupScroller = () => {
+      if (scroller.children.length > projects.length) {
+        // Calculate the width of one full set of projects
+        const firstCard = scroller.children[0];
+        const secondBlockStartNode = scroller.children[projects.length];
+        blockWidth = secondBlockStartNode.offsetLeft - firstCard.offsetLeft;
+
+        // Start the scroller at the beginning of the second (middle) block
+        scroller.scrollLeft = blockWidth;
+      }
+    };
+    
+    // Use a timeout to ensure browser layout is complete before calculating widths
+    const setupTimeout = setTimeout(setupScroller, 100);
+
     const updateSphere = () => {
       scheduled = false;
-      const maxScroll = Math.max(1, scroller.scrollWidth - scroller.clientWidth);
-      const pct = scroller.scrollLeft / maxScroll;
+      if (blockWidth <= 0) return; // Don't run until blockWidth is calculated
+
+      // 2. Update sphere based on the "perceived" scroll position within one block
+      const perceivedScrollLeft = scroller.scrollLeft - blockWidth;
+      const perceivedMaxScroll = blockWidth - scroller.clientWidth;
+      const maxScroll = Math.max(1, perceivedMaxScroll);
+      let pct = perceivedScrollLeft / maxScroll;
+      pct = Math.max(0, Math.min(1, pct));
+
       const trackRect = track.getBoundingClientRect();
       const padding = parseFloat(getComputedStyle(track).paddingLeft) || 6;
       const sphereSize = parseFloat(getComputedStyle(sphere).width) || 18;
@@ -31,6 +64,21 @@ export default function ProjectsPage({ setScene }) {
     };
 
     const onScroll = () => {
+      if (isRepositioning || blockWidth === 0) return;
+
+      const scrollLeft = scroller.scrollLeft;
+
+      // 3. Jump logic: when user scrolls to a clone, move them to the real block
+      if (scrollLeft >= blockWidth * 2) {
+        isRepositioning = true;
+        scroller.scrollLeft -= blockWidth;
+        requestAnimationFrame(() => { isRepositioning = false; });
+      } else if (scrollLeft < blockWidth) {
+        isRepositioning = true;
+        scroller.scrollLeft += blockWidth;
+        requestAnimationFrame(() => { isRepositioning = false; });
+      }
+
       if (!scheduled) {
         scheduled = true;
         requestAnimationFrame(updateSphere);
@@ -38,24 +86,25 @@ export default function ProjectsPage({ setScene }) {
     };
 
     scroller.addEventListener("scroll", onScroll, { passive: true });
-    // set initial pos
     requestAnimationFrame(updateSphere);
 
     // ---- click / drag to scrub the scroller ----
     let dragging = false;
 
     const setScrollFromClientX = (clientX) => {
+      if (blockWidth <= 0) return; // Wait for setup
       const rect = track.getBoundingClientRect();
       const padding = parseFloat(getComputedStyle(track).paddingLeft) || 6;
       const sphereSize = parseFloat(getComputedStyle(sphere).width) || 18;
       const usable = Math.max(1, rect.width - padding * 2 - sphereSize);
-      // compute local x within usable area
+      
       let localX = clientX - rect.left - padding - sphereSize / 2;
       localX = Math.max(0, Math.min(usable, localX));
       const pct = localX / usable;
-      const maxScroll = Math.max(1, scroller.scrollWidth - scroller.clientWidth);
-      scroller.scrollLeft = pct * maxScroll;
-      // call updateSphere via RAF (scroll listener will sync)
+      
+      const perceivedMaxScroll = blockWidth - scroller.clientWidth;
+      // Set scrollLeft relative to the start of the middle block
+      scroller.scrollLeft = blockWidth + (pct * perceivedMaxScroll);
     };
 
     const onPointerDown = (e) => {
@@ -78,19 +127,13 @@ export default function ProjectsPage({ setScene }) {
     track.addEventListener("click", (e) => setScrollFromClientX(e.clientX));
 
     return () => {
+      clearTimeout(setupTimeout);
       scroller.removeEventListener("scroll", onScroll);
       track.removeEventListener("pointerdown", onPointerDown);
       window.removeEventListener("pointermove", onPointerMove);
       window.removeEventListener("pointerup", onPointerUp);
     };
-  }, [setScene]);
-
-  const projects = [
-    { title: "Interactive Sumi Canvas", desc: "WebGL ink painting with brush trails and particle effects." },
-    { title: "Whispering Leaves", desc: "Wind-swept petals with layered depth and soft collisions." },
-    { title: "AI Brush Bot", desc: "Assistive generator for brush-inspired sketches." },
-    { title: "Studio Experiments", desc: "Small tools, shaders, and prototypes." }
-  ];
+  }, [setScene, projects.length]);
 
   return (
     <div className="projects-page">
@@ -100,7 +143,8 @@ export default function ProjectsPage({ setScene }) {
       </header>
 
       <div className="projects-scroller" ref={scrollerRef} tabIndex={0} aria-label="Projects carousel">
-        {projects.map((p, i) => (
+        {/* Render the extended list of projects */}
+        {extendedProjects.map((p, i) => (
           <article key={i} className="project-card" tabIndex={0} role="button">
             <div className="card-inner">
               <h3 className="project-title">{p.title}</h3>

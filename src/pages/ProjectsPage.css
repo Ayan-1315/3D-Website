@@ -45,12 +45,13 @@
   overflow-x: auto;
   overflow-y: hidden;
   padding-bottom: 20px;
-  scroll-snap-type: x mandatory;
+  /* scroll-snap-type: x mandatory; */ /* <-- REMOVE THIS LINE */
   scroll-behavior: smooth;
   touch-action: pan-x;
   -ms-overflow-style: none;
   /* scrollbar-width: none; */
 }
+
 .projects-scroller::-webkit-scrollbar {
   display: none;
 }
@@ -99,75 +100,4 @@
 }
 .projects-scroller > :last-child {
   margin-right: var(--pad);
-}
-
-/* custom scrollbar (single sphere inside track) */
-.custom-scrollbar {
-  position: absolute;
-  left: 0;
-  right: 0;
-  bottom: 52px; /* sits above nav usually */
-  height: 64px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none; /* will enable on track element itself below */
-  z-index: 60;
-}
-
-/* track: soft with black outer glow */
-.scroll-track {
-  position: relative;
-  width: clamp(460px, 68vw, 1080px);
-  height: 14px;
-  background: rgba(255,255,255,0.0); /* transparent center */
-  border-radius: 999px;
-  padding: var(--track-padding);
-  box-sizing: border-box;
-  pointer-events: auto; /* enable interactions for click/drag */
-  box-shadow:
-    0 8px 24px rgba(0,0,0,0.18),
-    0 0 48px rgba(0,0,0,0.28); /* black glow */
-  border: 1px solid rgba(0,0,0,0.04);
-  -webkit-user-select: none;
-  user-select: none;
-  cursor: pointer;
-}
-
-/* single sphere that moves across the track */
-.scroll-sphere {
-  position: absolute;
-  left: var(--track-padding);
-  top: 50%;
-  width: var(--sphere-size);
-  height: var(--sphere-size);
-  transform: translateY(-50%) translateX(0);
-  border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #2a140e, #0b0604);
-  box-shadow:
-    0 14px 30px rgba(0,0,0,0.32),   /* black glow under sphere */
-    0 2px 6px rgba(255,255,255,0.06) inset;
-  transition: transform 180ms cubic-bezier(.16,.84,.44,1);
-  pointer-events: none; /* sphere itself not interactive; track handles input */
-}
-
-/* hover affordance: a slight lift (visual only) */
-.scroll-track:active .scroll-sphere,
-.scroll-track:hover .scroll-sphere {
-  transform: translateY(-55%) translateX(0) scale(1.02);
-}
-
-/* responsive */
-@media (max-width: 880px) {
-  :root {
-    --card-w: 300px;
-    --gap: 22px;
-    --sphere-size: 16px;
-  }
-  .projects-page {
-    padding: 48px 4vw;
-  }
-  .scroll-track {
-    width: 86vw;
-  }
 }
