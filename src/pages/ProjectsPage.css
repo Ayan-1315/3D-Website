@@ -16,7 +16,7 @@
   color: #111;
   display: flex;
   flex-direction: column;
-  padding: 72px 0; /* Adjusted padding to allow arrows to sit at the edge */
+  padding: 72px 0;
   box-sizing: border-box;
   z-index: 5;
 }
@@ -24,7 +24,7 @@
 .projects-header {
   z-index: 6;
   margin-bottom: 20px;
-  padding: 0 var(--pad); /* Added padding here */
+  padding: 0 var(--pad);
 }
 .sumi-title {
   font-size: clamp(3.2rem, 8vw, 5.2rem);
@@ -45,8 +45,6 @@
   overflow-x: auto;
   overflow-y: hidden;
   padding-bottom: 20px;
-  /* scroll-behavior: smooth; */
-  /* scroll-snap-type: x mandatory; */
   touch-action: pan-x;
   -ms-overflow-style: none;
   perspective: 1000px;
@@ -62,7 +60,8 @@
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.868), rgba(250, 248, 244, 0));
   border-radius: 14px;
   padding: 28px;
-  box-shadow: 0 10px 30px rgba(18,18,18,0.06);
+  /* MODIFIED: Shadow pulled down to hide top shadow */
+  box-shadow: 0 12px 28px -6px rgba(18, 18, 18, 0.15);
   border: 1px solid rgba(0,0,0,0.04);
   min-height: calc(100% - 60px);
   box-sizing: border-box;
@@ -74,7 +73,8 @@
 .project-card:focus {
   outline: none;
   transform: translateY(-6px);
-  box-shadow: 0 18px 44px rgba(18,18,18,0.08);
+  /* MODIFIED: Focus shadow pulled down */
+  box-shadow: 0 18px 40px -10px rgba(206, 184, 136, 0.715);
 }
 .card-inner {
   width: 100%;
@@ -92,7 +92,8 @@
 }
 .project-card:hover {
   transform: translateY(-8px);
-  box-shadow: 0 20px 52px rgba(10, 10, 10, 0.505);
+  /* MODIFIED: Hover shadow pulled down */
+  box-shadow: 0 20px 45px -12px rgba(10, 10, 10, 0.505);
 }
 
 .projects-scroller > :first-child {
@@ -113,58 +114,69 @@
     padding: 48px 0;
   }
 }
-
-/* Fading shadow effect for the scroller */
-.projects-page::before,
-.projects-page::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  width: var(--pad);
-  z-index: 10;
-  pointer-events: none;
+@media (max-width: 600px) {
+  :root {
+    --card-w: 280px;
+    --gap: 18px;
+    --pad: 4vw;
+    --sphere-size: 14px;
+  }
+  .projects-page {
+    padding: 36px 0;
+  }
+  .projects-header {
+    margin-bottom: 12px;
+    padding: 0 var(--pad);
+  }
+  .sumi-title {
+    font-size: clamp(2.8rem, 7vw, 4.2rem);
+    margin: 0 0 6px;
+  }
+  .projects-lead {
+    margin: 0 0 12px;
+    font-size: 0.9rem;
+  }
 }
 
-.projects-page::before {
-  left: 0;
-  background: linear-gradient(to right, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0));
-}
-
-.projects-page::after {
-  right: 0;
-  background: linear-gradient(to left, rgba(0, 0, 0, 0.3) 0%, rgba(245, 245, 245, 0));
-}
-
-/* NEW: Navigation Arrow Styles */
+/* MODIFIED: New Navigation Arrow Styles */
 .nav-arrow {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
   z-index: 20;
-  width: 50px;
-  height: 50px;
-  background: rgba(0, 0, 0, 0);
+  width: 60px;
+  height: 60px;
+  background: transparent;
   border: none;
-  border-radius: 50%;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s ease-in-out;
-  -webkit-backdrop-filter: blur(4px);
-  backdrop-filter: blur(4px);
+  transition: transform 0.2s ease-in-out, filter 0.2s ease-in-out;
+  padding: 0;
+  color: #111;
+}
+
+.nav-arrow svg {
+  width: 36px;
+  height: 36px;
+  color: #111;
+  filter: drop-shadow(0px 0px 4px rgba(0, 0, 0, 0.3));
+  transition: filter 0.2s ease-in-out;
 }
 
 .nav-arrow:hover {
-  background: rgba(0, 0, 0, 0.6);
-  transform: translateY(-50%) scale(1.1);
+  transform: translateY(-50%) scale(1.2);
+}
+
+.nav-arrow:hover svg {
+  filter: drop-shadow(0px 0px 5px rgb(0, 0, 0)) drop-shadow(0px 0px 16px rgba(0, 0, 0, 0.6));
 }
 
 .nav-arrow-left {
-  left: calc(var(--pad) / 2);
+  left: calc(var(--pad) / 2 - 20px);
 }
 
 .nav-arrow-right {
-  right: calc(var(--pad) / 2);
+  right: calc(var(--pad) / 2 - 20px);
 }

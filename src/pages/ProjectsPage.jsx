@@ -48,7 +48,6 @@ export default function ProjectsPage({ setScene }) {
         blockWidth = secondBlockStartNode.offsetLeft - firstCard.offsetLeft;
         scroller.scrollLeft = blockWidth;
         
-        // Calculate the distance to scroll for one card
         const cardStyle = getComputedStyle(scroller.children[0]);
         const cardWidth = parseFloat(cardStyle.width);
         const cardGap = parseFloat(getComputedStyle(scroller).gap);
@@ -117,12 +116,12 @@ export default function ProjectsPage({ setScene }) {
       {/* Navigation Arrows */}
       <button className="nav-arrow nav-arrow-left" onClick={handleScrollLeft} aria-label="Scroll left">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M15.75 19.5L8.25 12L15.75 4.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M15.75 19.5L8.25 12L15.75 4.5" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       </button>
       <button className="nav-arrow nav-arrow-right" onClick={handleScrollRight} aria-label="Scroll right">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M8.25 4.5L15.75 12L8.25 19.5" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+          <path d="M8.25 4.5L15.75 12L8.25 19.5" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       </button>
 
