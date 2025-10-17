@@ -102,21 +102,29 @@
 }
 
 .social-links a {
-  display: inline-block;
+  display: flex; /* Using flex to center icon easily */
+  align-items: center;
+  justify-content: center;
+  width: 40px; /* Giving a fixed size for consistency */
+  height: 40px;
   text-decoration: none;
   color: rgba(17, 17, 17, 0.92);
-  font-weight: 600;
-  padding: 6px 9px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.12);
-  transition: background 160ms ease, transform 120ms ease;
+  border-radius: 50%; /* Changed to a circle for a cleaner icon look */
+  background: rgba(255, 255, 255, 0.8);
+  /* Added a subtle initial shadow for depth */
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  /* Updated transition to include color and box-shadow */
+  transition: background 160ms ease, transform 160ms ease, color 160ms ease, box-shadow 160ms ease;
   pointer-events: auto;
 }
 
 .social-links a:hover,
 .social-links a:focus {
-  background: rgba(255, 255, 255, 0.28);
-  transform: translateY(-1px);
+  background: #000; /* Black background on hover */
+  color: #fff; /* White icon/text on hover */
+  /* Stronger black shadow on hover */
+  box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+  transform: translateY(-2px); /* A slightly more noticeable lift */
   outline: none;
 }
 
