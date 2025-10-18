@@ -1,3 +1,7 @@
+/* src/pages/HomePage.css
+   Clean, transparent homepage UI so 3D scene and ink show through.
+*/
+
 .page-content {
   position: relative;
   padding: 96px 32px;
@@ -15,7 +19,7 @@
   margin-bottom: 50px;
   top: 240px;
   left: -190px;
-  position: relative; /* Make sure this is relative for z-index */
+  position: relative;
 }
 
 .sumi-title {
@@ -52,6 +56,8 @@
   position: relative;
   z-index: 11;
   pointer-events: auto;
+  /* ADDED: Smooth transition for slogan color change */
+  transition: color 0.4s ease-in-out; 
 }
 
 .page-content > * {
@@ -168,12 +174,11 @@
   .page-content {
     padding: 48px 20px;
   }
-  /* MODIFIED: Make hero-block centered on mobile */
   .hero-block {
     top: auto;
     left: auto;
-    margin-top: 15vh; /* Push down from top */
-    text-align: center; /* Center align text */
+    margin-top: 15vh;
+    text-align: center;
   }
   .sumi-title {
     font-size: clamp(2.6rem, 12vw, 3.6rem);
@@ -200,8 +205,6 @@ button:focus-visible {
   border-radius: 6px;
 }
 
-
-/* --- ADDED: Brush Setting Styles --- */
 .brush-settings {
   margin-top: 32px;
   z-index: 20;
@@ -250,7 +253,7 @@ button:focus-visible {
     color: rgba(60, 60, 60, 1);
   }
   .color-swatch-container {
-    justify-content: center; /* Center swatches on mobile */
+    justify-content: center;
   }
   .color-swatch {
     width: 36px;

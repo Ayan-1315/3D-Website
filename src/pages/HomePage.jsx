@@ -17,6 +17,7 @@ export default function HomePage({ setScene, season, brushColor, setBrushColor }
     setScene(null);
   }, [setScene]);
 
+  // This memo calculates the text-shadow color
   const seasonalShadow = useMemo(() => {
     let color;
     switch (season) {
@@ -33,6 +34,56 @@ export default function HomePage({ setScene, season, brushColor, setBrushColor }
         color = "rgba(0, 0, 0, 0.15)";
     }
     return `3px 3px 6px ${color}`;
+  }, [season]);
+
+  // ADDED: This memo calculates the slogan text and color
+  const seasonalSlogan = useMemo(() => {
+    switch (season) {
+      case "spring":
+        return {
+          color: "rgba(220, 80, 110, 0.9)", // Darker pink for readability
+          text: (
+            <>
+              With every spring, a new bloom;
+              <br />
+              with every fall, a fond farewell.
+            </>
+          ),
+        };
+      case "fall":
+        return {
+          color: "rgba(200, 60, 50, 0.95)", // Darker red
+          text: (
+            <>
+              The crimson leaf, a final dance,
+              <br />
+              before the winter's quiet trance.
+            </>
+          ),
+        };
+      case "autumn":
+        return {
+          color: "rgba(210, 130, 60, 0.95)", // Darker gold
+          text: (
+            <>
+              A golden hush, the air is still,
+              <br />
+              as sunlight fades upon the hill.
+            </>
+          ),
+        };
+      default:
+        return {
+          color: "rgba(28, 28, 28, 0.76)", // Default lead color
+          text: (
+            <>
+              A quiet canvas, awaiting a new season.
+              <br />
+              Explore motion, texture, and code.
+            </>
+          ),
+        };
+    }
   }, [season]);
 
   return (
@@ -56,13 +107,15 @@ export default function HomePage({ setScene, season, brushColor, setBrushColor }
           Software Engineer
         </h2>
         
-        <p className="lead">
-          With every spring, a new bloom;
-          <br /> 
-          with every fall, a fond farewell.
+        {/* MODIFIED: Slogan is now dynamic */}
+        <p 
+          className="lead"
+          style={{ color: seasonalSlogan.color }}
+        >
+          {seasonalSlogan.text}
         </p>
 
-        {/* ADDED: Brush Settings UI */}
+        {/* Brush Settings UI */}
         <div className="brush-settings">
           <h3 className="brush-settings-title">Brush Color</h3>
           <div className="color-swatch-container">
@@ -92,7 +145,6 @@ export default function HomePage({ setScene, season, brushColor, setBrushColor }
             />
           </div>
         </div>
-        {/* End of Brush Settings */}
 
       </header>
     </div>
