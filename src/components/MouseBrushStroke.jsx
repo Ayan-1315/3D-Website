@@ -133,7 +133,7 @@ export default function MouseBrushStroke({
       // MODIFIED: Use the color from the ref
       oc.strokeStyle = colorRef.current;
       oc.shadowBlur = Math.min(14, w * 0.6);
-      oc.shadowColor = "rgba(0,0,0,0.6)"; // Kept shadow black for depth
+      oc.shadowColor = "rgba(0, 0, 0, 0)"; // Kept shadow black for depth
       oc.beginPath();
       oc.moveTo(p0.x, p0.y);
       const cx = (p1.x + p2.x) / 2;
