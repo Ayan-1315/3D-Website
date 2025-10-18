@@ -7,11 +7,10 @@ import {
   useLocation,
 } from "react-router-dom";
 import { Canvas } from "@react-three/fiber";
-// NEW: Import Font Awesome components
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faGithub,
-  faTwitter,
+  faXTwitter,
   faLinkedinIn,
 } from "@fortawesome/free-brands-svg-icons";
 
@@ -36,6 +35,10 @@ function AppContent() {
     pickRandomSeason(null)
   );
   const [pageScene, setPageScene] = useState(null);
+  
+  // ADDED: State for brush color, lifted up to here
+  const [brushColor, setBrushColor] = useState("rgba(8,8,8,0.995)");
+
   const navigate = useNavigate();
   const location = useLocation();
   const currentSeasonRef = useRef(transitionSeason);
@@ -44,18 +47,11 @@ function AppContent() {
     e.preventDefault();
     if (location.pathname === path || isTransitioning) return;
 
-    // Pick a new, different season
     const nextSeason = pickRandomSeason(currentSeasonRef.current);
     currentSeasonRef.current = nextSeason;
     setTransitionSeason(nextSeason);
-
-    // Trigger visual transition
     setIsTransitioning(true);
-
-    // Navigate instantly — no artificial delay
     navigate(path);
-
-    // End transition flag after a tick to allow leaves animation to start
     requestAnimationFrame(() => setIsTransitioning(false));
   };
 
@@ -65,7 +61,8 @@ function AppContent() {
 
   return (
     <>
-      <MouseBrushStroke />
+      {/* MODIFIED: Pass the brushColor state to the component */}
+      <MouseBrushStroke brushColor={brushColor} />
 
       <div className="ui-container">
         <nav className="bottom-nav" role="navigation" aria-label="Primary">
@@ -115,7 +112,7 @@ function AppContent() {
             </a>
           </div>
         </nav>
-        {/* --- MODIFIED: Social Links --- */}
+
         <div className="social-links">
           <a
             href="https://github.com"
@@ -131,7 +128,7 @@ function AppContent() {
             rel="noopener noreferrer"
             aria-label="Twitter"
           >
-            <FontAwesomeIcon icon={faTwitter} size="lg" />
+            <FontAwesomeIcon icon={faXTwitter} size="lg" />
           </a>
           <a
             href="https://linkedin.com"
@@ -142,16 +139,20 @@ function AppContent() {
             <FontAwesomeIcon icon={faLinkedinIn} size="lg" />
           </a>
         </div>
-        
-        <Routes>
-          {/* MODIFIED: Pass the 'transitionSeason' state as a 'season' prop */}
-          <Route
-            path="/"
-            element={
-              <HomePage setScene={setPageScene} season={transitionSeason} />
-            }
-          />
 
+        <Routes>
+          <Route 
+            path="/" 
+            element={
+              <HomePage 
+                setScene={setPageScene} 
+                season={transitionSeason} 
+                // MODIFIED: Pass brush state and setter to HomePage
+                brushColor={brushColor}
+                setBrushColor={setBrushColor}
+              />
+            } 
+          />
           <Route
             path="/about"
             element={<AboutPage setScene={setPageScene} />}

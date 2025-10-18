@@ -1,4 +1,3 @@
-// src/components/MouseBrushStroke.jsx
 import { useEffect, useRef } from "react";
 
 /**
@@ -9,6 +8,7 @@ import { useEffect, useRef } from "react";
  * - Leaves a short-lived watermark after the user lifts the finger/mouse
  */
 export default function MouseBrushStroke({
+  brushColor = "rgba(8,8,8,0.995)", // <-- ADDED THIS PROP
   minWidth = 3,
   maxWidth = 36,
   smoothing = 0.88,
@@ -24,6 +24,14 @@ export default function MouseBrushStroke({
   const lastMoveAt = useRef(0);
   const fadeAlpha = useRef(baseFadeAlpha);
   const watermarkTimer = useRef(null);
+
+  // ADDED: Ref to hold the current color
+  const colorRef = useRef(brushColor);
+
+  // ADDED: Effect to update the color ref when the prop changes
+  useEffect(() => {
+    colorRef.current = brushColor;
+  }, [brushColor]);
 
   useEffect(() => {
     // create canvas on body
@@ -41,7 +49,7 @@ export default function MouseBrushStroke({
       background: "transparent",
       display: "block",
       visibility: "visible",
-      touchAction: "auto", // allow scroll by default; change to 'none' if you want to lock drawing
+      touchAction: "auto",
     });
     document.body.appendChild(canvas);
     canvasRef.current = canvas;
@@ -122,9 +130,10 @@ export default function MouseBrushStroke({
       const oc = offRef.current.ctx;
       oc.save();
       oc.lineWidth = Math.max(1, w);
-      oc.strokeStyle = "rgba(8,8,8,0.995)";
+      // MODIFIED: Use the color from the ref
+      oc.strokeStyle = colorRef.current;
       oc.shadowBlur = Math.min(14, w * 0.6);
-      oc.shadowColor = "rgba(0,0,0,0.6)";
+      oc.shadowColor = "rgba(0,0,0,0.6)"; // Kept shadow black for depth
       oc.beginPath();
       oc.moveTo(p0.x, p0.y);
       const cx = (p1.x + p2.x) / 2;
@@ -213,7 +222,7 @@ export default function MouseBrushStroke({
       scheduleWatermarkFade();
     };
 
-    // touch fallbacks (for older browsers/dev envs where pointer events get captured by overlays)
+    // touch fallbacks
     const getXYFromTouch = (touchEvent) => {
       if (!touchEvent || !touchEvent.touches || touchEvent.touches.length === 0) return null;
       const t = touchEvent.touches[0];
@@ -254,7 +263,6 @@ export default function MouseBrushStroke({
       scheduleWatermarkFade();
     };
 
-    // Attach listeners to document so dev overlays/iframes are less likely to grab events
     document.addEventListener("pointermove", onPointerMove, { passive: true });
     document.addEventListener("pointerdown", onPointerDown, { passive: true });
     document.addEventListener("pointerup", onPointerUpOrLeave);

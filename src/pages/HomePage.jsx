@@ -1,32 +1,37 @@
 import React, { useRef, useEffect, useMemo } from "react";
 import "./HomePage.css";
 
-export default function HomePage({ setScene, season }) {
+// Define colors in one place
+const COLORS = {
+  default: "rgba(8,8,8,0.995)",
+  spring: "rgba(255, 96, 123, 0.9)",
+  fall: "rgba(248, 77, 68, 0.9)",
+  autumn: "rgba(255, 178, 110, 0.9)",
+};
+
+export default function HomePage({ setScene, season, brushColor, setBrushColor }) {
   const titleRef = useRef(null);
   const subtitleRef = useRef(null);
 
-  // Clear the 3D scene when the homepage mounts
   useEffect(() => {
     setScene(null);
   }, [setScene]);
 
-  // Calculate the seasonal drop shadow color
   const seasonalShadow = useMemo(() => {
     let color;
     switch (season) {
       case "spring":
-        color = "rgba(255, 192, 203, 0.7)"; // Light Pink
+        color = "rgba(255, 96, 123, 0.87)";
         break;
       case "fall":
-        color = "rgba(255, 105, 97, 0.7)";  // Light Red
+        color = "rgba(248, 77, 68, 0.93)";
         break;
       case "autumn":
-        color = "rgba(255, 218, 185, 0.8)";  // Light Yellow/Gold
+        color = "rgba(255, 178, 110, 0.93)";
         break;
       default:
-        color = "rgba(0, 0, 0, 0.15)"; // Default shadow
+        color = "rgba(0, 0, 0, 0.15)";
     }
-    // MODIFIED: Apply a soft, directional shadow (like from a top-left light)
     return `3px 3px 6px ${color}`;
   }, [season]);
 
@@ -56,6 +61,39 @@ export default function HomePage({ setScene, season }) {
           <br /> 
           with every fall, a fond farewell.
         </p>
+
+        {/* ADDED: Brush Settings UI */}
+        <div className="brush-settings">
+          <h3 className="brush-settings-title">Brush Color</h3>
+          <div className="color-swatch-container">
+            <button
+              className={`color-swatch ${brushColor === COLORS.default ? 'active' : ''}`}
+              style={{ backgroundColor: COLORS.default }}
+              onClick={() => setBrushColor(COLORS.default)}
+              aria-label="Set brush color to black"
+            />
+            <button
+              className={`color-swatch ${brushColor === COLORS.spring ? 'active' : ''}`}
+              style={{ backgroundColor: COLORS.spring }}
+              onClick={() => setBrushColor(COLORS.spring)}
+              aria-label="Set brush color to spring pink"
+            />
+            <button
+              className={`color-swatch ${brushColor === COLORS.fall ? 'active' : ''}`}
+              style={{ backgroundColor: COLORS.fall }}
+              onClick={() => setBrushColor(COLORS.fall)}
+              aria-label="Set brush color to fall red"
+            />
+            <button
+              className={`color-swatch ${brushColor === COLORS.autumn ? 'active' : ''}`}
+              style={{ backgroundColor: COLORS.autumn }}
+              onClick={() => setBrushColor(COLORS.autumn)}
+              aria-label="Set brush color to autumn gold"
+            />
+          </div>
+        </div>
+        {/* End of Brush Settings */}
+
       </header>
     </div>
   );
