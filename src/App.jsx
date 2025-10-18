@@ -115,7 +115,6 @@ function AppContent() {
             </a>
           </div>
         </nav>
-
         {/* --- MODIFIED: Social Links --- */}
         <div className="social-links">
           <a
@@ -143,10 +142,16 @@ function AppContent() {
             <FontAwesomeIcon icon={faLinkedinIn} size="lg" />
           </a>
         </div>
-        {/* --- End of Modifications --- */}
-
+        
         <Routes>
-          <Route path="/" element={<HomePage setScene={setPageScene} />} />
+          {/* MODIFIED: Pass the 'transitionSeason' state as a 'season' prop */}
+          <Route
+            path="/"
+            element={
+              <HomePage setScene={setPageScene} season={transitionSeason} />
+            }
+          />
+
           <Route
             path="/about"
             element={<AboutPage setScene={setPageScene} />}

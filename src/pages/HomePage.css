@@ -8,25 +8,34 @@
   max-width: 980px;
   margin: 0 auto;
   color: rgba(15, 15, 15, 0.95);
-  z-index: 10;               /* sits above the canvas */
-  background: transparent;   /* crucial: let canvas show through */
-  pointer-events: auto;      /* allow interaction with text & links */
+  z-index: 10;
+  background: transparent;
+  pointer-events: auto;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* ADDED: Hero block container style */
+.hero-block {
+  /* This container holds the main title, subtitle, and lead */
+  margin-bottom: 50px; /* Adds space after the lead paragraph */
+  top: 240px;
+  left: -190px;
 }
 
 /* Main title (large, floating) */
 .sumi-title {
   font-size: clamp(3.6rem, 8vw, 6rem);
-  line-height: 0.92;
+  line-height: 1.1;
   margin: 0 0 12px 0;
   z-index: 11;
   position: relative;
-  letter-spacing: -6px;
+  letter-spacing: -2px;
   color: rgba(0, 0, 0, 0.92);
   pointer-events: auto;
   -webkit-user-select: text;
   user-select: text;
+  transition: text-shadow 0.4s ease-in-out;
 }
 
 /* Subtitle */
@@ -39,6 +48,7 @@
   pointer-events: auto;
   -webkit-user-select: text;
   user-select: text;
+  transition: text-shadow 0.4s ease-in-out;
 }
 
 /* Lead paragraph */
@@ -63,7 +73,7 @@
   position: fixed;
   left: 24px;
   top: 24px;
-  z-index: 50; /* ensure nav stays above everything interactive */
+  z-index: 50;
   display: flex;
   gap: 12px;
   align-items: center;
@@ -76,7 +86,7 @@
   font-weight: 600;
   padding: 8px 12px;
   border-radius: 8px;
-  background: rgba(255, 255, 255, 0.12); /* translucent chip */
+  background: rgba(255, 255, 255, 0.12);
   -webkit-backdrop-filter: blur(4px);
   backdrop-filter: blur(4px);
   transition: background 160ms ease, transform 120ms ease;
@@ -102,29 +112,26 @@
 }
 
 .social-links a {
-  display: flex; /* Using flex to center icon easily */
+  display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px; /* Giving a fixed size for consistency */
+  width: 40px;
   height: 40px;
   text-decoration: none;
   color: rgba(17, 17, 17, 0.92);
-  border-radius: 50%; /* Changed to a circle for a cleaner icon look */
+  border-radius: 50%;
   background: rgba(255, 255, 255, 0.8);
-  /* Added a subtle initial shadow for depth */
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  /* Updated transition to include color and box-shadow */
   transition: background 160ms ease, transform 160ms ease, color 160ms ease, box-shadow 160ms ease;
   pointer-events: auto;
 }
 
 .social-links a:hover,
 .social-links a:focus {
-  background: #000; /* Black background on hover */
-  color: #fff; /* White icon/text on hover */
-  /* Stronger black shadow on hover */
+  background: #000;
+  color: #fff;
   box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-  transform: translateY(-2px); /* A slightly more noticeable lift */
+  transform: translateY(-2px);
   outline: none;
 }
 
@@ -176,7 +183,7 @@
   }
   .sumi-title {
     font-size: clamp(2.6rem, 12vw, 3.6rem);
-    letter-spacing: -3px;
+    letter-spacing: -1px;
   }
   .main-nav {
     left: 12px;
@@ -195,17 +202,3 @@ button:focus-visible {
   outline-offset: 3px;
   border-radius: 6px;
 }
-
-/* small helper: if you want a subtle entrance for title/button, uncomment below */
-/*
-.sumi-title, .sumi-button {
-  transform: translateY(8px);
-  opacity: 0;
-  transition: transform 420ms cubic-bezier(.16,.84,.44,1), opacity 420ms ease;
-}
-.page-content.ready .sumi-title,
-.page-content.ready .sumi-button {
-  transform: translateY(0);
-  opacity: 1;
-}
-*/

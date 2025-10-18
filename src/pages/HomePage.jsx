@@ -1,51 +1,62 @@
-import React, { useRef, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useRef, useEffect, useMemo } from "react";
 import "./HomePage.css";
 
-export default function HomePage({ setScene }) {
+export default function HomePage({ setScene, season }) {
   const titleRef = useRef(null);
   const subtitleRef = useRef(null);
-  const navigate = useNavigate();
 
-  // just clear the scene for now; you could insert 3D props here later
+  // Clear the 3D scene when the homepage mounts
   useEffect(() => {
     setScene(null);
   }, [setScene]);
+
+  // Calculate the seasonal drop shadow color
+  const seasonalShadow = useMemo(() => {
+    let color;
+    switch (season) {
+      case "spring":
+        color = "rgba(255, 192, 203, 0.7)"; // Light Pink
+        break;
+      case "fall":
+        color = "rgba(255, 105, 97, 0.7)";  // Light Red
+        break;
+      case "autumn":
+        color = "rgba(255, 218, 185, 0.8)";  // Light Yellow/Gold
+        break;
+      default:
+        color = "rgba(0, 0, 0, 0.15)"; // Default shadow
+    }
+    // MODIFIED: Apply a soft, directional shadow (like from a top-left light)
+    return `3px 3px 6px ${color}`;
+  }, [season]);
 
   return (
     <div className="page-content">
       <div className="paper-overlay" />
 
       <header className="hero-block">
-        <h1 ref={titleRef} className="sumi-title">
-          墨
-        </h1>
-        <h2 ref={subtitleRef} className="sumi-sub">
-          Sumi — Home
-        </h2>
-        <p className="lead">
-          A quiet canvas of ink and wind.<br />
-          Explore motion, texture, and the soft rhythm of falling leaves.
-        </p>
-        <button
-          className="sumi-button"
-          onClick={() => navigate("/projects")}
-          aria-label="View my projects"
+        <h1 
+          ref={titleRef} 
+          className="sumi-title" 
+          style={{ textShadow: seasonalShadow }}
         >
-          View Projects
-        </button>
+          Ayan Sen
+        </h1>
+        
+        <h2 
+          ref={subtitleRef} 
+          className="sumi-sub" 
+          style={{ textShadow: seasonalShadow }}
+        >
+          Software Engineer
+        </h2>
+        
+        <p className="lead">
+          With every spring, a new bloom;
+          <br /> 
+          with every fall, a fond farewell.
+        </p>
       </header>
-
-      <section className="intro-text">
-        <p>
-          Each scene you visit breathes with its own season — pink petals in
-          spring, red leaves in fall, golden light in autumn.
-        </p>
-        <p>
-          The brush trails echo the movement of your cursor, blending tradition
-          with code. Wander, explore, and let the minimalism do the talking.
-        </p>
-      </section>
     </div>
   );
 }
