@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.28.4",
+    "@fortawesome/free-brands-svg-icons": "^7.1.0",
+    "@fortawesome/react-fontawesome": "^3.1.0",
     "@react-three/drei": "^10.7.6",
     "@react-three/fiber": "^9.3.0",
     "@react-three/postprocessing": "^3.0.4",
