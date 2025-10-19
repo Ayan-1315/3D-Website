@@ -102,20 +102,21 @@ export default function ProjectsPage({ setScene, seasonalShadow }) { // <-- Acce
   }, [setScene, projects.length]);
 
   return (
-    <div className="projects-page page-content"> {/* Added page-content class */}
+    // MODIFIED: REMOVE the 'page-content' class here!
+    <div className="projects-page"> 
       <header className="projects-header">
-        <h1
-          className="sumi-title"
-          style={{ textShadow: seasonalShadow }} // <-- Apply prop
+        <h1 
+          className="sumi-title" 
+          style={{ textShadow: seasonalShadow }}
         >
           Projects
         </h1>
-        <p className="projects-lead lead"> {/* Use lead class */}
+        <p className="projects-lead"> {/* Keep specific class if styled differently than base .lead */}
           Selected experiments — click to open.
         </p>
       </header>
-
-      {/* ... rest of the component (arrows, scroller, cards) ... */}
+      
+      {/* ... arrows and scroller ... */}
        <button className="nav-arrow nav-arrow-left" onClick={handleScrollLeft} aria-label="Scroll left">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M15.75 19.5L8.25 12L15.75 4.5" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
