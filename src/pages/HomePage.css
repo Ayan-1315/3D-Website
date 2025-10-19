@@ -2,7 +2,8 @@
 
 .page-content {
   position: relative;
-  right: 80px;
+  top: 200px;
+  right: 80px;;
   /* Fixed padding for large laptop */
   padding: 120px 64px 96px 64px;
   max-width: 1100px;
@@ -16,25 +17,27 @@
 }
 
 .hero-block {
-  margin-bottom: 50px;
-  position: relative;
-  /* Specific positioning for HomePage hero block */
-  top: 170px;
-  left: -50px;
+  z-index: 6;
+  padding: 80px var(--pad) 0 var(--pad); /* Add top padding here */
+  margin-bottom: 20px; 
+  pointer-events: auto;
+  flex-shrink: 0;
+  top: -14px;
+  left: -155px;
 }
 
 .sumi-title {
   /* Fixed font size */
-  font-size: 6rem;
+  font-size: clamp(3rem, 7vw, 5.2rem); 
+  top: 16px;
   line-height: 1.1;
-  margin: 0 0 12px 0;
-  z-index: 11;
-  position: relative;
-  letter-spacing: -2px;
+  margin: 0 0 8px;
+  font-weight: 700;
   color: rgba(0, 0, 0, 0.92);
+  letter-spacing: -2px;
+  position: relative; 
+  z-index: 11;
   pointer-events: auto;
-  -webkit-user-select: text;
-  user-select: text;
   transition: text-shadow 0.4s ease-in-out;
 }
 
