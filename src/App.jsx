@@ -7,6 +7,7 @@ import {
   useLocation,
 } from "react-router-dom";
 import { Canvas } from "@react-three/fiber";
+import { Physics } from "@react-three/rapier";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faGithub,
@@ -29,14 +30,14 @@ const pickRandomSeason = (exclude = null) => {
   return options[Math.floor(Math.random() * options.length)];
 };
 
+const PHYSICS_ITERATIONS = 2;
+
 function AppContent() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [transitionSeason, setTransitionSeason] = useState(() =>
     pickRandomSeason(null)
   );
   const [pageScene, setPageScene] = useState(null);
-  
-  // ADDED: State for brush color, lifted up to here
   const [brushColor, setBrushColor] = useState("rgba(8,8,8,0.995)");
 
   const navigate = useNavigate();
@@ -61,10 +62,16 @@ function AppContent() {
 
   return (
     <>
-      {/* MODIFIED: Pass the brushColor state to the component */}
       <MouseBrushStroke brushColor={brushColor} />
 
-      <div className="ui-container">
+      {/* MODIFIED: Removed inline style for pointerEvents */}
+      <div 
+        className="ui-container" 
+        style={{ 
+          position: 'relative', 
+          zIndex: 10
+        }}
+      >
         <nav className="bottom-nav" role="navigation" aria-label="Primary">
           <div className="nav-inner">
             <a
@@ -77,7 +84,6 @@ function AppContent() {
               <span className="nav-dot" aria-hidden="true" />
               <span className="nav-label">Home</span>
             </a>
-
             <a
               className={`nav-item${
                 location.pathname === "/projects" ? " active" : ""
@@ -88,7 +94,6 @@ function AppContent() {
               <span className="nav-dot" aria-hidden="true" />
               <span className="nav-label">Projects</span>
             </a>
-
             <a
               className={`nav-item${
                 location.pathname === "/about" ? " active" : ""
@@ -99,7 +104,6 @@ function AppContent() {
               <span className="nav-dot" aria-hidden="true" />
               <span className="nav-label">About</span>
             </a>
-
             <a
               className={`nav-item${
                 location.pathname === "/contact" ? " active" : ""
@@ -147,7 +151,6 @@ function AppContent() {
               <HomePage 
                 setScene={setPageScene} 
                 season={transitionSeason} 
-                // MODIFIED: Pass brush state and setter to HomePage
                 brushColor={brushColor}
                 setBrushColor={setBrushColor}
               />
@@ -173,20 +176,40 @@ function AppContent() {
         style={{
           position: "fixed",
           inset: 0,
-          zIndex: 0,
-          pointerEvents: "none",
+          zIndex: 0, 
+          pointerEvents: "auto", 
         }}
       >
         <ambientLight intensity={1.2} />
         <directionalLight position={[0, 0, 5]} intensity={1} />
-        <Suspense fallback={null}>
-          {pageScene}
-          <LeavesTransition
-            isTransitioning={isTransitioning}
-            onTransitionComplete={onTransitionComplete}
-            season={transitionSeason}
-          />
-        </Suspense>
+        
+        <Physics gravity={[0, -3.2, 0]} iterations={PHYSICS_ITERATIONS}>
+          <Suspense fallback={null}>
+            {pageScene}
+            
+            <Routes>
+              <Route 
+                path="/" 
+                element={
+                  <HomePage 
+                    setScene={setPageScene} 
+                    season={transitionSeason} 
+                    brushColor={brushColor}
+                    setBrushColor={setBrushColor}
+                    is3DContext={true}
+                  />
+                } 
+              />
+            </Routes>
+            
+            <LeavesTransition
+              isTransitioning={isTransitioning}
+              onTransitionComplete={onTransitionComplete}
+              season={transitionSeason}
+            />
+          </Suspense>
+        </Physics>
+        
         <FPSMonitor />
       </Canvas>
     </>

@@ -1,32 +1,24 @@
-// src/pages/ContactPage.jsx
-import React, { useRef, useEffect } from 'react';
-import './HomePage.css';
+import React, { useEffect } from "react";
+// import "./ContactPage.css"; // You will need to create this CSS file
 
 export default function ContactPage({ setScene }) {
-  const titleRef = useRef(null);
 
   useEffect(() => {
-    // no special 3D scene for contact page (or you can add one)
+    // ✅ CORRECT: This is the fix.
+    // This clears any 3D objects from the scene when you visit the Contact page.
     setScene(null);
-    return () => setScene(null);
   }, [setScene]);
 
   return (
-    <div className="page-content">
-      <div className="paper-overlay" />
-      <h1 ref={titleRef} className="sumi-title">Contact</h1>
-      <p className="lead">Reach out: you@domain.tld</p>
-      <form style={{ marginTop: 24 }} onSubmit={(e) => e.preventDefault()}>
-        <label style={{ display: 'block', marginBottom: 8 }}>
-          Name
-          <input style={{ display: 'block', padding: 8, marginTop: 6, width: '100%' }} />
-        </label>
-        <label style={{ display: 'block', marginBottom: 8 }}>
-          Message
-          <textarea style={{ display: 'block', padding: 8, marginTop: 6, width: '100%' }} rows={6} />
-        </label>
-        <button style={{ padding: '8px 14px' }}>Send</button>
-      </form>
+    // This HTML is rendered in the UI, which is correct
+    <div className="page-content contact-page">
+      <header className="hero-block">
+        <h1 className="sumi-title">Get In Touch</h1>
+        <p className="lead">
+          You can find me on GitHub, Twitter, and LinkedIn,
+          or send me an email.
+        </p>
+      </header>
     </div>
   );
 }

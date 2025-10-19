@@ -12,7 +12,27 @@ html, body, #root {
   -moz-osx-font-smoothing: grayscale;
 }
 
-.ui-container { position: relative; z-index: 10; pointer-events: auto; }
+/* --- MODIFIED: Pointer Event Fix --- */
+
+/* 1. Make the main UI container pass-through by default */
+.ui-container {
+  pointer-events: none;
+}
+
+/* 2. Make all key UI components clickable again.
+   This rule targets the nav, social links, and the main content
+   divs of ALL your pages (like .page-content, .projects-page, etc.)
+*/
+.bottom-nav,
+.social-links,
+.page-content,
+.projects-page,
+.about-page,
+.contact-page {
+  pointer-events: auto;
+}
+/* --- End of Fix --- */
+
 
 /* Keep Three.js canvas behind UI */
 canvas {
@@ -26,9 +46,9 @@ a { cursor: pointer; }
   position: fixed;
   left: 50%;
   transform: translateX(-50%);
-  bottom: 14px; /* nav sits lower than the scroll track */
+  bottom: 14px;
   z-index: 80;
-  pointer-events: auto;
+  /* pointer-events: auto; <-- This is now handled by the rule above */
 }
 
 .bottom-nav .nav-inner {
@@ -53,7 +73,6 @@ a { cursor: pointer; }
   transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
 }
 
-/* dot smaller and darker */
 /* .nav-dot {
   width: 12px;
   height: 12px;
@@ -68,7 +87,6 @@ a { cursor: pointer; }
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.497);
 }
 
-/* active */
 .bottom-nav .nav-item.active {
   background: linear-gradient(180deg, rgba(248,242,236,0.98), rgba(235,218,200,0.94));
   transform: translateY(-3px);

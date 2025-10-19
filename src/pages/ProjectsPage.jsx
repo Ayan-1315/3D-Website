@@ -3,7 +3,7 @@ import "./ProjectsPage.css";
 
 export default function ProjectsPage({ setScene }) {
   const scrollerRef = useRef(null);
-  const scrollAmountRef = useRef(0); // To store the width of one card + gap
+  const scrollAmountRef = useRef(0);
 
   const projects = [
     { title: "Interactive Sumi Canvas", desc: "WebGL ink painting with brush trails and particle effects." },
@@ -14,7 +14,6 @@ export default function ProjectsPage({ setScene }) {
 
   const extendedProjects = [...projects, ...projects, ...projects];
 
-  // Arrow Click Handlers
   const handleScrollLeft = () => {
     if (!scrollerRef.current) return;
     scrollerRef.current.scrollBy({
@@ -32,6 +31,7 @@ export default function ProjectsPage({ setScene }) {
   };
 
   useEffect(() => {
+    // ✅ CORRECT: This is the only call to setScene
     setScene(null);
 
     const scroller = scrollerRef.current;
@@ -107,13 +107,12 @@ export default function ProjectsPage({ setScene }) {
   }, [setScene, projects.length]);
 
   return (
-    <div className="projects-page">
+    <div className="projects-page"> {/* This HTML is rendered in the UI, which is correct */}
       <header className="projects-header">
         <h1 className="sumi-title">Projects</h1>
         <p className="projects-lead">Selected experiments — click to open.</p>
       </header>
 
-      {/* Navigation Arrows */}
       <button className="nav-arrow nav-arrow-left" onClick={handleScrollLeft} aria-label="Scroll left">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M15.75 19.5L8.25 12L15.75 4.5" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
