@@ -47,7 +47,7 @@ export default function HomePage({
   }
 
   return (
-    <div className="page-content">
+    <div className="home-page-content">
       <div className="paper-overlay" />
       <header className="hero-block">
         <h1
@@ -69,7 +69,7 @@ export default function HomePage({
         </h2>
 
         <p
-          className="lead"
+          className="home-lead"
           style={{ color: seasonalSlogan.color }} // <-- Apply prop
         >
           {seasonalSlogan.text}

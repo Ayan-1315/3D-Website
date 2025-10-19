@@ -1,9 +1,9 @@
 /* src/pages/HomePage.css */
 
-.page-content {
+.home-page-content {
   position: relative;
   top: 200px;
-  right: 80px;;
+  right: 40px;;
   /* Fixed padding for large laptop */
   padding: 120px 64px 96px 64px;
   max-width: 1100px;
@@ -22,8 +22,6 @@
   margin-bottom: 20px; 
   pointer-events: auto;
   flex-shrink: 0;
-  top: -14px;
-  left: -155px;
 }
 
 .sumi-title {
@@ -53,7 +51,7 @@
   transition: text-shadow 0.4s ease-in-out;
 }
 
-.lead {
+.home-lead {
   font-size: 1rem;
   color: rgba(28, 28, 28, 0.76);
   max-width: 60ch;
