@@ -1,11 +1,11 @@
-/* src/pages/HomePage.css
-   Clean, transparent homepage UI so 3D scene and ink show through.
-*/
+/* src/pages/HomePage.css */
 
 .page-content {
   position: relative;
-  padding: 96px 32px;
-  max-width: 980px;
+  right: 80px;
+  /* Fixed padding for large laptop */
+  padding: 120px 64px 96px 64px;
+  max-width: 1100px;
   margin: 0 auto;
   color: rgba(15, 15, 15, 0.95);
   z-index: 10;
@@ -17,13 +17,15 @@
 
 .hero-block {
   margin-bottom: 50px;
-  top: 240px;
-  left: -190px;
   position: relative;
+  /* Specific positioning for HomePage hero block */
+  top: 170px;
+  left: -50px;
 }
 
 .sumi-title {
-  font-size: clamp(3.6rem, 8vw, 6rem);
+  /* Fixed font size */
+  font-size: 6rem;
   line-height: 1.1;
   margin: 0 0 12px 0;
   z-index: 11;
@@ -56,146 +58,12 @@
   position: relative;
   z-index: 11;
   pointer-events: auto;
-  /* ADDED: Smooth transition for slogan color change */
-  transition: color 0.4s ease-in-out; 
+  transition: color 0.4s ease-in-out;
 }
 
 .page-content > * {
   position: relative;
   z-index: 12;
-}
-
-.main-nav {
-  position: fixed;
-  left: 24px;
-  top: 24px;
-  z-index: 50;
-  display: flex;
-  gap: 12px;
-  align-items: center;
-}
-
-.main-nav a {
-  display: inline-block;
-  text-decoration: none;
-  color: rgba(17, 17, 17, 0.92);
-  font-weight: 600;
-  padding: 8px 12px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.12);
-  -webkit-backdrop-filter: blur(4px);
-  backdrop-filter: blur(4px);
-  transition: background 160ms ease, transform 120ms ease;
-  pointer-events: auto;
-}
-
-.main-nav a:hover,
-.main-nav a:focus {
-  background: rgba(255, 255, 255, 0.28);
-  transform: translateY(-2px);
-  outline: none;
-}
-
-.social-links {
-  position: fixed;
-  right: 24px;
-  top: 24px;
-  z-index: 50;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.social-links a {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  text-decoration: none;
-  color: rgba(17, 17, 17, 0.92);
-  border-radius: 50%;
-  background: rgba(255, 255, 255, 0.8);
-  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-  transition: background 160ms ease, transform 160ms ease, color 160ms ease, box-shadow 160ms ease;
-  pointer-events: auto;
-}
-
-.social-links a:hover,
-.social-links a:focus {
-  background: #000;
-  color: #fff;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-  transform: translateY(-2px);
-  outline: none;
-}
-
-.sumi-button {
-  display: inline-block;
-  background: rgba(0, 0, 0, 0.9);
-  color: #fff;
-  border: none;
-  font-size: 1rem;
-  font-weight: 600;
-  padding: 14px 28px;
-  border-radius: 10px;
-  cursor: pointer;
-  letter-spacing: 0.5px;
-  position: relative;
-  overflow: hidden;
-  transition: transform 0.15s ease, background 0.25s ease;
-  z-index: 15;
-}
-
-.sumi-button::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(
-    circle at 30% 30%,
-    rgba(255, 255, 255, 0.12),
-    transparent 60%
-  );
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  pointer-events: none;
-}
-
-.sumi-button:hover {
-  background: #111;
-  transform: translateY(-2px);
-}
-
-.sumi-button:hover::before {
-  opacity: 1;
-}
-
-@media (max-width: 880px) {
-  .page-content {
-    padding: 48px 20px;
-  }
-  .hero-block {
-    top: auto;
-    left: auto;
-    margin-top: 15vh;
-    text-align: center;
-  }
-  .sumi-title {
-    font-size: clamp(2.6rem, 12vw, 3.6rem);
-    letter-spacing: -1px;
-  }
-  .main-nav {
-    left: 12px;
-    top: 12px;
-  }
-  .social-links {
-    right: 12px;
-    top: 12px;
-  }
-  .lead {
-    margin-left: auto;
-    margin-right: auto;
-  }
 }
 
 a:focus-visible,
@@ -205,6 +73,7 @@ button:focus-visible {
   border-radius: 6px;
 }
 
+/* --- Brush Setting Styles --- */
 .brush-settings {
   margin-top: 32px;
   z-index: 20;
@@ -246,17 +115,4 @@ button:focus-visible {
   outline-color: rgba(0, 0, 0, 0.7);
   transform: scale(1.05);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-@media (max-width: 880px) {
-  .brush-settings-title {
-    color: rgba(60, 60, 60, 1);
-  }
-  .color-swatch-container {
-    justify-content: center;
-  }
-  .color-swatch {
-    width: 36px;
-    height: 36px;
-  }
 }
