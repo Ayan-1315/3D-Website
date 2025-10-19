@@ -1,75 +1,76 @@
 /* src/pages/AboutPage.css */
 
-/* --- Base Page Styles --- */
-.page-content {
-  position: relative;
-  /* Fixed padding for large laptop */
-  padding: 18vh 64px 96px 64px;
-  max-width: 1100px;
-  margin: 0 auto;
-  color: rgba(15, 15, 15, 0.95);
-  z-index: 10;
+/* --- Container --- */
+.about-page { /* Use this as the main class in AboutPage.jsx */
+  position: relative; 
+  width: 100%;      
+  max-width: none;  /* Override max-width */
+  height: 100vh;
+  margin: 0;        /* Override margin */
+  padding: 0;       /* Reset padding */
+  overflow: hidden;
   background: transparent;
-  pointer-events: auto;
+  color: #111;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  z-index: 5;
+  pointer-events: auto; 
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* --- Header Block --- */
 .hero-block {
-  margin-bottom: 50px;
-  position: relative;
+  z-index: 6;
+  padding: 80px var(--pad) 0 var(--pad); /* Add top padding here */
+  margin-bottom: 20px; 
+  pointer-events: auto;
+  flex-shrink: 0;
+  top: -114px;
+  left: -155px;
 }
 
 .sumi-title {
-  font-size: 6rem; /* Fixed size */
+  font-size: clamp(3rem, 7vw, 5.2rem); 
+  top: -16px;
   line-height: 1.1;
-  margin: 0 0 12px 0;
-  z-index: 11;
-  position: relative;
-  letter-spacing: -2px;
+  margin: 0 0 8px;
+  font-weight: 700;
   color: rgba(0, 0, 0, 0.92);
+  letter-spacing: -2px;
+  position: relative; 
+  z-index: 11;
   pointer-events: auto;
-  -webkit-user-select: text;
-  user-select: text;
   transition: text-shadow 0.4s ease-in-out;
 }
 
 .lead {
   font-size: 1rem;
-  color: rgba(28, 28, 28, 0.76);
+  top: -8px;
+  margin: 0 0 20px;
+  color: rgba(45,45,45,0.78);
   max-width: 60ch;
   line-height: 1.6;
-  position: relative;
+  position: relative; 
   z-index: 11;
   pointer-events: auto;
-  transition: color 0.4s ease-in-out;
 }
 
-.page-content > * {
-  position: relative;
-  z-index: 12;
-}
-
-a:focus-visible,
-button:focus-visible {
-  outline: 2px dashed rgba(30, 30, 30, 0.6);
-  outline-offset: 3px;
-  border-radius: 6px;
-}
-/* --- End Base Page Styles --- */
-
-
-/* --- About Page Specific Styles --- */
+/* --- Main Content Section --- */
 .about-content {
-  max-width: 65ch;
-  line-height: 1.7;
-  color: #111;
+  max-width: 70ch; /* Slightly wider for better line length */
+  line-height: 1.8; /* Increased line height */
+  color: #222; /* Slightly darker main text */
   font-size: 1.05rem;
   pointer-events: auto;
+  margin: 0 0 0 0; /* Center the content block */
+  text-align: left; /* Keep paragraphs left-aligned */
+  top: -120px;
 }
 
 .about-content p {
-  margin-bottom: 1.5em;
+  margin-bottom: 1.8em; /* Increased paragraph spacing */
 }
 
 .about-content strong {
@@ -77,4 +78,12 @@ button:focus-visible {
   font-weight: 600;
 }
 
-/* Removed all @media queries */
+/* --- Focus Styles --- */
+a:focus-visible,
+button:focus-visible {
+  outline: 2px dashed rgba(30, 30, 30, 0.6);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* Removed media queries for fixed layout */
