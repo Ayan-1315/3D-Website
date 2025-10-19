@@ -1,4 +1,4 @@
-import React, { useState, Suspense, useRef, useCallback } from "react";
+import React, { useState, Suspense, useRef, useCallback, useMemo } from "react";
 import {
   BrowserRouter as Router,
   Routes,
@@ -32,13 +32,21 @@ const pickRandomSeason = (exclude = null) => {
 
 const PHYSICS_ITERATIONS = 2;
 
+const COLORS = {
+  default: "rgba(8,8,8,0.995)",
+  spring: "rgba(255, 96, 123, 0.9)",
+  fall: "rgba(248, 77, 68, 0.9)",
+  autumn: "rgba(255, 178, 110, 0.9)",
+};
+
+
 function AppContent() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [transitionSeason, setTransitionSeason] = useState(() =>
     pickRandomSeason(null)
   );
   const [pageScene, setPageScene] = useState(null);
-  const [brushColor, setBrushColor] = useState("rgba(8,8,8,0.995)");
+  const [brushColor, setBrushColor] = useState(COLORS.default); // Use default color
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -60,31 +68,55 @@ function AppContent() {
     setIsTransitioning(false);
   }, []);
 
+  // Calculate seasonalShadow based on transitionSeason
+  const seasonalShadow = useMemo(() => {
+    let color;
+    switch (transitionSeason) {
+      case "spring": color = "rgba(255, 96, 123, 0.87)"; break;
+      case "fall": color = "rgba(248, 77, 68, 0.93)"; break;
+      case "autumn": color = "rgba(255, 178, 110, 0.93)"; break;
+      default: color = "rgba(0, 0, 0, 0.15)";
+    }
+    return `3px 3px 6px ${color}`;
+  }, [transitionSeason]);
+
+  // Calculate seasonalSlogan based on transitionSeason (only needed for HomePage)
+  const seasonalSlogan = useMemo(() => {
+    switch (transitionSeason) {
+      case "spring":
+        return { color: "rgba(220, 80, 110, 0.9)", text: (<>With every spring, a new bloom;<br />with every fall, a fond farewell.</>) };
+      case "fall":
+        return { color: "rgba(200, 60, 50, 0.95)", text: (<>The crimson leaf, a final dance,<br />before the winter's quiet trance.</>) };
+      case "autumn":
+        return { color: "rgba(210, 130, 60, 0.95)", text: (<>A golden hush, the air is still,<br />as sunlight fades upon the hill.</>) };
+      default:
+        return { color: "rgba(28, 28, 28, 0.76)", text: (<>A quiet canvas, awaiting a new season.<br />Explore motion, texture, and code.</>) };
+    }
+  }, [transitionSeason]);
+
   return (
     <>
       <MouseBrushStroke brushColor={brushColor} />
 
-      {/* MODIFIED: Removed inline style for pointerEvents */}
-      <div 
-        className="ui-container" 
-        style={{ 
-          position: 'relative', 
+      <div
+        className="ui-container"
+        style={{
+          position: 'relative',
           zIndex: 10
         }}
       >
         <nav className="bottom-nav" role="navigation" aria-label="Primary">
           <div className="nav-inner">
             <a
-              className={`nav-item${
-                location.pathname === "/" ? " active" : ""
-              }`}
+              className={`nav-item${location.pathname === "/" ? " active" : ""}`}
               href="/"
               onClick={handleLinkClick("/")}
             >
               <span className="nav-dot" aria-hidden="true" />
               <span className="nav-label">Home</span>
             </a>
-            <a
+            {/* ... other nav items */}
+             <a
               className={`nav-item${
                 location.pathname === "/projects" ? " active" : ""
               }`}
@@ -118,7 +150,8 @@ function AppContent() {
         </nav>
 
         <div className="social-links">
-          <a
+          {/* ... social links */}
+           <a
             href="https://github.com"
             target="_blank"
             rel="noopener noreferrer"
@@ -145,28 +178,45 @@ function AppContent() {
         </div>
 
         <Routes>
-          <Route 
-            path="/" 
+          <Route
+            path="/"
             element={
-              <HomePage 
-                setScene={setPageScene} 
-                season={transitionSeason} 
+              <HomePage
+                setScene={setPageScene}
+                season={transitionSeason}
                 brushColor={brushColor}
                 setBrushColor={setBrushColor}
+                seasonalShadow={seasonalShadow} /* Pass prop */
+                seasonalSlogan={seasonalSlogan} /* Pass prop */
               />
-            } 
+            }
           />
           <Route
             path="/about"
-            element={<AboutPage setScene={setPageScene} />}
+            element={
+              <AboutPage
+                setScene={setPageScene}
+                seasonalShadow={seasonalShadow} /* Pass prop */
+              />
+            }
           />
           <Route
             path="/projects"
-            element={<ProjectsPage setScene={setPageScene} />}
+            element={
+              <ProjectsPage
+                setScene={setPageScene}
+                seasonalShadow={seasonalShadow} /* Pass prop */
+              />
+            }
           />
           <Route
             path="/contact"
-            element={<ContactPage setScene={setPageScene} />}
+            element={
+              <ContactPage
+                setScene={setPageScene}
+                seasonalShadow={seasonalShadow} /* Pass prop */
+              />
+            }
           />
         </Routes>
       </div>
@@ -176,32 +226,34 @@ function AppContent() {
         style={{
           position: "fixed",
           inset: 0,
-          zIndex: 0, 
-          pointerEvents: "auto", 
+          zIndex: 0,
+          pointerEvents: "auto",
         }}
       >
         <ambientLight intensity={1.2} />
         <directionalLight position={[0, 0, 5]} intensity={1} />
-        
+
         <Physics gravity={[0, -3.2, 0]} iterations={PHYSICS_ITERATIONS}>
           <Suspense fallback={null}>
             {pageScene}
-            
+
             <Routes>
-              <Route 
-                path="/" 
+              <Route
+                path="/"
                 element={
-                  <HomePage 
-                    setScene={setPageScene} 
-                    season={transitionSeason} 
+                  <HomePage
+                    setScene={setPageScene}
+                    season={transitionSeason}
                     brushColor={brushColor}
                     setBrushColor={setBrushColor}
                     is3DContext={true}
+                    seasonalShadow={seasonalShadow} // Pass to 3D context too
+                    seasonalSlogan={seasonalSlogan}
                   />
-                } 
+                }
               />
             </Routes>
-            
+
             <LeavesTransition
               isTransitioning={isTransitioning}
               onTransitionComplete={onTransitionComplete}
@@ -209,7 +261,7 @@ function AppContent() {
             />
           </Suspense>
         </Physics>
-        
+
         <FPSMonitor />
       </Canvas>
     </>

@@ -1,0 +1,87 @@
+/* src/pages/Page.css */
+/* Shared styles for static pages */
+
+.page-content {
+  position: relative;
+  /* MODIFIED: Added padding-top for consistent spacing, removed fixed padding */
+  padding: 15vh 32px 96px 32px; /* Top padding pushes content down */
+  max-width: 980px;
+  margin: 0 auto;
+  color: rgba(15, 15, 15, 0.95);
+  z-index: 10;
+  background: transparent;
+  pointer-events: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.hero-block {
+  margin-bottom: 50px;
+  /* REMOVED: top, left, position: relative */
+}
+
+/* On desktop, apply specific homepage offset IN HomePage.css */
+
+/* On mobile, center the hero block */
+@media (max-width: 880px) {
+  .page-content {
+    padding: 10vh 20px 48px 20px; /* Adjust mobile padding */
+  }
+  .hero-block {
+    text-align: center;
+    /* REMOVED: margin-top (padding-top on .page-content handles this) */
+  }
+  .lead {
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+.sumi-title {
+  font-size: clamp(3.6rem, 8vw, 6rem);
+  line-height: 1.1;
+  margin: 0 0 12px 0;
+  z-index: 11;
+  position: relative;
+  letter-spacing: -2px;
+  color: rgba(0, 0, 0, 0.92);
+  pointer-events: auto;
+  -webkit-user-select: text;
+  user-select: text;
+  transition: text-shadow 0.4s ease-in-out;
+}
+
+.sumi-sub {
+  font-size: 1.6rem;
+  margin: 8px 0 24px 0;
+  color: rgba(40, 40, 40, 0.78);
+  position: relative;
+  z-index: 11;
+  pointer-events: auto;
+  -webkit-user-select: text;
+  user-select: text;
+  transition: text-shadow 0.4s ease-in-out;
+}
+
+.lead {
+  font-size: 1rem;
+  color: rgba(28, 28, 28, 0.76);
+  max-width: 60ch;
+  line-height: 1.6;
+  position: relative;
+  z-index: 11;
+  pointer-events: auto;
+  transition: color 0.4s ease-in-out;
+}
+
+.page-content > * {
+  position: relative;
+  z-index: 12;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px dashed rgba(30, 30, 30, 0.6);
+  outline-offset: 3px;
+  border-radius: 6px;
+}

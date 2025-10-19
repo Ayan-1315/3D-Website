@@ -1,0 +1,136 @@
+/* src/pages/ContactPage.css */
+
+/* --- Base Page Styles --- */
+.page-content {
+  position: relative;
+  padding: 15vh 32px 96px 32px; /* Top padding pushes content down */
+  max-width: 980px;
+  margin: 0 auto;
+  color: rgba(15, 15, 15, 0.95);
+  z-index: 10;
+  background: transparent;
+  pointer-events: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.hero-block {
+  margin-bottom: 50px;
+  position: relative; /* Keep relative for z-index stacking if needed */
+  /* REMOVED any top/left properties */
+}
+
+/* On mobile, center the hero block */
+@media (max-width: 880px) {
+  .page-content {
+    padding: 10vh 20px 48px 20px;
+  }
+  .hero-block {
+    text-align: center;
+  }
+  .lead {
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+.sumi-title {
+  font-size: clamp(3.6rem, 8vw, 6rem);
+  line-height: 1.1;
+  margin: 0 0 12px 0;
+  z-index: 11;
+  position: relative;
+  letter-spacing: -2px;
+  color: rgba(0, 0, 0, 0.92);
+  pointer-events: auto;
+  -webkit-user-select: text;
+  user-select: text;
+  transition: text-shadow 0.4s ease-in-out;
+}
+
+.lead {
+  font-size: 1rem;
+  color: rgba(28, 28, 28, 0.76);
+  max-width: 60ch;
+  line-height: 1.6;
+  position: relative;
+  z-index: 11;
+  pointer-events: auto;
+  transition: color 0.4s ease-in-out;
+}
+
+.page-content > * {
+  position: relative;
+  z-index: 12;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px dashed rgba(30, 30, 30, 0.6);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+/* --- End Base Page Styles --- */
+
+
+/* --- Contact Page Specific Styles --- */
+.contact-links {
+  pointer-events: auto;
+}
+
+.contact-button {
+  display: inline-block;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #111;
+  text-decoration: none;
+  background: linear-gradient(180deg, rgba(248,242,236,0.98), rgba(235,218,200,0.94));
+  padding: 16px 28px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  pointer-events: auto;
+}
+
+.contact-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+}
+
+.contact-socials {
+  margin-top: 40px;
+  color: #333;
+  pointer-events: auto;
+}
+
+.contact-socials span {
+  margin-right: 12px;
+  font-weight: 500;
+}
+
+.contact-socials a {
+  font-weight: 600;
+  color: #111;
+  text-decoration: none;
+  padding: 4px 8px;
+  margin: 0 4px;
+  border-radius: 6px;
+  transition: background 0.2s ease;
+  pointer-events: auto;
+}
+
+.contact-socials a:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+@media (max-width: 880px) {
+  .contact-links {
+    text-align: center;
+  }
+  .contact-socials {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+}

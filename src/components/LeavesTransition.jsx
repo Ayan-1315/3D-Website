@@ -19,7 +19,6 @@ const LEAF_TEXTURES = {
   fall: "/textures/leaf_red.png",
 };
 
-// Create a noise function for wind
 const noise2D = createNoise2D(Math.random);
 
 // --- InstancedLeaves (Upgraded with Wind) ---
@@ -29,14 +28,12 @@ function InstancedLeaves({ texture, count = INSTANCED_COUNT, season }) {
 
   const seeds = useMemo(() => {
     const arr = new Array(count);
-    // 1. Set wind direction based on season
     const windDirection = (season === 'fall') ? -1.0 : 1.0; 
     
     for (let i = 0; i < count; i++) {
       const baseX = THREE.MathUtils.randFloatSpread(HORIZ_WRAP);
       const baseY = THREE.MathUtils.randFloatSpread(VERT_WRAP);
       const baseZ = THREE.MathUtils.randFloat(-5, 5);
-      // 2. Apply wind direction to speed
       const speedX = THREE.MathUtils.randFloat(0.008, 0.04) * windDirection; 
       const swayFreq = THREE.MathUtils.randFloat(0.3, 1.2);
       const swayAmp = THREE.MathUtils.randFloat(0.08, 0.6);
@@ -50,7 +47,7 @@ function InstancedLeaves({ texture, count = INSTANCED_COUNT, season }) {
       };
     }
     return arr;
-  }, [count, season]); // Re-create seeds if season changes
+  }, [count, season]);
 
   const runtimeOffsets = useMemo(() => new Float32Array(count).fill(0), [count]);
 
@@ -59,11 +56,9 @@ function InstancedLeaves({ texture, count = INSTANCED_COUNT, season }) {
     const t = state.clock.elapsedTime;
     for (let i = 0; i < count; i++) {
       const s = seeds[i];
-      // 3. Apply wind drift
       runtimeOffsets[i] += s.speedX; 
       let x = s.baseX + runtimeOffsets[i];
 
-      // 4. Update wrap logic to be bidirectional
       const halfW = HORIZ_WRAP / 2;
       if (x > halfW) {
         runtimeOffsets[i] -= HORIZ_WRAP;
@@ -100,21 +95,21 @@ function InstancedLeaves({ texture, count = INSTANCED_COUNT, season }) {
   );
 }
 
-
 // --- UPGRADED Interactive Physics Leaf ---
 function PhysicsLeaf({ texture, initialPos, initialRot, scale, leafCollisionGroup, season }) {
   const bodyRef = useRef();
   const { clock, mouse, viewport } = useThree();
 
-  // Define where the leaf pile should be
   const pileCenterX = useMemo(() => {
+    const pileWidth = 4; // How wide the pile is
+    const screenEdge = (viewport.width / 2) - pileWidth; // Position from edge
     switch (season) {
-      case 'spring': return -HORIZ_WRAP / 4; // Left
-      case 'fall': return HORIZ_WRAP / 4;   // Right
-      case 'autumn': return 0;              // Center
+      case 'spring': return -screenEdge; // Left
+      case 'fall': return screenEdge;   // Right
+      case 'autumn': return 0;          // Center
       default: return 0;
     }
-  }, [season]);
+  }, [season, viewport.width]);
 
   useFrame(() => {
     const body = bodyRef.current;
@@ -124,38 +119,31 @@ function PhysicsLeaf({ texture, initialPos, initialRot, scale, leafCollisionGrou
     const t = clock.elapsedTime;
     const bodyPos = body.translation();
     
-    // --- Ground Piling Logic ---
-    const groundY = -VERT_WRAP / 2;
+    const groundY = -viewport.height / 2; // Dynamic ground based on viewport
     if (bodyPos.y < groundY + 0.5) {
-      // When it hits the ground, dampen it fast
       body.setLinearDamping(10);
       body.setAngularDamping(10);
 
-      // Give a final small push toward the pile center
       const push = (pileCenterX - bodyPos.x) * 0.002;
       body.applyImpulse({ x: push, y: 0, z: 0 }, true);
 
-      // After a short delay, settle it into the pile and sleep
       setTimeout(() => {
-        if(body.isSleeping()) return; // Already settled
-        const finalX = pileCenterX + (Math.random() - 0.5) * 4; // 4-unit wide pile
-        body.setTranslation({ x: finalX, y: groundY + Math.random() * 0.1, z: Math.random() * 0.5 }, true);
-        body.sleep();
+        if(!bodyRef.current || bodyRef.current.isSleeping()) return;
+        const finalX = pileCenterX + (Math.random() - 0.5) * 4; 
+        bodyRef.current.setTranslation({ x: finalX, y: groundY + Math.random() * 0.1, z: Math.random() * 0.5 }, true);
+        bodyRef.current.sleep();
       }, 300); 
 
-      return; // No wind or mouse gust when on ground
+      return;
     } else {
-      // Reset damping for normal air flight
       body.setLinearDamping(0.45);
       body.setAngularDamping(0.8);
     }
 
-    // --- Global Wind Logic ---
     const windX = (noise2D(bodyPos.y * 0.1, t * 0.1) * 0.001) + (season === 'fall' ? -0.001 : 0.001);
     const windZ = noise2D(bodyPos.x * 0.1, t * 0.1) * 0.001;
     body.applyImpulse({ x: windX, y: 0, z: windZ }, true);
 
-    // --- Mouse Gust Logic ---
     const mouseWorldX = (mouse.x * viewport.width) / 2;
     const mouseWorldY = (mouse.y * viewport.height) / 2;
     
@@ -253,19 +241,73 @@ function PhysicsLeaves({ texture, count = PHYSICS_COUNT, season }) {
           initialRot={l.rot}
           scale={l.scale}
           leafCollisionGroup={leafCollisionGroup}
-          season={season} // <-- Pass season down
+          season={season}
         />
       ))}
     </>
   );
 }
 
-// --- LeavesTransition (main export, now passes season) ---
+// --- NEW: Static Leaf Pile "Bush" Component ---
+function LeafPile({ texture, count = 20, season }) {
+  const meshRef = useRef();
+  const { viewport } = useThree();
+  const dummy = useMemo(() => new THREE.Object3D(), []);
+
+  // Calculate pile center same as physics leaves
+  const pileCenterX = useMemo(() => {
+    const pileWidth = 4;
+    const screenEdge = (viewport.width / 2) - pileWidth;
+    switch (season) {
+      case 'spring': return -screenEdge;
+      case 'fall': return screenEdge;
+      case 'autumn': return 0;
+      default: return 0;
+    }
+  }, [season, viewport.width]);
+  
+  const groundY = -viewport.height / 2;
+
+  // Create static matrices for the pile
+  useMemo(() => {
+    if (!meshRef.current) return;
+    for (let i = 0; i < count; i++) {
+      const x = pileCenterX + (Math.random() - 0.5) * 4;
+      const y = groundY + Math.random() * 0.15; // Slightly higher pile
+      const z = Math.random() * 0.5;
+      const rotZ = Math.random() * Math.PI * 2;
+      const scale = THREE.MathUtils.randFloat(0.6, 1.15);
+      
+      dummy.position.set(x, y, z);
+      dummy.rotation.set(0, 0, rotZ);
+      dummy.scale.setScalar(scale);
+      dummy.updateMatrix();
+      meshRef.current.setMatrixAt(i, dummy.matrix);
+    }
+    meshRef.current.instanceMatrix.needsUpdate = true;
+  }, [count, pileCenterX, groundY, dummy]);
+
+  return (
+    <instancedMesh ref={meshRef} args={[null, null, count]}>
+      <planeGeometry args={[0.6, 0.6]} />
+      <meshStandardMaterial
+        map={texture}
+        side={THREE.DoubleSide}
+        transparent={true}
+        alphaTest={0.03}
+        depthWrite={false}
+      />
+    </instancedMesh>
+  );
+}
+
+// --- LeavesTransition (main export, now renders LeafPile) ---
 export default function LeavesTransition({
   season = "spring",
   // isTransitioning = false,
   // onTransitionComplete = () => {},
 }) {
+  const { viewport } = useThree();
   const url = LEAF_TEXTURES[season] || LEAF_TEXTURES.spring;
   const texture = useLoader(THREE.TextureLoader, url);
 
@@ -281,17 +323,19 @@ export default function LeavesTransition({
     interactionGroups([GROUP_ENVIRONMENT], [GROUP_LEAF]), 
   []);
 
-  const floorSize = HORIZ_WRAP * 1.2;
+  const groundY = -viewport.height / 2;
+  const floorSize = viewport.width * 1.2;
 
   return (
     <>
       {texture && <InstancedLeaves texture={texture} count={INSTANCED_COUNT} season={season} />}
       {texture && <PhysicsLeaves texture={texture} count={PHYSICS_COUNT} season={season} />}
+      {texture && <LeafPile texture={texture} season={season} />}
       
       <RigidBody 
         type="fixed" 
         colliders="cuboid" 
-        position={[0, -VERT_WRAP / 2, 0]}
+        position={[0, groundY, 0]}
         collisionGroups={floorCollisionGroup}
       >
         <mesh scale={[floorSize, 0.5, 10]} visible={false}>

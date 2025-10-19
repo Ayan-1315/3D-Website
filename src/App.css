@@ -12,35 +12,71 @@ html, body, #root {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* --- MODIFIED: Pointer Event Fix --- */
-
-/* 1. Make the main UI container pass-through by default */
+/* Pointer Event Fix */
 .ui-container {
   pointer-events: none;
 }
-
-/* 2. Make all key UI components clickable again.
-   This rule targets the nav, social links, and the main content
-   divs of ALL your pages (like .page-content, .projects-page, etc.)
-*/
 .bottom-nav,
-.social-links,
+.social-links, /* Added social-links here */
 .page-content,
 .projects-page,
 .about-page,
 .contact-page {
   pointer-events: auto;
 }
-/* --- End of Fix --- */
+/* End of Fix */
 
-
-/* Keep Three.js canvas behind UI */
 canvas {
   display: block;
 }
 
-/* small helpers for anchors */
 a { cursor: pointer; }
+
+/* --- MODIFIED: Social Links Styles --- */
+.social-links {
+  position: fixed; /* Keep fixed positioning */
+  right: 24px;
+  top: 24px;
+  z-index: 50;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  pointer-events: auto; /* Ensure the container itself is clickable */
+}
+
+.social-links a {
+  display: flex; /* Use flex to center the icon */
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  text-decoration: none;
+  color: rgba(17, 17, 17, 0.92); /* Icon color */
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  transition: background 160ms ease, transform 160ms ease, color 160ms ease, box-shadow 160ms ease;
+  pointer-events: auto; /* Ensure individual links are clickable */
+}
+
+.social-links a:hover,
+.social-links a:focus {
+  background: #000;
+  color: #fff; /* Changes icon color */
+  box-shadow: 0 4px 15px rgba(0,0,0,0.4);
+  transform: translateY(-2px);
+  outline: none;
+}
+
+/* Ensure FontAwesome icon size is controlled if needed,
+   but 'size="lg"' prop in JSX usually handles this well */
+/* .social-links a svg { */
+   /* You might adjust width/height here if needed, but try props first */
+   /* width: 20px; */
+   /* height: 20px; */
+/* } */
+/* --- End of Social Links Styles --- */
+
 
 .bottom-nav {
   position: fixed;
@@ -48,7 +84,6 @@ a { cursor: pointer; }
   transform: translateX(-50%);
   bottom: 14px;
   z-index: 80;
-  /* pointer-events: auto; <-- This is now handled by the rule above */
 }
 
 .bottom-nav .nav-inner {
@@ -73,15 +108,6 @@ a { cursor: pointer; }
   transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
 }
 
-/* .nav-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: linear-gradient(180deg,#1d120c,#0b0604);
-  box-shadow: 0 6px 12px rgba(0,0,0,0.14);
-  transition: transform 180ms ease, box-shadow 180ms ease;
-} */
-
 .bottom-nav .nav-item:hover {
   transform: translateY(-3px);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.497);
@@ -92,7 +118,11 @@ a { cursor: pointer; }
   transform: translateY(-3px);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.497);
 }
-/* .bottom-nav .nav-item.active .nav-dot {
-  transform: scale(1.05) translateX(2px);
-  box-shadow: 0 12px 28px rgb(0, 0, 0);
-} */
+
+@media (max-width: 880px) {
+  /* Adjust social links position for mobile */
+  .social-links {
+    right: 12px;
+    top: 12px;
+  }
+}

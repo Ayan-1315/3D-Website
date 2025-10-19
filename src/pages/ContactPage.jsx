@@ -1,24 +1,44 @@
 import React, { useEffect } from "react";
-// import "./ContactPage.css"; // You will need to create this CSS file
+import "./ContactPage.css"; // Ensure this import points to the correct CSS file
 
-export default function ContactPage({ setScene }) {
+export default function ContactPage({ setScene, seasonalShadow }) { // <-- Accept prop
 
   useEffect(() => {
-    // ✅ CORRECT: This is the fix.
-    // This clears any 3D objects from the scene when you visit the Contact page.
     setScene(null);
   }, [setScene]);
 
   return (
-    // This HTML is rendered in the UI, which is correct
-    <div className="page-content contact-page">
+    <div className="page-content contact-page"> {/* Added page-content class */}
+      <div className="paper-overlay" />
       <header className="hero-block">
-        <h1 className="sumi-title">Get In Touch</h1>
+        <h1
+          className="sumi-title"
+          style={{ textShadow: seasonalShadow }} // <-- Apply prop
+        >
+          Contact
+        </h1>
         <p className="lead">
-          You can find me on GitHub, Twitter, and LinkedIn,
-          or send me an email.
+          Let's create something together.
+          <br />
+          You can find me on social media or send an email.
         </p>
       </header>
+
+      <section className="contact-links">
+       {/* ... rest of the content ... */}
+         <a
+          href="mailto:your-email@example.com"
+          className="contact-button"
+        >
+          your-email@example.com
+        </a>
+        <div className="contact-socials">
+          <span>Find me on:</span>
+          <a href="https://github.com" target="_blank" rel="noopener noreferrer">GitHub</a>
+          <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+          <a href="https://twitter.com" target="_blank" rel="noopener noreferrer">X (Twitter)</a>
+        </div>
+      </section>
     </div>
   );
 }

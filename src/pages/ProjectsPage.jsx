@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
-import "./ProjectsPage.css";
+import "./ProjectsPage.css"; // Ensure this import points to the correct CSS file
 
-export default function ProjectsPage({ setScene }) {
+export default function ProjectsPage({ setScene, seasonalShadow }) { // <-- Accept prop
   const scrollerRef = useRef(null);
   const scrollAmountRef = useRef(0);
 
@@ -16,27 +16,21 @@ export default function ProjectsPage({ setScene }) {
 
   const handleScrollLeft = () => {
     if (!scrollerRef.current) return;
-    scrollerRef.current.scrollBy({
-      left: -scrollAmountRef.current,
-      behavior: 'smooth'
-    });
+    scrollerRef.current.scrollBy({ left: -scrollAmountRef.current, behavior: 'smooth' });
   };
 
   const handleScrollRight = () => {
     if (!scrollerRef.current) return;
-    scrollerRef.current.scrollBy({
-      left: scrollAmountRef.current,
-      behavior: 'smooth'
-    });
+    scrollerRef.current.scrollBy({ left: scrollAmountRef.current, behavior: 'smooth' });
   };
 
   useEffect(() => {
-    // ✅ CORRECT: This is the only call to setScene
     setScene(null);
 
     const scroller = scrollerRef.current;
     if (!scroller) return;
 
+    // ... rest of useEffect logic for scrolling ...
     let scheduled = false;
     let isRepositioning = false;
     let blockWidth = 0;
@@ -104,16 +98,25 @@ export default function ProjectsPage({ setScene }) {
       clearTimeout(setupTimeout);
       scroller.removeEventListener("scroll", onScroll);
     };
+
   }, [setScene, projects.length]);
 
   return (
-    <div className="projects-page"> {/* This HTML is rendered in the UI, which is correct */}
+    <div className="projects-page page-content"> {/* Added page-content class */}
       <header className="projects-header">
-        <h1 className="sumi-title">Projects</h1>
-        <p className="projects-lead">Selected experiments — click to open.</p>
+        <h1
+          className="sumi-title"
+          style={{ textShadow: seasonalShadow }} // <-- Apply prop
+        >
+          Projects
+        </h1>
+        <p className="projects-lead lead"> {/* Use lead class */}
+          Selected experiments — click to open.
+        </p>
       </header>
 
-      <button className="nav-arrow nav-arrow-left" onClick={handleScrollLeft} aria-label="Scroll left">
+      {/* ... rest of the component (arrows, scroller, cards) ... */}
+       <button className="nav-arrow nav-arrow-left" onClick={handleScrollLeft} aria-label="Scroll left">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M15.75 19.5L8.25 12L15.75 4.5" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
