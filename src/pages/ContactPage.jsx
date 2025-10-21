@@ -1,38 +1,31 @@
 import React, { useEffect } from "react";
-import "./ContactPage.css"; // Ensure this import points to the correct CSS file
+import styles from "./ContactPage.module.css";
 
-export default function ContactPage({ setScene, seasonalShadow }) { // <-- Accept prop
-
+export default function ContactPage({ setScene, seasonalShadow }) {
   useEffect(() => {
     setScene(null);
   }, [setScene]);
 
   return (
-    <div className="page-content contact-page"> {/* Added page-content class */}
-      <div className="paper-overlay" />
-      <header className="hero-block">
-        <h1
-          className="sumi-title"
-          style={{ textShadow: seasonalShadow }} // <-- Apply prop
-        >
+    <div className={styles.pageContent}>
+      <div className={styles.paperOverlay} /> {/* optional: create paperOverlay class if shared */}
+      <header className={styles.heroBlock}>
+        <h1 className={styles.sumiTitle} style={{ textShadow: seasonalShadow }}>
           Contact
         </h1>
-        <p className="lead">
+        <p className={styles.lead}>
           Let's create something together.
           <br />
           You can find me on social media or send an email.
         </p>
       </header>
 
-      <section className="contact-links">
-       {/* ... rest of the content ... */}
-         <a
-          href="mailto:your-email@example.com"
-          className="contact-button"
-        >
+      <section className={styles.contactLinks}>
+        <a href="mailto:your-email@example.com" className={styles.contactButton}>
           your-email@example.com
         </a>
-        <div className="contact-socials">
+
+        <div className={styles.contactSocials}>
           <span>Find me on:</span>
           <a href="https://github.com" target="_blank" rel="noopener noreferrer">GitHub</a>
           <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer">LinkedIn</a>

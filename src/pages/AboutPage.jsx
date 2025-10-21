@@ -1,46 +1,44 @@
 import React, { useEffect } from "react";
-import "./AboutPage.css"; // Ensure this import points to the correct CSS file
+import styles from "./AboutPage.module.css";
 
-export default function AboutPage({ setScene, seasonalShadow }) { // <-- Accept prop
-
+export default function AboutPage({ setScene, seasonalShadow }) {
   useEffect(() => {
     setScene(null);
   }, [setScene]);
 
   return (
-    <div className="page-content about-page"> {/* Added page-content class */}
-      <div className="paper-overlay" />
-      <header className="hero-block">
-        <h1
-          className="sumi-title"
-          style={{ textShadow: seasonalShadow }} // <-- Apply prop
-        >
-          About
+    <div className={styles.aboutPage}>
+      <div className={styles.paperOverlay} />
+
+      <header className={styles.heroBlock}>
+        <h1 className={styles.sumiTitle} style={{ textShadow: seasonalShadow }}>
+          About — Ayan
         </h1>
-        <p className="lead">
-          I'm a software engineer passionate about building
-          interactive and beautiful digital experiences.
+        <p className={styles.lead}>
+          I'm Ayan — a full-stack developer and game-maker who builds interactive,
+          generative web experiences. I combine 3D graphics, physics, and clean UI.
         </p>
       </header>
 
-      <section className="about-content">
-        {/* ... rest of the content ... */}
-         <p>
-          This website is my personal canvas, a place where I blend
-          the art of minimalist design with the technical challenges of
-          web graphics and physics simulations.
+      <section className={styles.aboutContent}>
+        <p className={styles.paragraph}>
+          I came through a B.Tech in Computer Science and fine-tuned my craft by
+          shipping projects across real-time systems, web graphics, and AI.
         </p>
-        <p>
-          Inspired by the Japanese art of Sumi-e (墨絵), the goal was to
-          create a space that feels organic, alive, and responsive.
-          Every falling leaf and ink trail is a line of code,
-          a generative system designed to be peaceful and interactive.
+
+        <p className={styles.paragraph}>
+          <strong>What I build:</strong> interactive 3D websites and real-time apps...
         </p>
-        <p>
-          <strong>Tech Stack:</strong> Built with React, Three.js (react-three-fiber),
-          and Rapier (for physics).
-        </p>
+
+        <ul className={styles.projectList}>
+          <li><strong>3D personal site</strong> — the site you're on.</li>
+          <li><strong>Snuger</strong> — real-time chat (Socket.io + Fastify + MongoDB).</li>
+        </ul>
       </section>
+
+      <footer style={{ marginTop: "auto", padding: "40px var(--pad)" }}>
+        <small className={styles.footerSmall}>Last updated: October 21, 2025</small>
+      </footer>
     </div>
   );
 }

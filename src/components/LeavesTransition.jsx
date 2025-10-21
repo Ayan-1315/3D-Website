@@ -4,7 +4,6 @@ import { RigidBody, interactionGroups } from "@react-three/rapier";
 import * as THREE from "three";
 import { createNoise2D } from "simplex-noise";
 
-// ... (constants like GROUPS, COUNTS, WRAP, TEXTURES, noise2D) ...
 const GROUP_ENVIRONMENT = 0;
 const GROUP_LEAF = 1;
 
@@ -21,61 +20,93 @@ const LEAF_TEXTURES = {
 
 const noise2D = createNoise2D(Math.random);
 
+// Lightweight aerodynamic helpers
+function applyDrag(vel, dragCoef, delta) {
+  // vel is THREE.Vector3, we reduce velocity by factor proportional to dragCoef
+  vel.multiplyScalar(Math.max(0, 1 - dragCoef * delta));
+}
 
-// --- Accept isSlowMo prop ---
-function InstancedLeaves({ texture, count = INSTANCED_COUNT, season, isSlowMo }) { // <-- Accept isSlowMo
+function clamp(v, min, max) {
+  return Math.max(min, Math.min(max, v));
+}
+
+function InstancedLeaves({ texture, count = INSTANCED_COUNT, season, isSlowMo }) {
   const meshRef = useRef();
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const slowMoTime = useRef(0);
-  // --- Slow motion factor (adjust as needed) ---
-  const slowMoFactor = 0.3; 
+  const slowMoFactor = 0.33;
 
-  // --- No change needed in seeds calculation ---
   const seeds = useMemo(() => {
     const arr = new Array(count);
-    const windDirection = (season === 'fall') ? -1.0 : 1.0;
+    const windDirection = season === "fall" ? -1.0 : 1.0;
     for (let i = 0; i < count; i++) {
-      const baseX = THREE.MathUtils.randFloatSpread(HORIZ_WRAP);
-      const baseY = THREE.MathUtils.randFloatSpread(VERT_WRAP);
+      let baseX = THREE.MathUtils.randFloatSpread(HORIZ_WRAP);
+      let baseY = THREE.MathUtils.randFloatSpread(VERT_WRAP);
+      // avoid placing any instanced leaf exactly in the screen center
+      if (Math.abs(baseX) < 1.2 && Math.abs(baseY) < 1.2) {
+        const signX = Math.sign(baseX) || (Math.random() > 0.5 ? 1 : -1);
+        baseX += signX * (1.5 + Math.random() * 2.0);
+      }
       const baseZ = THREE.MathUtils.randFloat(-5, 5);
-      // Base speed is normal
-      const speedX = THREE.MathUtils.randFloat(0.008, 0.04) * windDirection; 
+      const speedX = THREE.MathUtils.randFloat(0.008, 0.04) * windDirection;
       const swayFreq = THREE.MathUtils.randFloat(0.3, 1.2);
       const swayAmp = THREE.MathUtils.randFloat(0.08, 0.6);
       const rotBase = THREE.MathUtils.randFloat(0, Math.PI * 2);
       const rotFreq = THREE.MathUtils.randFloat(0.2, 0.9);
       const rotAmp = THREE.MathUtils.randFloat(0.15, 0.7);
       const scale = THREE.MathUtils.randFloat(0.45, 1.12);
-      arr[i] = { baseX, baseY, baseZ, speedX, swayFreq, swayAmp, rotBase, rotFreq, rotAmp, scale, phase: Math.random() * Math.PI * 2 };
+      const phase = Math.random() * Math.PI * 2;
+      arr[i] = {
+        baseX,
+        baseY,
+        baseZ,
+        speedX,
+        swayFreq,
+        swayAmp,
+        rotBase,
+        rotFreq,
+        rotAmp,
+        scale,
+        phase,
+      };
     }
     return arr;
   }, [count, season]);
 
   const runtimeOffsets = useMemo(() => new Float32Array(count).fill(0), [count]);
 
-  useFrame((state, delta) => { // <-- Get delta time
+  useFrame((state, delta) => {
     if (!meshRef.current) return;
 
-    // --- Update time based on isSlowMo ---
     const timeScale = isSlowMo ? slowMoFactor : 1.0;
     slowMoTime.current += delta * timeScale;
-    const t = slowMoTime.current; // Use scaled time
-    // --- End Time Update ---
+    const t = slowMoTime.current;
 
     for (let i = 0; i < count; i++) {
       const s = seeds[i];
-      // --- Scale the speed application by timeScale ---
-      runtimeOffsets[i] += s.speedX * timeScale; 
+
+      // gently scale runtime offset with timeScale
+      runtimeOffsets[i] += s.speedX * timeScale;
       let x = s.baseX + runtimeOffsets[i];
 
       const halfW = HORIZ_WRAP / 2;
-      if (x > halfW) { runtimeOffsets[i] -= HORIZ_WRAP; x = s.baseX + runtimeOffsets[i]; }
-      else if (x < -halfW) { runtimeOffsets[i] += HORIZ_WRAP; x = s.baseX + runtimeOffsets[i]; }
+      if (x > halfW) {
+        runtimeOffsets[i] -= HORIZ_WRAP;
+        x = s.baseX + runtimeOffsets[i];
+      } else if (x < -halfW) {
+        runtimeOffsets[i] += HORIZ_WRAP;
+        x = s.baseX + runtimeOffsets[i];
+      }
 
-      // Use scaled time 't' for sway, bob, and rotation
-      const y = s.baseY + Math.sin(t * s.swayFreq + s.phase) * s.swayAmp * (1 + (s.baseZ / 6));
-      const z = s.baseZ + Math.sin(t * (0.4 + s.swayFreq * 0.1) + s.phase * 0.5) * 0.06;
-      const rotZ = s.rotBase + Math.sin(t * s.rotFreq + s.phase * 0.7) * s.rotAmp;
+      // Sway uses scaled time so slow-mo looks right
+      const sway = Math.sin(t * s.swayFreq + s.phase);
+      // Add small per-leaf noise for subtle randomness
+      const n = noise2D(s.baseX * 0.02 + t * 0.05, s.baseY * 0.02);
+      const y = s.baseY + sway * s.swayAmp * (1 + s.baseZ / 6) + n * 0.08;
+      const z = s.baseZ + Math.sin(t * (0.4 + s.swayFreq * 0.1) + s.phase * 0.5) * 0.06 + n * 0.03;
+
+      // rotation includes an additional small noise torque effect
+      const rotZ = s.rotBase + Math.sin(t * s.rotFreq + s.phase * 0.7) * s.rotAmp + n * 0.05;
 
       dummy.position.set(x, y, z);
       dummy.rotation.set(0, 0, rotZ);
@@ -86,74 +117,115 @@ function InstancedLeaves({ texture, count = INSTANCED_COUNT, season, isSlowMo })
     meshRef.current.instanceMatrix.needsUpdate = true;
   });
 
-  return (/* ... instancedMesh JSX ... */
-      <instancedMesh ref={meshRef} args={[null, null, count]}>
+  return (
+    <instancedMesh ref={meshRef} args={[null, null, count]}>
       <planeGeometry args={[0.6, 0.6]} />
-      <meshStandardMaterial map={texture} side={THREE.DoubleSide} transparent={true} alphaTest={0.03} depthWrite={false} />
+      <meshStandardMaterial
+        map={texture}
+        side={THREE.DoubleSide}
+        transparent
+        alphaTest={0.03}
+        depthWrite={false}
+      />
     </instancedMesh>
   );
 }
 
-// --- PhysicsLeaf (No changes needed for slow-mo) ---
 function PhysicsLeaf({ texture, initialPos, initialRot, scale, leafCollisionGroup, season }) {
   const bodyRef = useRef();
-  const { clock, mouse, viewport } = useThree();
+  const { clock, viewport } = useThree();
 
   const pileCenterX = useMemo(() => {
     const pileWidth = 4;
-    const screenEdge = (viewport.width / 2) - pileWidth;
+    const screenEdge = viewport.width / 2 - pileWidth;
     switch (season) {
-      case 'spring': return -screenEdge;
-      case 'fall': return screenEdge;
-      case 'autumn': return 0;
-      default: return 0;
+      case "spring":
+        return -screenEdge;
+      case "fall":
+        return screenEdge;
+      case "autumn":
+        return 0;
+      default:
+        return 0;
     }
   }, [season, viewport.width]);
 
-  useFrame(() => { // Physics uses normal time (state.clock.elapsedTime)
+  useFrame(() => {
     const body = bodyRef.current;
-    if (!body || body.isSleeping()) return;
+    if (!body || body.isSleeping?.()) return;
 
-    const t = clock.elapsedTime; // Use normal time for physics interactions
+    // Get body state from Rapier API
     const bodyPos = body.translation();
-    const groundY = -viewport.height / 2;
+    const vel = body.linvel ? body.linvel() : { x: 0, y: 0, z: 0 };
 
+    // convert to THREE for calculations
+    const v = new THREE.Vector3(vel.x, vel.y, vel.z);
+
+    // Basic aerodynamic drag proportional to velocity squared (light)
+    const dragCoef = 0.6; // small number keeps motion light but stable
+    // approximate per-frame reduction (not perfect physically but cheap)
+    const delta = Math.min(0.016, clock.getDelta ? clock.getDelta() : 0.016);
+    applyDrag(v, dragCoef * 0.5, delta); // scaled down so not too heavy
+
+    // Apply a small upward buoyancy so leaves don't plummet
+    const lift = 0.0006 + (Math.abs(bodyPos.z) * 0.00002);
+    body.applyImpulse({ x: 0, y: lift, z: 0 }, true);
+
+    // Wind noise & seasonal bias
+    const t = clock.elapsedTime;
+    const windX = noise2D(bodyPos.y * 0.08, t * 0.6) * 0.0012 + (season === "fall" ? -0.0008 : 0.0009);
+    const windZ = noise2D(bodyPos.x * 0.08, t * 0.5) * 0.0009;
+    body.applyImpulse({ x: windX, y: 0, z: windZ }, true);
+
+    // angular torque: small, noise-driven, proportional to current speed (so faster leaves tumble more)
+    const angNoise = noise2D(bodyPos.x * 0.12, bodyPos.y * 0.12 + t * 0.4);
+    const torque = clamp(angNoise * 0.002 + (v.length() * 0.0002), -0.005, 0.005);
+    try {
+      body.applyTorqueImpulse({ x: 0, y: 0, z: torque }, true);
+    } catch (e) {
+      // fallback no-op if applyTorqueImpulse unsupported
+      e
+    }
+
+    // damping (keeps simulation light but controlled)
+    body.setLinearDamping(0.6);
+    body.setAngularDamping(0.9);
+
+    // apply updated lowered velocity (cheap correction)
+    try {
+      body.setLinvel({ x: v.x, y: v.y, z: v.z }, true);
+    } catch (e) {e}
+
+    // If a leaf is dangerously close to the visual/UI center, nudge it away to avoid "stuck" leaf
+    const centerRadius = 1.25;
+    if (Math.abs(bodyPos.x) < centerRadius && Math.abs(bodyPos.y) < centerRadius) {
+      const pushX = (Math.sign(bodyPos.x) || (Math.random() > 0.5 ? 1 : -1)) * (0.02 + Math.random() * 0.02);
+      const pushY = (Math.sign(bodyPos.y) || (Math.random() > 0.5 ? 1 : -1)) * (0.02 + Math.random() * 0.02);
+      body.applyImpulse({ x: pushX, y: pushY, z: 0 }, true);
+    }
+
+    // ground behavior: when leaf hits the ground, make it settle into pile area
+    const groundY = -viewport.height / 2;
     if (bodyPos.y < groundY + 0.5) {
       body.setLinearDamping(10);
       body.setAngularDamping(10);
-      const push = (pileCenterX - bodyPos.x) * 0.002;
+      // gently push towards pile center
+      const push = (pileCenterX - bodyPos.x) * 0.0025;
       body.applyImpulse({ x: push, y: 0, z: 0 }, true);
+
+      // transform into sleeping after a short timeout (non-blocking)
       setTimeout(() => {
-        if (!bodyRef.current || bodyRef.current.isSleeping()) return;
-        const finalX = pileCenterX + (Math.random() - 0.5) * 4;
-        bodyRef.current.setTranslation({ x: finalX, y: groundY + Math.random() * 0.1, z: Math.random() * 0.5 }, true);
-        bodyRef.current.sleep();
+        if (bodyRef.current && !bodyRef.current.isSleeping?.()) {
+          const finalX = pileCenterX + (Math.random() - 0.5) * 4;
+          try {
+            bodyRef.current.setTranslation({ x: finalX, y: groundY + Math.random() * 0.08, z: Math.random() * 0.5 }, true);
+            bodyRef.current.sleep();
+          } catch (e) {e}
+        }
       }, 300);
       return;
-    } else {
-      body.setLinearDamping(0.45);
-      body.setAngularDamping(0.8);
-    }
-
-    // Wind and gust use normal time
-    const windX = (noise2D(bodyPos.y * 0.1, t * 0.1) * 0.001) + (season === 'fall' ? -0.001 : 0.001);
-    const windZ = noise2D(bodyPos.x * 0.1, t * 0.1) * 0.001;
-    body.applyImpulse({ x: windX, y: 0, z: windZ }, true);
-
-    const mouseWorldX = (mouse.x * viewport.width) / 2;
-    const mouseWorldY = (mouse.y * viewport.height) / 2;
-    const dx = bodyPos.x - mouseWorldX;
-    const dy = bodyPos.y - mouseWorldY;
-    const dist = Math.sqrt(dx * dx + dy * dy);
-    const gustRadius = 2.5;
-    const maxForce = 0.01;
-    if (dist < gustRadius) {
-      const force = (1 - dist / gustRadius) * maxForce;
-      body.applyImpulse({ x: dx * force, y: dy * force, z: 0 }, true);
     }
   });
-
-  // REMOVED: handleClick and mesh interaction listeners
 
   return (
     <RigidBody
@@ -162,27 +234,45 @@ function PhysicsLeaf({ texture, initialPos, initialRot, scale, leafCollisionGrou
       position={initialPos}
       rotation={initialRot}
       restitution={0.06}
-      friction={1.0}
-      linearDamping={0.45}
-      angularDamping={0.8}
+      friction={0.9}
+      linearDamping={0.6}
+      angularDamping={0.9}
       colliders="cuboid"
       collisionGroups={leafCollisionGroup}
     >
       <mesh scale={[scale, scale, scale]}>
         <planeGeometry args={[0.6, 0.6]} />
-        <meshStandardMaterial map={texture} side={THREE.DoubleSide} transparent={true} alphaTest={0.03} depthWrite={false} />
+        <meshStandardMaterial
+          map={texture}
+          side={THREE.DoubleSide}
+          transparent={true}
+          alphaTest={0.03}
+          depthWrite={false}
+        />
       </mesh>
     </RigidBody>
   );
 }
 
-// ... (PhysicsLeaves and LeafPile components remain the same) ...
 function PhysicsLeaves({ texture, count = PHYSICS_COUNT, season }) {
   const leafCollisionGroup = useMemo(() => interactionGroups([GROUP_LEAF], [GROUP_ENVIRONMENT]), []);
   const leaves = useMemo(() => {
     const arr = [];
     for (let i = 0; i < count; i++) {
-      arr.push({ id: i, pos: [ THREE.MathUtils.randFloatSpread(HORIZ_WRAP), THREE.MathUtils.randFloatSpread(VERT_WRAP), THREE.MathUtils.randFloat(-3, 3) ], rot: [0, 0, THREE.MathUtils.randFloat(-0.5, 0.5)], scale: THREE.MathUtils.randFloat(0.6, 1.15) });
+      // avoid seeding physics leaf exactly in the center
+      let x;
+      let y;
+      const minCenterDist = 1.8;
+      do {
+        x = THREE.MathUtils.randFloatSpread(HORIZ_WRAP);
+        y = THREE.MathUtils.randFloatSpread(VERT_WRAP);
+      } while (Math.abs(x) < minCenterDist && Math.abs(y) < minCenterDist);
+      arr.push({
+        id: i,
+        pos: [x, y, THREE.MathUtils.randFloat(-3, 3)],
+        rot: [0, 0, THREE.MathUtils.randFloat(-0.5, 0.5)],
+        scale: THREE.MathUtils.randFloat(0.6, 1.15),
+      });
     }
     return arr;
   }, [count]);
@@ -190,12 +280,19 @@ function PhysicsLeaves({ texture, count = PHYSICS_COUNT, season }) {
   return (
     <>
       {leaves.map((l) => (
-        <PhysicsLeaf key={l.id} texture={texture} initialPos={l.pos} initialRot={l.rot} scale={l.scale} leafCollisionGroup={leafCollisionGroup} season={season} />
+        <PhysicsLeaf
+          key={l.id}
+          texture={texture}
+          initialPos={l.pos}
+          initialRot={l.rot}
+          scale={l.scale}
+          leafCollisionGroup={leafCollisionGroup}
+          season={season}
+        />
       ))}
     </>
   );
 }
-
 
 function LeafPile({ texture, count = 20, season }) {
   const meshRef = useRef();
@@ -204,12 +301,16 @@ function LeafPile({ texture, count = 20, season }) {
 
   const pileCenterX = useMemo(() => {
     const pileWidth = 4;
-    const screenEdge = (viewport.width / 2) - pileWidth;
+    const screenEdge = viewport.width / 2 - pileWidth;
     switch (season) {
-      case 'spring': return -screenEdge;
-      case 'fall': return screenEdge;
-      case 'autumn': return 0;
-      default: return 0;
+      case "spring":
+        return -screenEdge;
+      case "fall":
+        return screenEdge;
+      case "autumn":
+        return 0;
+      default:
+        return 0;
     }
   }, [season, viewport.width]);
   const groundY = -viewport.height / 2;
@@ -239,13 +340,9 @@ function LeafPile({ texture, count = 20, season }) {
   );
 }
 
-
-// --- Accept isSlowMo prop ---
 export default function LeavesTransition({
   season = "spring",
-  // isTransitioning = false, // Keep for potential future use
-  // onTransitionComplete = () => {}, // Keep for potential future use
-  isSlowMo = false // <-- Accept prop
+  isSlowMo = false,
 }) {
   const { viewport } = useThree();
   const url = LEAF_TEXTURES[season] || LEAF_TEXTURES.spring;
@@ -265,7 +362,6 @@ export default function LeavesTransition({
 
   return (
     <>
-      {/* --- Pass isSlowMo down --- */}
       {texture && <InstancedLeaves texture={texture} count={INSTANCED_COUNT} season={season} isSlowMo={isSlowMo} />}
       {texture && <PhysicsLeaves texture={texture} count={PHYSICS_COUNT} season={season} />}
       {texture && <LeafPile texture={texture} season={season} />}

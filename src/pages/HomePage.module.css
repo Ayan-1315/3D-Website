@@ -1,0 +1,117 @@
+/* HomePage.module.css */
+.homePageContent {
+  position: relative;
+  padding: 45vh 10vw 20vw 10vw;
+  width: 100%;
+  max-height: 100vh;
+  margin: 0;
+  color: rgba(15, 15, 15, 0.95);
+  z-index: 10;
+  background: transparent;
+  pointer-events: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.paperOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.02),
+    rgba(0, 0, 0, 0.02)
+  );
+  pointer-events: none;
+  z-index: 4;
+}
+
+.heroBlock {
+  position: relative;
+  max-width: 700px;
+  pointer-events: auto;
+  z-index: 11;
+  margin: 0;
+}
+
+.sumiTitle {
+  font-size: clamp(3.6rem, 8vw, 6rem);
+  line-height: 1.1;
+  margin: 0 0 12px 0;
+  z-index: 11;
+  position: relative;
+  letter-spacing: -2px;
+  color: rgba(0, 0, 0, 0.92);
+  pointer-events: auto;
+}
+
+.sumiSub {
+  font-size: 1.6rem;
+  margin: 8px 0 24px 0;
+  color: rgba(40, 40, 40, 0.78);
+  z-index: 11;
+}
+
+.homeLead {
+  font-size: 1rem;
+  color: rgba(28, 28, 28, 0.76);
+  max-width: 60ch;
+  line-height: 1.6;
+  z-index: 11;
+}
+
+.brushSettings {
+  margin-top: 32px;
+  z-index: 20;
+  position: relative;
+}
+.brushTitle {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(60, 60, 60, 0.8);
+  margin-bottom: 12px;
+}
+.colorSwatchContainer {
+  display: flex;
+  gap: 12px;
+}
+.colorSwatch {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, outline 0.2s ease;
+  outline: 2px solid transparent;
+  outline-offset: 3px;
+}
+.colorSwatch:hover {
+  transform: scale(1.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+.colorSwatchActive {
+  outline-color: rgba(0, 0, 0, 0.7);
+  transform: scale(1.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Mobile adjustments using local class names */
+@media (max-width: 880px) {
+  .homePageContent {
+    padding: 15vh 20px 5vh 20px;
+    text-align: center;
+    align-items: center;
+  }
+  .sumiTitle {
+    font-size: clamp(2.6rem, 12vw, 3.6rem);
+    letter-spacing: -1px;
+  }
+  .heroBlock {
+    max-width: 90%;
+  }
+  .colorSwatchContainer {
+    justify-content: center;
+  }
+}

@@ -1,0 +1,62 @@
+/* ContactPage.module.css */
+.pageContent {
+  position: relative;
+  padding: 18vh 64px 96px 64px;
+  max-width: 1100px;
+  margin: 0 auto;
+  color: rgba(15, 15, 15, 0.95);
+  z-index: 10;
+  background: transparent;
+  pointer-events: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.heroBlock {
+  margin-bottom: 50px;
+  position: relative;
+}
+
+.sumiTitle {
+  font-size: 6rem;
+  line-height: 1.1;
+  margin: 0 0 12px 0;
+  z-index: 11;
+  position: relative;
+  letter-spacing: -2px;
+  color: rgba(0, 0, 0, 0.92);
+  pointer-events: auto;
+  -webkit-user-select: text;
+  user-select: text;
+  transition: text-shadow 0.4s ease-in-out;
+}
+
+.lead {
+  font-size: 1rem;
+  color: rgba(28, 28, 28, 0.76);
+  max-width: 60ch;
+  line-height: 1.6;
+  position: relative;
+  z-index: 11;
+  pointer-events: auto;
+}
+
+.contactLinks { pointer-events: auto; }
+
+.contactButton {
+  display: inline-block;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #111;
+  text-decoration: none;
+  background: linear-gradient(180deg, rgba(248,242,236,0.98), rgba(235,218,200,0.94));
+  padding: 16px 28px;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.contactSocials { margin-top: 40px; color: #333; }
+.contactSocials span { margin-right: 12px; font-weight: 500; }
+.contactSocials a { font-weight: 600; color: #111; text-decoration: none; padding: 4px 8px; margin: 0 4px; border-radius: 6px; transition: background 0.2s ease; }
+.contactSocials a:hover { background: rgba(0,0,0,0.05); }

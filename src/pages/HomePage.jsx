@@ -1,8 +1,7 @@
 import React, { useRef, useEffect } from "react";
+import styles from "./HomePage.module.css";
 import DomCollider from "../components/DomCollider";
-import "./HomePage.css"; // Ensure this import points to the correct CSS file
 
-// Keep COLORS defined here if used only by HomePage
 const COLORS = {
   default: "rgba(8,8,8,0.995)",
   spring: "rgba(255, 96, 123, 0.9)",
@@ -15,16 +14,13 @@ export default function HomePage({
   brushColor,
   setBrushColor,
   is3DContext = false,
-  seasonalShadow, // <-- Accept prop
-  seasonalSlogan, // <-- Accept prop
+  seasonalShadow,
+  seasonalSlogan,
 }) {
-  const titleRef = useRef(document.getElementById("home-title"));
-  const subtitleRef = useRef(document.getElementById("home-subtitle"));
+  const titleRef = useRef(null);
+  const subtitleRef = useRef(null);
   const uiTitleRef = useRef(null);
   const uiSubtitleRef = useRef(null);
-
-  // Removed useMemo for seasonalShadow (now passed as prop)
-  // Removed useMemo for seasonalSlogan (now passed as prop)
 
   useEffect(() => {
     if (is3DContext) {
@@ -47,58 +43,44 @@ export default function HomePage({
   }
 
   return (
-    <div className="home-page-content">
-      <div className="paper-overlay" />
-      <header className="hero-block">
-        <h1
-          id="home-title"
-          ref={uiTitleRef}
-          className="sumi-title"
-          style={{ textShadow: seasonalShadow }} // <-- Apply prop
-        >
+    <div className={styles.homePageContent}>
+      <div className={styles.paperOverlay} />
+      <header className={styles.heroBlock}>
+        <h1 id="home-title" ref={uiTitleRef} className={styles.sumiTitle} style={{ textShadow: seasonalShadow }}>
           Ayan Sen
         </h1>
 
-        <h2
-          id="home-subtitle"
-          ref={uiSubtitleRef}
-          className="sumi-sub"
-          style={{ textShadow: seasonalShadow }} // <-- Apply prop
-        >
+        <h2 id="home-subtitle" ref={uiSubtitleRef} className={styles.sumiSub} style={{ textShadow: seasonalShadow }}>
           Software Engineer
         </h2>
 
-        <p
-          className="home-lead"
-          style={{ color: seasonalSlogan.color }} // <-- Apply prop
-        >
+        <p className={styles.homeLead} style={{ color: seasonalSlogan.color }}>
           {seasonalSlogan.text}
         </p>
 
-        <div className="brush-settings">
-          <h3 className="brush-settings-title">Brush Color</h3>
-          <div className="color-swatch-container">
-            {/* ... color swatches */}
-             <button
-              className={`color-swatch ${brushColor === COLORS.default ? 'active' : ''}`}
+        <div className={styles.brushSettings}>
+          <h3 className={styles.brushTitle}>Brush Color</h3>
+          <div className={styles.colorSwatchContainer}>
+            <button
+              className={`${styles.colorSwatch} ${brushColor === COLORS.default ? styles.colorSwatchActive : ""}`}
               style={{ backgroundColor: COLORS.default }}
               onClick={() => setBrushColor(COLORS.default)}
               aria-label="Set brush color to black"
             />
             <button
-              className={`color-swatch ${brushColor === COLORS.spring ? 'active' : ''}`}
+              className={`${styles.colorSwatch} ${brushColor === COLORS.spring ? styles.colorSwatchActive : ""}`}
               style={{ backgroundColor: COLORS.spring }}
               onClick={() => setBrushColor(COLORS.spring)}
               aria-label="Set brush color to spring pink"
             />
             <button
-              className={`color-swatch ${brushColor === COLORS.fall ? 'active' : ''}`}
+              className={`${styles.colorSwatch} ${brushColor === COLORS.fall ? styles.colorSwatchActive : ""}`}
               style={{ backgroundColor: COLORS.fall }}
               onClick={() => setBrushColor(COLORS.fall)}
               aria-label="Set brush color to fall red"
             />
             <button
-              className={`color-swatch ${brushColor === COLORS.autumn ? 'active' : ''}`}
+              className={`${styles.colorSwatch} ${brushColor === COLORS.autumn ? styles.colorSwatchActive : ""}`}
               style={{ backgroundColor: COLORS.autumn }}
               onClick={() => setBrushColor(COLORS.autumn)}
               aria-label="Set brush color to autumn gold"
