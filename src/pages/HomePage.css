@@ -2,40 +2,53 @@
 
 .home-page-content {
   position: relative;
-  top: 200px;
-  right: 40px;;
-  /* Fixed padding for large laptop */
-  padding: 120px 64px 96px 64px;
+  /* REMOVED: top: 200px; right: 40px; These cause overflow */
+  
+  /* Keep your specified padding */
+  padding: 340px 140px 96px 16px; 
+  
   max-width: 1100px;
-  margin: 0 auto;
+  min-height: 100vh; /* Ensure it fills viewport height */
+  margin: 0; /* Center horizontally */
   color: rgba(15, 15, 15, 0.95);
   z-index: 10;
   background: transparent;
   pointer-events: auto;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  box-sizing: border-box; /* IMPORTANT: Include padding in height */
+
+  /* ADDED: Use flexbox for vertical centering */
+  display: flex;
+  flex-direction: column;
+  justify-content: center; /* Center content vertically */
+  align-items: center; /* Center content horizontally (works with hero-block offset) */
 }
 
 .hero-block {
-  z-index: 6;
-  padding: 80px var(--pad) 0 var(--pad); /* Add top padding here */
-  margin-bottom: 20px; 
-  pointer-events: auto;
-  flex-shrink: 0;
+  /* REMOVED conflicting header styles */
+  position: relative; /* Keep relative for offset */
+  /* Keep your horizontal offset */
+  left: -190px; 
+  /* REMOVED: margin-bottom: 50px; (let flexbox handle spacing) */
+  /* REMOVED: top/left positioning is now controlled here */
+  width: fit-content; /* Adjust width to content */
+  pointer-events: auto; 
+  z-index: 11; /* Ensure hero is above other potential direct children */
 }
 
 .sumi-title {
-  /* Fixed font size */
-  font-size: clamp(3rem, 7vw, 5.2rem); 
-  top: 16px;
+  font-size: clamp(3.6rem, 8vw, 6rem); /* Kept clamp for flexibility */
+  /* REMOVED: top: 16px; */
   line-height: 1.1;
-  margin: 0 0 8px;
-  font-weight: 700;
-  color: rgba(0, 0, 0, 0.92);
-  letter-spacing: -2px;
-  position: relative; 
+  margin: 0 0 12px 0;
   z-index: 11;
+  position: relative;
+  letter-spacing: -2px;
+  color: rgba(0, 0, 0, 0.92);
   pointer-events: auto;
+  -webkit-user-select: text;
+  user-select: text;
   transition: text-shadow 0.4s ease-in-out;
 }
 
@@ -51,7 +64,7 @@
   transition: text-shadow 0.4s ease-in-out;
 }
 
-.home-lead {
+.home-lead { /* Use specific class */
   font-size: 1rem;
   color: rgba(28, 28, 28, 0.76);
   max-width: 60ch;
@@ -62,10 +75,7 @@
   transition: color 0.4s ease-in-out;
 }
 
-.page-content > * {
-  position: relative;
-  z-index: 12;
-}
+/* REMOVED: .page-content > * rule as positioning is simplified */
 
 a:focus-visible,
 button:focus-visible {
@@ -95,6 +105,7 @@ button:focus-visible {
   gap: 12px;
 }
 
+/* ... rest of swatch styles ... */
 .color-swatch {
   width: 32px;
   height: 32px;
@@ -116,4 +127,30 @@ button:focus-visible {
   outline-color: rgba(0, 0, 0, 0.7);
   transform: scale(1.05);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Keep mobile adjustments simple */
+@media (max-width: 880px) {
+  .home-page-content {
+     /* Adjust padding for mobile */
+     padding: 10vh 20px 5vh 20px;
+  }
+  .hero-block {
+    left: 0; /* Remove horizontal offset */
+    text-align: center;
+  }
+  .sumi-title {
+    font-size: clamp(2.6rem, 12vw, 3.6rem);
+    letter-spacing: -1px;
+  }
+  .home-lead {
+    margin-left: auto;
+    margin-right: auto;
+  }
+   .brush-settings {
+     align-items: center; 
+   }
+   .color-swatch-container {
+     justify-content: center; 
+   }
 }
