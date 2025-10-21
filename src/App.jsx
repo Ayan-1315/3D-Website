@@ -46,12 +46,18 @@ function AppContent() {
     pickRandomSeason(null)
   );
   const [pageScene, setPageScene] = useState(null);
-  const [brushColor, setBrushColor] = useState(COLORS.default); // Use default color
+  const [brushColor, setBrushColor] = useState(COLORS.default);
+
+  // --- State for the selected project modal ---
+  const [selectedProject, setSelectedProject] = useState(null);
+  const isModalOpen = !!selectedProject; // True if a project is selected
+  // --- END ---
 
   const navigate = useNavigate();
   const location = useLocation();
   const currentSeasonRef = useRef(transitionSeason);
 
+  // ... (handleLinkClick, onTransitionComplete, seasonalShadow, seasonalSlogan hooks are unchanged) ...
   const handleLinkClick = (path) => (e) => {
     e.preventDefault();
     if (location.pathname === path || isTransitioning) return;
@@ -94,20 +100,19 @@ function AppContent() {
     }
   }, [transitionSeason]);
 
+
   return (
     <>
       <MouseBrushStroke brushColor={brushColor} />
 
       <div
         className="ui-container"
-        style={{
-          position: 'relative',
-          zIndex: 10
-        }}
+        style={{ position: 'relative', zIndex: 10 }}
       >
-        <nav className="bottom-nav" role="navigation" aria-label="Primary">
+        {/* ... (Nav and Social Links) ... */}
+         <nav className="bottom-nav" role="navigation" aria-label="Primary">
           <div className="nav-inner">
-            <a
+             <a
               className={`nav-item${location.pathname === "/" ? " active" : ""}`}
               href="/"
               onClick={handleLinkClick("/")}
@@ -115,7 +120,6 @@ function AppContent() {
               <span className="nav-dot" aria-hidden="true" />
               <span className="nav-label">Home</span>
             </a>
-            {/* ... other nav items */}
              <a
               className={`nav-item${
                 location.pathname === "/projects" ? " active" : ""
@@ -150,7 +154,6 @@ function AppContent() {
         </nav>
 
         <div className="social-links">
-          {/* ... social links */}
            <a
             href="https://github.com"
             target="_blank"
@@ -177,6 +180,7 @@ function AppContent() {
           </a>
         </div>
 
+
         <Routes>
           <Route
             path="/"
@@ -186,8 +190,8 @@ function AppContent() {
                 season={transitionSeason}
                 brushColor={brushColor}
                 setBrushColor={setBrushColor}
-                seasonalShadow={seasonalShadow} /* Pass prop */
-                seasonalSlogan={seasonalSlogan} /* Pass prop */
+                seasonalShadow={seasonalShadow}
+                seasonalSlogan={seasonalSlogan}
               />
             }
           />
@@ -196,7 +200,7 @@ function AppContent() {
             element={
               <AboutPage
                 setScene={setPageScene}
-                seasonalShadow={seasonalShadow} /* Pass prop */
+                seasonalShadow={seasonalShadow}
               />
             }
           />
@@ -205,7 +209,9 @@ function AppContent() {
             element={
               <ProjectsPage
                 setScene={setPageScene}
-                seasonalShadow={seasonalShadow} /* Pass prop */
+                seasonalShadow={seasonalShadow}
+                selectedProject={selectedProject} // Pass state
+                setSelectedProject={setSelectedProject} // Pass setter
               />
             }
           />
@@ -214,7 +220,7 @@ function AppContent() {
             element={
               <ContactPage
                 setScene={setPageScene}
-                seasonalShadow={seasonalShadow} /* Pass prop */
+                seasonalShadow={seasonalShadow}
               />
             }
           />
@@ -223,12 +229,7 @@ function AppContent() {
 
       <Canvas
         camera={{ position: [0, 0, 10], fov: 55 }}
-        style={{
-          position: "fixed",
-          inset: 0,
-          zIndex: 0,
-          pointerEvents: "auto",
-        }}
+        style={{ position: "fixed", inset: 0, zIndex: 0, pointerEvents: "auto" }}
       >
         <ambientLight intensity={1.2} />
         <directionalLight position={[0, 0, 5]} intensity={1} />
@@ -247,7 +248,7 @@ function AppContent() {
                     brushColor={brushColor}
                     setBrushColor={setBrushColor}
                     is3DContext={true}
-                    seasonalShadow={seasonalShadow} // Pass to 3D context too
+                    seasonalShadow={seasonalShadow}
                     seasonalSlogan={seasonalSlogan}
                   />
                 }
@@ -258,6 +259,9 @@ function AppContent() {
               isTransitioning={isTransitioning}
               onTransitionComplete={onTransitionComplete}
               season={transitionSeason}
+              // --- PASS isSlowMo prop based on modal state ---
+              isSlowMo={isModalOpen}
+              // --- END ---
             />
           </Suspense>
         </Physics>
