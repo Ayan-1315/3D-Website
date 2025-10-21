@@ -1,45 +1,44 @@
 /* src/pages/HomePage.css */
 
 .home-page-content {
-  position: relative;
-  /* REMOVED: top: 200px; right: 40px; These cause overflow */
+  position: relative; 
+  /* MODIFIED: Drastically reduced padding, especially top/bottom. 
+     Adjust the 15vh (top) and 10vw (left) values to position your block. */
+  padding: 45vh 10vw 0vh 10vw; /* Top, Right, Bottom, Left */
   
-  /* Keep your specified padding */
-  padding: 340px 140px 96px 16px; 
-  
-  max-width: 1100px;
-  min-height: 100vh; /* Ensure it fills viewport height */
-  margin: 0; /* Center horizontally */
+  width: 100%;      /* Ensure full width */
+  max-height: 100vh; /* Ensure it tries to fill height */
+  margin: 0;        /* No auto margins */
   color: rgba(15, 15, 15, 0.95);
   z-index: 10;
   background: transparent;
-  pointer-events: auto;
+  pointer-events: auto; 
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  box-sizing: border-box; /* IMPORTANT: Include padding in height */
+  box-sizing: border-box; /* Include padding in height */
 
-  /* ADDED: Use flexbox for vertical centering */
-  display: flex;
-  flex-direction: column;
-  justify-content: center; /* Center content vertically */
-  align-items: center; /* Center content horizontally (works with hero-block offset) */
+  /* REMOVED Flexbox centering for now */
+  /* display: flex; */
+  /* flex-direction: column; */
+  /* justify-content: center; */ 
+  /* align-items: flex-start; */ 
+
+  /* ADDED: Explicitly hide overflow on this container */
+  overflow: hidden; 
 }
 
 .hero-block {
-  /* REMOVED conflicting header styles */
-  position: relative; /* Keep relative for offset */
-  /* Keep your horizontal offset */
-  left: -190px; 
-  /* REMOVED: margin-bottom: 50px; (let flexbox handle spacing) */
-  /* REMOVED: top/left positioning is now controlled here */
-  width: fit-content; /* Adjust width to content */
+  position: relative; 
+  /* REMOVED: left: -190px; - Let padding handle horizontal position */
+  max-width: 700px; /* Constrain width */
   pointer-events: auto; 
-  z-index: 11; /* Ensure hero is above other potential direct children */
+  z-index: 11; 
+  /* Reset margins */
+  margin: 0; 
 }
 
 .sumi-title {
-  font-size: clamp(3.6rem, 8vw, 6rem); /* Kept clamp for flexibility */
-  /* REMOVED: top: 16px; */
+  font-size: clamp(3.6rem, 8vw, 6rem); 
   line-height: 1.1;
   margin: 0 0 12px 0;
   z-index: 11;
@@ -74,8 +73,6 @@
   pointer-events: auto;
   transition: color 0.4s ease-in-out;
 }
-
-/* REMOVED: .page-content > * rule as positioning is simplified */
 
 a:focus-visible,
 button:focus-visible {
@@ -129,15 +126,16 @@ button:focus-visible {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Keep mobile adjustments simple */
+
+/* --- Mobile Styles --- */
 @media (max-width: 880px) {
   .home-page-content {
-     /* Adjust padding for mobile */
-     padding: 10vh 20px 5vh 20px;
+     padding: 15vh 20px 5vh 20px; /* Adjust mobile padding */
+     align-items: center; /* Center align items */
+     text-align: center; /* Center text within items */
   }
   .hero-block {
-    left: 0; /* Remove horizontal offset */
-    text-align: center;
+    max-width: 90%; 
   }
   .sumi-title {
     font-size: clamp(2.6rem, 12vw, 3.6rem);
