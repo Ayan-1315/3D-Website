@@ -7,10 +7,10 @@
   min-height: 100vh;
   margin: 0;
   padding: 0; /* Padding will be on content-inner */
-  overflow-y: auto; /* Allow scrolling if content is long */
+  overflow-y: auto; 
   overflow-x: hidden;
-  background: transparent; /* Let overlay show */
-  color: #2a2a2a; /* Slightly softer base black */
+  background: transparent; 
+  color: #2a2a2a; 
   display: block; 
   box-sizing: border-box;
   z-index: 3; 
@@ -19,76 +19,71 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Paper overlay - slightly softer gradient */
+/* Paper overlay */
 .paper-overlay {
-  position: fixed; /* Fixed to stay behind scrolling content */
+  position: fixed; 
   inset: 0;
   z-index: 2; 
   pointer-events: none;
-  /* Softer white/off-white gradient */
   background: linear-gradient(180deg, rgba(253, 253, 253, 0.97), rgba(248, 248, 246, 1)); 
-  /* Optional: Add subtle noise texture */
-  /* background-image: url('/path/to/subtle-noise.png'); */
-  /* background-repeat: repeat; */
 }
 
 /* Content inner centers and constrains width */
 .content-inner {
   position: relative;
   z-index: 3;
-  max-width: 800px; /* Slightly narrower for focused reading */
-  /* Increased vertical margin, keep horizontal auto */
+  max-width: 800px; 
   margin: 10rem auto 8rem auto; 
-  /* Reduced side padding, rely on max-width */
   padding: 0 30px 80px 30px; 
   box-sizing: border-box;
 }
 
 /* --- Header --- */
 .hero-block {
-  margin: 0 0 40px 0; /* Adjusted bottom margin */
+  /* MODIFIED: Increased margin-bottom significantly */
+  margin: 0 0 80px 0; 
   padding: 0;
   pointer-events: auto;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08); /* Subtle divider line */
-  padding-bottom: 25px; /* Space between lead and divider */
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08); 
+  padding-bottom: 35px; /* Increased space below lead */
 }
 
 .sumi-title {
   font-size: clamp(2.4rem, 5.2vw, 4rem); 
-  line-height: 1.1; /* Adjusted line height */
-  margin: 0 0 15px 0; /* Adjusted bottom margin */
-  font-weight: 700; /* Slightly less heavy */
-  color: #111; /* Darker title */
+  line-height: 1.1; 
+  margin: 0 0 15px 0; 
+  font-weight: 700; 
+  color: #111; 
   letter-spacing: -1px;
   position: relative;
-  /* REMOVED hardcoded shadow - rely on inline style from JSX prop */
-  /* text-shadow: 0 6px 12px rgba(0,0,0,0.18), 0 2px 6px rgba(255,130,140,0.06); */
   pointer-events: auto;
 }
 
 /* Lead paragraph */
 .lead {
-  font-size: 1.05rem; /* Slightly larger */
-  margin: 0 0 10px 0; /* Adjusted margin */
-  color: #333; /* Darker lead text */
-  max-width: 65ch; /* Adjusted max width */
-  line-height: 1.7; /* Increased line height */
+  font-size: 1.05rem; 
+  margin: 0 0 15px 0; /* Adjusted margin */
+  color: #333; 
+  max-width: 65ch; /* Adjusted max width slightly */
+  line-height: 1.7; 
   pointer-events: auto;
 }
 
 /* --- Main Content --- */
 .about-content {
   background: transparent;
-  color: #282828; /* Consistent text color */
-  font-size: 1.03rem; /* Slightly larger base font */
-  line-height: 1.75; /* Increased line height */
-  margin: 40px 0 0 0; /* Add space above content */
-  padding: 0;
+  color: #282828; 
+  font-size: 1.03rem; 
+  line-height: 1.75; 
+  /* MODIFIED: Removed top margin, controlled by hero-block margin */
+  margin: 0; 
+  padding: 0; /* Removed top padding */
   pointer-events: auto;
 }
 
 .about-content p {
-  margin-bottom: 1.6em; /* Consistent paragraph spacing */
+  /* MODIFIED: Slightly increased paragraph spacing */
+  margin-bottom: 1.8em; 
 }
 
 /* Strong tags */
@@ -98,10 +93,10 @@
 }
 
 /* Project List Styling */
-.project-list { /* Target the specific class */
-  margin: 0.5em 0 1.5em 0; /* Adjusted margins */
-  padding-left: 25px; /* Indentation */
-  list-style-type: none; /* Remove default bullets */
+.project-list { 
+  margin: 0.5em 0 1.8em 0; /* Adjusted margins */
+  padding-left: 25px; 
+  list-style-type: none; 
   color: #333;
 }
 
@@ -110,22 +105,20 @@
   position: relative;
 }
 
-/* Custom bullet - subtle ink dot */
 .project-list li::before {
   content: '•';
   position: absolute;
-  left: -20px; /* Position dot */
+  left: -20px; 
   top: 1px;
-  color: rgba(0, 0, 0, 0.4); /* Faint dot color */
+  color: rgba(0, 0, 0, 0.4); 
   font-size: 1.2em; 
 }
 
-
 /* Links Styling */
 .about-content a {
-  color: #1a1a1a; /* Darker, less saturated link color */
-  text-decoration: none; /* Remove default underline */
-  border-bottom: 1px solid rgba(0, 0, 0, 0.2); /* Subtle underline */
+  color: #1a1a1a; 
+  text-decoration: none; 
+  border-bottom: 1px solid rgba(0, 0, 0, 0.2); 
   padding-bottom: 1px;
   transition: color 0.2s ease, border-color 0.2s ease;
 }
@@ -137,12 +130,12 @@
 
 /* Footer Styling */
 .about-footer {
-  margin-top: 60px; /* Increased space above footer */
-  padding-top: 20px; /* Space above footer text */
-  border-top: 1px solid rgba(0, 0, 0, 0.08); /* Divider line above footer */
+  margin-top: 60px; 
+  padding-top: 20px; 
+  border-top: 1px solid rgba(0, 0, 0, 0.08); 
   color: rgba(60,60,60,0.7);
   font-size: 0.9rem;
-  text-align: center; /* Center footer text */
+  text-align: center; 
 }
 
 /* --- Accessibility focus states --- */
@@ -156,12 +149,15 @@ button:focus-visible {
 /* --- Responsive tweaks --- */
 @media (max-width: 880px) {
   .content-inner {
-    /* Adjusted mobile margins/padding */
-    margin: 6rem 20px 5rem 20px; 
+    margin: 6rem 20px 5rem 20px; /* Adjusted mobile margins */
     padding: 0 15px 60px 15px; 
   }
+   .hero-block {
+     margin-bottom: 60px; /* Adjust mobile spacing */
+     padding-bottom: 25px;
+   }
   .sumi-title {
-    font-size: clamp(2.2rem, 9.5vw, 3.2rem); /* Adjusted mobile title size */
+    font-size: clamp(2.2rem, 9.5vw, 3.2rem); 
   }
   .lead {
     font-size: 1rem; 
