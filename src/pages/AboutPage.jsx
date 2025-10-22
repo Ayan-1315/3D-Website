@@ -119,7 +119,7 @@ export default function AboutPage({ setScene, seasonalShadow }) {
         {/* Header section (fixed at the top of the card) */}
         <header className={styles.heroBlock}>
            <h1 className={styles.sumiTitle} style={{ textShadow: seasonalShadow }}>
-            About — Ayan
+            About
           </h1>
           <p className={styles.lead}>
             I’m Ayan — a developer, dreamer, and explorer of ideas. I design interactive systems that blend logic and imagination,
