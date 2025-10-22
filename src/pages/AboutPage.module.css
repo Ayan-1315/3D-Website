@@ -1,17 +1,19 @@
-/* src/pages/AboutPage.css -- decorated for Sumi-e theme */
+/* src/pages/AboutPage.module.css -- Vertical Drawer Scroll + Roll Effect */
 
+/* ... (Keep all existing styles for .aboutPage, .paperOverlay, .contentInner, .heroBlock, .sumiTitle, .lead) ... */
 /* --- Container --- */
-.about-page {
+.aboutPage { /* Main page container */
   position: relative;
   width: 100%;
-  min-height: 100vh;
+  height: 100vh; /* Fixed viewport height */
   margin: 0;
-  padding: 0; /* Padding will be on content-inner */
-  overflow-y: auto; 
-  overflow-x: hidden;
+  padding: 0; 
+  overflow: hidden; /* Prevent the whole page from scrolling */
   background: transparent; 
-  color: #2a2a2a; 
-  display: block; 
+  color: #2f2f2f; 
+  display: flex; /* Use flexbox to center contentInner */
+  justify-content: center; /* Center horizontally */
+  align-items: center; /* Center vertically */
   box-sizing: border-box;
   z-index: 3; 
   pointer-events: auto;
@@ -20,7 +22,7 @@
 }
 
 /* Paper overlay */
-.paper-overlay {
+.paperOverlay {
   position: fixed; 
   inset: 0;
   z-index: 2; 
@@ -28,117 +30,187 @@
   background: linear-gradient(180deg, rgba(253, 253, 253, 0.97), rgba(248, 248, 246, 1)); 
 }
 
-/* Content inner centers and constrains width */
-.content-inner {
+/* Content inner: Main content block */
+.contentInner {
   position: relative;
   z-index: 3;
-  max-width: 800px; 
-  margin: 10rem auto 8rem auto; 
-  padding: 0 30px 80px 30px; 
+  max-width: 900px; 
+  width: 90%; 
+  max-height: 85vh; 
+  padding: 40px 50px; 
+  margin: 0; 
   box-sizing: border-box;
+  display: flex; 
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.85); 
+  border-radius: 12px; 
+  box-shadow: 0 15px 40px rgba(0,0,0,0.1); 
+  border: 1px solid rgba(0,0,0,0.05);
 }
 
-/* --- Header --- */
-.hero-block {
-  /* MODIFIED: Increased margin-bottom significantly */
-  margin: 0 0 80px 0; 
-  padding: 0;
+/* --- Header (Fixed within Content Inner) --- */
+.heroBlock {
+  margin: 0 0 25px 0; 
+  padding-bottom: 25px; 
   pointer-events: auto;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.08); 
-  padding-bottom: 35px; /* Increased space below lead */
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1); 
+  flex-shrink: 0; 
+  text-align: center; 
 }
 
-.sumi-title {
-  font-size: clamp(2.4rem, 5.2vw, 4rem); 
-  line-height: 1.1; 
-  margin: 0 0 15px 0; 
+.sumiTitle {
+  font-size: clamp(2.6rem, 5vw, 4rem); 
+  line-height: 1.15; 
+  margin: 0 0 10px 0; 
   font-weight: 700; 
   color: #111; 
-  letter-spacing: -1px;
+  letter-spacing: -1.5px;
   position: relative;
   pointer-events: auto;
 }
 
-/* Lead paragraph */
 .lead {
   font-size: 1.05rem; 
-  margin: 0 0 15px 0; /* Adjusted margin */
+  margin: 0 auto; 
   color: #333; 
-  max-width: 65ch; /* Adjusted max width slightly */
+  max-width: 60ch; 
   line-height: 1.7; 
   pointer-events: auto;
 }
 
-/* --- Main Content --- */
-.about-content {
+/* --- Scrollable Content Area --- */
+.scrollableContent { 
+  flex-grow: 1; 
+  overflow-y: auto; 
+  position: relative; 
+  min-height: 0; 
+  padding: 0 10px; 
+  margin: 0 -10px; 
+
+  /* ADDED: Perspective for 3D transforms */
+  perspective: 400px; 
+
+  /* Hide Scrollbar */ 
+  /* scrollbar-width: none;  */
+  -ms-overflow-style: none;
+}
+.scrollableContent::-webkit-scrollbar {
+  display: none; 
+}
+
+/* Fading Effect */
+.scrollableContent::before,
+.scrollableContent::after {
+  content: '';
+  position: sticky; 
+  left: 0;
+  right: 0;
+  height: 100px; 
+  z-index: 5; 
+  pointer-events: none; 
+}
+
+.scrollableContent::before {
+  top: -1px; 
+  background: linear-gradient(to bottom, 
+    rgba(255, 255, 255, 1) 30%, 
+    rgba(255, 255, 255, 0.9) 70%, 
+    rgba(255, 255, 255, 0) 100%
+  );
+  box-shadow: inset 0 8px 15px -10px rgba(0, 0, 0, 0.15); 
+}
+
+.scrollableContent::after {
+  bottom: -1px; 
+  background: linear-gradient(to top, 
+    rgba(255, 255, 255, 1) 30%, 
+    rgba(255, 255, 255, 0.9) 70%, 
+    rgba(255, 255, 255, 0) 100%
+  );
+  box-shadow: inset 0 -8px 15px -10px rgba(0, 0, 0, 0.15); 
+}
+
+
+/* --- Main Content (Inside Scrollable Area) --- */
+.aboutContent {
   background: transparent;
-  color: #282828; 
-  font-size: 1.03rem; 
-  line-height: 1.75; 
-  /* MODIFIED: Removed top margin, controlled by hero-block margin */
-  margin: 0; 
-  padding: 0; /* Removed top padding */
+  color: #333; 
+  font-size: 1.05rem; 
+  line-height: 1.8; 
+  padding: 80px 0 80px 0; 
+  margin: 0;
   pointer-events: auto;
+  text-align: left; 
+
+  /* ADDED: Transition for transform */
+  transition: transform 0.1s linear; 
+  transform-origin: center center; /* Rotate around the element's center */
 }
 
-.about-content p {
-  /* MODIFIED: Slightly increased paragraph spacing */
-  margin-bottom: 1.8em; 
+/* --- Footer Styling (Inside Scrollable Area) --- */
+.aboutFooter { 
+  margin-top: 40px; 
+  padding-top: 20px; 
+  border-top: 1px solid rgba(0, 0, 0, 0.1); 
+  color: rgba(60,60,60,0.8); 
+  font-size: 0.9rem;
+  text-align: center; 
+  padding-bottom: 20px; 
+
+  /* ADDED: Transition for transform */
+  transition: transform 0.1s linear; 
+  transform-origin: center center; 
 }
 
-/* Strong tags */
-.about-content strong {
+/* ... (rest of styles: .aboutContent p, strong, .projectList, a, focus, media query) ... */
+.aboutContent p {
+  margin-bottom: 2em; 
+}
+
+.aboutContent strong {
   color: #000;
   font-weight: 600;
+  display: block; 
+  margin-bottom: 0.3em; 
 }
 
-/* Project List Styling */
-.project-list { 
-  margin: 0.5em 0 1.8em 0; /* Adjusted margins */
-  padding-left: 25px; 
+.projectList { 
+  margin: 0.5em 0 2em 5px; 
+  padding-left: 20px; 
   list-style-type: none; 
   color: #333;
 }
 
-.project-list li {
-  margin-bottom: 0.5em;
+.projectList li {
+  margin-bottom: 0.6em; 
   position: relative;
 }
 
-.project-list li::before {
-  content: '•';
+.projectList li::before {
+  content: '–'; 
   position: absolute;
   left: -20px; 
-  top: 1px;
-  color: rgba(0, 0, 0, 0.4); 
-  font-size: 1.2em; 
+  top: -1px; 
+  color: rgba(0, 0, 0, 0.5); 
+  font-weight: 600;
 }
 
-/* Links Styling */
-.about-content a {
-  color: #1a1a1a; 
+.aboutContent a {
+  color: #000; 
   text-decoration: none; 
-  border-bottom: 1px solid rgba(0, 0, 0, 0.2); 
-  padding-bottom: 1px;
-  transition: color 0.2s ease, border-color 0.2s ease;
+  background-image: linear-gradient(rgba(0,0,0,0.5) 1px, rgba(0,0,0,0.5) 1px); 
+  background-position: 0 100%;
+  background-repeat: no-repeat;
+  background-size: 0% 1px; 
+  transition: background-size 0.3s ease, color 0.3s ease;
+  padding-bottom: 2px;
 }
 
-.about-content a:hover {
+.aboutContent a:hover {
   color: #000;
-  border-bottom-color: rgba(0, 0, 0, 0.5);
+  background-size: 100% 1px; 
 }
 
-/* Footer Styling */
-.about-footer {
-  margin-top: 60px; 
-  padding-top: 20px; 
-  border-top: 1px solid rgba(0, 0, 0, 0.08); 
-  color: rgba(60,60,60,0.7);
-  font-size: 0.9rem;
-  text-align: center; 
-}
-
-/* --- Accessibility focus states --- */
 a:focus-visible,
 button:focus-visible {
   outline: 2px dashed rgba(30, 30, 30, 0.6);
@@ -146,24 +218,34 @@ button:focus-visible {
   border-radius: 6px;
 }
 
-/* --- Responsive tweaks --- */
 @media (max-width: 880px) {
-  .content-inner {
-    margin: 6rem 20px 5rem 20px; /* Adjusted mobile margins */
-    padding: 0 15px 60px 15px; 
+  .contentInner {
+     max-height: 90vh; 
+     padding: 30px 25px; 
   }
-   .hero-block {
-     margin-bottom: 60px; /* Adjust mobile spacing */
-     padding-bottom: 25px;
+   .heroBlock {
+     margin-bottom: 20px; 
+     padding-bottom: 15px;
+     text-align: center; 
    }
-  .sumi-title {
-    font-size: clamp(2.2rem, 9.5vw, 3.2rem); 
+  .sumiTitle {
+    font-size: clamp(2.4rem, 9vw, 3.5rem); 
   }
   .lead {
     font-size: 1rem; 
     max-width: none; 
+    margin-left: auto; 
+    margin-right: auto;
   }
-  .about-content {
+  .aboutContent {
     font-size: 1rem; 
+    padding: 40px 0 40px 0; 
+  }
+   /* .aboutFooter {
+     /* Adjust footer spacing if needed */
+   /* } */
+  .scrollableContent::before,
+  .scrollableContent::after {
+      height: 60px; 
   }
 }
