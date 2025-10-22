@@ -1,16 +1,17 @@
-/* src/pages/AboutPage.module.css - Updated Fade Effect */
+/* src/pages/AboutPage.module.css */
 
+/* ... (Keep .aboutPage, .paperOverlay, .contentInner, .heroBlock, .sumiTitle, .lead rules the same) ... */
 /* --- Outer page container --- */
 .aboutPage {
   position: relative;
   width: 100%;
-  height: 100vh; 
+  height: 100vh;
   margin: 0;
   padding: 0;
-  overflow: hidden; 
-  /* Use a subtle base background if paperOverlay is transparent */
-  background: #fdfdfd00; 
-  color: #252525;
+  overflow: hidden;
+  /* Restore a subtle background if needed */
+  background: radial-gradient(circle at top left, #fcfcfc00 0%, #f6f6f600 100%);
+  color: #2f2f2f00;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -20,187 +21,270 @@
   pointer-events: auto;
 }
 
-/* soft paper overlay - Needs a background to show through the transparent middle */
+/* soft paper overlay */
 .paperOverlay {
   position: fixed;
   inset: 0;
-  z-index: 1; /* Behind contentInner */
+  z-index: 1;
   pointer-events: none;
-  /* MODIFIED: Restore a background color/gradient */
-  background: linear-gradient(180deg, 
-    rgba(253, 253, 253, 0) 0%, /* Slightly transparent top */
-    rgba(248, 248, 246, 0) 100%   /* Opaque bottom */
-  ); 
-  /* Removed repeating-linear-gradient */
-  /* backdrop-filter: blur(2px); */ /* Consider removing blur if performance is key */
+  /* Restore background if you want fades to match */
+  background: linear-gradient(
+    180deg,
+    rgba(253, 253, 253, 0) 0%,
+    rgba(248, 248, 246, 0) 100%
+  );
+  /* -webkit-backdrop-filter: blur(2px); */ /* Keep commented if performance is issue */
+  /* backdrop-filter: blur(2px); */
 }
 
 /* --- Main inner card --- */
 .contentInner {
   position: relative;
-  z-index: 2; /* Above overlay */
+  z-index: 2;
   max-width: 980px;
-  width: 90%; /* Responsive width */
-  height: 82vh; 
-  padding: 36px 40px; 
+  width: 90%;
+  height: 82vh;
+  padding: 32px 40px;
   border-radius: 14px;
-  /* MODIFIED: Make the card itself transparent */
-  background: transparent; 
-  /* MODIFIED: Optional: Remove or reduce shadow if card is transparent */
-  box-shadow: none; 
-  /* box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); */ /* Example: much subtler shadow */
+  /* Restore subtle background for fades */
+  background: rgba(139, 17, 17, 0);
+  /* box-shadow: 0 24px 60px rgba(0, 0, 0, 0.1), 0 10px 20px rgba(0, 0, 0, 0.05); */
   display: flex;
   flex-direction: column;
-  overflow: hidden; 
+  overflow: hidden;
   transition: transform 0.25s ease;
-  pointer-events: auto; 
-  border: none; /* Remove border if background is transparent */
+  pointer-events: auto;
+  /* border: 1px solid rgba(0, 0, 0, 0.05); */
 }
 
-/* header anchored above the scrollable area */
+/* Header */
 .heroBlock {
   margin: 0 0 20px 0;
   padding-bottom: 15px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1); /* Keep divider */
+  border-bottom: 1px solid rgba(0, 0, 0, 0.389); /* Adjusted alpha */
   text-align: center;
   flex-shrink: 0;
   pointer-events: auto;
 }
 
 .sumiTitle {
-  font-size: 5.2rem;
+  font-size: clamp(2.6rem, 5vw, 4rem); /* Adjusted clamp */
   color: #111;
   font-weight: 700;
-  letter-spacing: 0px;
-  margin: 0 0 -1px 0;
-  position: relative; 
+  letter-spacing: -1.5px; /* Adjusted spacing */
+  margin: 0 0 10px 0;
+  position: relative;
   pointer-events: auto;
 }
 
 .lead {
   margin: 0 auto;
-  font-size: 1.05rem; /* Adjusted */
-  color: #262626;
+  font-size: 1.05rem;
+  color: #333;
   max-width: 66ch;
   line-height: 1.65;
   pointer-events: auto;
 }
 
-/* --- Scrollable area that actually scrolls --- */
+/* --- Scrollable area --- */
+.scrollableContent {
+  flex: 1 1 0%;
+  min-height: 0;
+  overflow-y: auto;
+  position: relative;
+  padding: 10px 6px 30px 6px;
+  perspective: 800px;
+  transform-style: preserve-3d;
+
+  /* Scrollbar styling */
+  /* scrollbar-width: thin; */
+  /* scrollbar-color: rgba(180, 180, 180, 0) transparent; */
+  pointer-events: auto;
+}
+.scrollableContent::-webkit-scrollbar {
+  width: 8px;
+}
+.scrollableContent::-webkit-scrollbar-thumb {
+  background: rgba(175, 18, 18, 0);
+  border-radius: 999px;
+}
+.scrollableContent::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+/* Fading Effect for Scroll Area */
+.scrollableContent::before,
+.scrollableContent::after {
+  content: "";
+  position: sticky;
+  left: 0;
+  right: 0;
+  /* MODIFIED: Reduced height for a larger clear area */
+  height: 60px;
+  z-index: 5;
+  pointer-events: none;
+}
+.scrollableContent::before {
+  top: -1px;
+  /* MODIFIED: Adjusted gradient stops, use card background color */
+  background: linear-gradient(
+    to bottom,
+    rgb(255, 255, 255) 30%,
+    rgba(255, 255, 255, 0.53) 40%,
+    rgba(255, 255, 255, 0) 100% /* Fade out completely */
+  );
+  /* Optional: Restore subtle shadow */
+  /* box-shadow: inset 0 8px 15px -10px rgba(0, 0, 0, 0.1); */
+}
+/* --- Scrollable area --- */
 .scrollableContent {
   flex: 1 1 0%; 
   min-height: 0; 
   overflow-y: auto; 
   position: relative;
-  /* MODIFIED: Remove side padding/margins, fades handle visual edges */
-  padding: 0; 
-  margin: 0; 
-  perspective: 900px;
+  /* Adjust side/top padding as needed, REMOVE bottom padding here */
+  padding: 10px 6px 0 6px; 
+  perspective: 800px;
   transform-style: preserve-3d;
-
-  /* Scrollbar styling (keep hidden) */
-  scrollbar-width: none;
+  /* scrollbar-width: none; */
   -ms-overflow-style: none; 
+  pointer-events: auto; 
 }
 .scrollableContent::-webkit-scrollbar { display: none; }
 
 /* Fading Effect for Scroll Area */
 .scrollableContent::before,
 .scrollableContent::after {
-  content: '';
-  position: relative; /* Sticks to the top/bottom of the scroll viewport */
+  content: "";
+  position: sticky;
   left: 0;
   right: 0;
-  height: 0px; /* How tall the fade is */
-  z-index: 5; /* Ensures fades are above the text */
-  pointer-events: none; /* Allows mouse interaction through the fade */
+  height: 60px; /* Keep fade height */
+  z-index: 5;
+  pointer-events: none;
 }
-
 .scrollableContent::before {
-  top: 0px; /* Positions the top fade */
-  /* This gradient fades FROM opaque white TO transparent */
-   background: linear-gradient(to bottom,
-    rgba(248, 248, 246, 0) 40%,  
-    rgba(248, 248, 246, 0) 80%,
-    rgba(248, 248, 246, 0) 100% 
+  top: -1px;
+  /* Match the card background color exactly */
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 1) 30%,  /* Start opaque matching card bg */
+    rgba(255, 255, 255, 0.7) 60%, 
+    rgba(255, 255, 255, 0) 100% 
   ); 
-  /* Optional shadow for depth */
-  /* box-shadow: inset 0 8px 15px -10px rgba(0, 0, 0, 0.1); */
+  box-shadow: inset 0 8px 15px -10px rgba(0, 0, 0, 0.1); 
 }
-
 .scrollableContent::after {
-  bottom: 0px; /* Positions the bottom fade */
-  /* This gradient fades TO opaque white FROM transparent */
-   background: linear-gradient(to top,
-    rgba(248, 248, 246, 0) 40%,  
-    rgba(248, 248, 246, 0) 80%,
-    rgba(248, 248, 246, 0) 100% 
+  bottom: -1px;
+  /* Match the card background color exactly */
+  background: linear-gradient(
+    to top,
+    rgba(255, 255, 255, 1) 30%,  /* End opaque matching card bg */
+    rgba(255, 255, 255, 0.7) 60%,
+    rgba(255, 255, 255, 0) 100% 
   ); 
-  /* Optional shadow for depth */
-  /* box-shadow: inset 0 -8px 15px -10px rgba(0, 0, 0, 0.1); */
+  box-shadow: inset 0 -8px 15px -10px rgba(0, 0, 0, 0.1); 
 }
-
 
 /* Elements that will roll */
 .aboutContent {
-  /* MODIFIED: Add side padding here, adjust top/bottom to clear fades */
-  padding: 120px 40px 0 40px; /* Top, L/R, Bottom */
+  /* Adjust top padding if needed, keep bottom padding 0 */
+  padding: 40px 14px 0 14px; 
   font-size: 1.04rem;
   line-height: 1.8;
-  color: #1f1f1f;
-  transform-origin: center center;
+  color: #333; /* Adjusted color */
+  transform-origin: center center; 
   pointer-events: auto;
-  text-align: left; /* Keep text aligned left */
+  text-align: left;
 }
 
-/* Apply roll effect styles */
+/* ... styles for p, ul, strong, a ... */
 .aboutContent p,
 .aboutContent ul,
 .aboutFooter {
-  /* Keep transitions/hints for JS roll effect */
-  transition: transform 0.28s cubic-bezier(.2,.9,.2,1), opacity 0.28s ease-out;
-  will-change: transform, opacity;
-  transform-origin: center center;
-  backface-visibility: hidden;
+  will-change: transform, opacity; 
+  transform-origin: center center; 
+  backface-visibility: hidden; 
 }
+.aboutContent p { margin-bottom: 2em; }
+.aboutContent strong { color: #000; font-weight: 600; display: block; margin-bottom: 0.3em; }
 
 /* Footer inside scroll area */
 .aboutFooter {
-  margin-top: 28px;
-  padding-top: 18px;
-  border-top: 1px solid rgba(0,0,0,0.08); /* Match header border */
-  color: rgb(36, 36, 36);
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(0, 0, 0, 0.915);
+  color: rgba(60, 60, 60, 0.8);
   font-size: 0.92rem;
   text-align: center;
-  /* MODIFIED: Add side padding and significant bottom padding */
-  padding-left: 40px;
-  padding-right: 40px;
-  padding-bottom: 120px; 
+  /* MODIFIED: Reduced bottom padding */
+  padding-bottom: 40px;
 }
 
 /* List style */
-.projectList { list-style: none; padding-left: 20px; margin: 0.6em 0 1.8em 0; }
-.projectList li { margin-bottom: 0.6em; position: relative; padding-left: 8px; }
-.projectList li::before { content: "–"; position: absolute; left: -12px; top: 0; color: rgba(0,0,0,0.45); font-weight: 700; }
+.projectList {
+  list-style: none;
+  padding-left: 20px;
+  margin: 0.6em 0 1.8em 0;
+}
+.projectList li {
+  margin-bottom: 0.6em;
+  position: relative;
+  padding-left: 8px;
+}
+.projectList li::before {
+  content: "–";
+  position: absolute;
+  left: -12px;
+  top: 0;
+  color: rgba(0, 0, 0, 0.45);
+  font-weight: 700;
+}
 
 /* Links */
-.aboutContent a { color: #003380; text-decoration: underline; text-underline-offset: 3px; transition: color 0.2s ease; pointer-events: auto; }
-.aboutContent a:hover { color: #001f4d; }
+.aboutContent a {
+  color: #003380;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: color 0.2s ease;
+  pointer-events: auto;
+}
+.aboutContent a:hover {
+  color: #001f4d;
+}
 
 /* Accessibility focus */
 a:focus-visible,
-button:focus-visible { outline: 2px dashed rgba(30, 30, 30, 0.6); outline-offset: 3px; border-radius: 6px; }
+button:focus-visible {
+  outline: 2px dashed rgba(30, 30, 30, 0.6);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
 
 /* Responsive */
 @media (max-width: 880px) {
-  .contentInner { 
-    height: 88vh; 
-    padding: 24px; 
-    width: 95%; 
+  .contentInner {
+    height: 88vh;
+    padding: 24px;
+    width: 95%;
   }
-  .sumiTitle { font-size: clamp(2.2rem, 8vw, 3rem); }
-  .lead { font-size: 1rem; }
-  .aboutContent { padding: 80px 15px 0 15px; font-size: 1rem; line-height: 1.7; }
-  .aboutFooter { padding-bottom: 80px; margin-top: 30px; }
-  .scrollableContent::before, .scrollableContent::after { height: 100px; } /* Adjust fade height */
+  .sumiTitle {
+    font-size: clamp(2.2rem, 8vw, 3rem);
+  }
+  .lead {
+    font-size: 1rem;
+  }
+  .aboutContent {
+    padding: 30px 8px 0 8px;
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+  .aboutFooter {
+    padding-bottom: 30px;
+    margin-top: 30px;
+  }
+  .scrollableContent::before,
+  .scrollableContent::after {
+    height: 40px;
+  } /* Adjust mobile fade */
 }
