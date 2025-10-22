@@ -1,251 +1,190 @@
-/* src/pages/AboutPage.module.css -- Vertical Drawer Scroll + Roll Effect */
+/* src/pages/AboutPage.module.css - Final Version with Scrolling Fix & Roll Effect */
 
-/* ... (Keep all existing styles for .aboutPage, .paperOverlay, .contentInner, .heroBlock, .sumiTitle, .lead) ... */
-/* --- Container --- */
-.aboutPage { /* Main page container */
+/* --- Outer page container --- */
+.aboutPage {
   position: relative;
   width: 100%;
-  height: 100vh; /* Fixed viewport height */
+  height: 100vh; /* Full viewport height */
   margin: 0;
-  padding: 0; 
-  overflow: hidden; /* Prevent the whole page from scrolling */
-  background: transparent; 
-  color: #2f2f2f; 
-  display: flex; /* Use flexbox to center contentInner */
-  justify-content: center; /* Center horizontally */
-  align-items: center; /* Center vertically */
-  box-sizing: border-box;
-  z-index: 3; 
-  pointer-events: auto;
+  padding: 0;
+  overflow: hidden; /* Prevent body scroll */
+  background: radial-gradient(circle at top left, #fcfcfc 0%, #f6f6f6 100%);
+  color: #2f2f2f;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  perspective: 1000px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  pointer-events: auto;
 }
 
-/* Paper overlay */
+/* Soft paper overlay */
 .paperOverlay {
-  position: fixed; 
+  position: fixed;
   inset: 0;
-  z-index: 2; 
+  z-index: 1; /* Behind contentInner */
   pointer-events: none;
-  background: linear-gradient(180deg, rgba(253, 253, 253, 0.97), rgba(248, 248, 246, 1)); 
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(253, 253, 253, 0.98) 0px,
+    rgba(253, 253, 253, 0.98) 2px,
+    rgba(252, 252, 252, 1) 4px
+  );
+  -webkit-backdrop-filter: blur(2px);
+  backdrop-filter: blur(2px);
+  
 }
 
-/* Content inner: Main content block */
+/* --- Main inner card --- */
 .contentInner {
   position: relative;
-  z-index: 3;
-  max-width: 900px; 
-  width: 90%; 
-  max-height: 85vh; 
-  padding: 40px 50px; 
-  margin: 0; 
-  box-sizing: border-box;
-  display: flex; 
+  z-index: 2; /* Above overlay */
+  max-width: 980px;
+  width: 92%;
+  height: 82vh; /* Fixed height for the card */
+  padding: 36px 40px; /* Adjusted padding */
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.97); /* Slightly more opaque */
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.1), 0 10px 20px rgba(0,0,0,0.05); /* Enhanced shadow */
+  display: flex;
   flex-direction: column;
-  background: rgba(255, 255, 255, 0.85); 
-  border-radius: 12px; 
-  box-shadow: 0 15px 40px rgba(0,0,0,0.1); 
-  border: 1px solid rgba(0,0,0,0.05);
+  overflow: hidden; /* Crucial: Clips the scrollable area */
+  transition: transform 0.25s ease;
+  pointer-events: auto;
 }
 
-/* --- Header (Fixed within Content Inner) --- */
+/* Header */
 .heroBlock {
-  margin: 0 0 25px 0; 
-  padding-bottom: 25px; 
+  margin: 0 0 20px 0;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  text-align: center;
+  flex-shrink: 0; /* Prevent header shrinking */
   pointer-events: auto;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1); 
-  flex-shrink: 0; 
-  text-align: center; 
 }
 
 .sumiTitle {
-  font-size: clamp(2.6rem, 5vw, 4rem); 
-  line-height: 1.15; 
-  margin: 0 0 10px 0; 
-  font-weight: 700; 
-  color: #111; 
-  letter-spacing: -1.5px;
+  font-size: clamp(2.4rem, 4.6vw, 3.6rem);
+  color: #111;
+  font-weight: 700;
+  letter-spacing: -1.2px;
+  margin: 0 0 10px 0;
   position: relative;
   pointer-events: auto;
 }
 
 .lead {
-  font-size: 1.05rem; 
-  margin: 0 auto; 
-  color: #333; 
-  max-width: 60ch; 
-  line-height: 1.7; 
+  margin: 0 auto;
+  font-size: 1.05rem;
+  color: #333;
+  max-width: 66ch;
+  line-height: 1.65;
   pointer-events: auto;
 }
 
-/* --- Scrollable Content Area --- */
-.scrollableContent { 
-  flex-grow: 1; 
-  overflow-y: auto; 
-  position: relative; 
-  min-height: 0; 
-  padding: 0 10px; 
-  margin: 0 -10px; 
+/* --- Scrollable area --- */
+.scrollableContent {
+  flex: 1 1 0%; /* Use flex shorthand with 0 basis */
+  min-height: 0; /* ** THE KEY FIX ** Allow flex item to shrink */
+  overflow-y: auto; /* Enable scrolling */
+  position: relative;
+  padding: 10px 6px 30px 6px; /* Adjust padding (top/side/bottom) */
+  perspective: 800px; /* Perspective for children roll */
+  transform-style: preserve-3d;
 
-  /* ADDED: Perspective for 3D transforms */
-  perspective: 400px; 
-
-  /* Hide Scrollbar */ 
-  /* scrollbar-width: none;  */
-  -ms-overflow-style: none;
+  /* Scrollbar styling */
+  scrollbar-width: thin;
+  scrollbar-color: rgba(180,180,180,0.6) transparent; /* Slightly darker thumb */
+  pointer-events: auto; /* Allow scroll interaction */
 }
-.scrollableContent::-webkit-scrollbar {
-  display: none; 
-}
+/* Webkit Scrollbar */
+.scrollableContent::-webkit-scrollbar { width: 8px; /* Slightly thinner */ }
+.scrollableContent::-webkit-scrollbar-thumb { background: rgba(180,180,180,0.6); border-radius: 999px; }
+.scrollableContent::-webkit-scrollbar-track { background: transparent; }
 
-/* Fading Effect */
+/* Fading Effect for Scroll Area */
 .scrollableContent::before,
 .scrollableContent::after {
   content: '';
-  position: sticky; 
+  position: sticky;
   left: 0;
   right: 0;
-  height: 100px; 
-  z-index: 5; 
-  pointer-events: none; 
+  height: 80px; /* Height of the fade */
+  z-index: 5;
+  pointer-events: none;
 }
-
 .scrollableContent::before {
-  top: -1px; 
-  background: linear-gradient(to bottom, 
-    rgba(255, 255, 255, 1) 30%, 
-    rgba(255, 255, 255, 0.9) 70%, 
+  top: -1px; /* Cover top edge */
+  background: linear-gradient(to bottom,
+    rgba(255, 255, 255, 1) 30%, /* Match card background */
+    rgba(255, 255, 255, 0.9) 70%,
     rgba(255, 255, 255, 0) 100%
   );
-  box-shadow: inset 0 8px 15px -10px rgba(0, 0, 0, 0.15); 
+  box-shadow: inset 0 8px 15px -10px rgba(0, 0, 0, 0.1); /* Subtle inner shadow */
 }
-
 .scrollableContent::after {
-  bottom: -1px; 
-  background: linear-gradient(to top, 
-    rgba(255, 255, 255, 1) 30%, 
-    rgba(255, 255, 255, 0.9) 70%, 
+  bottom: -1px; /* Cover bottom edge */
+  background: linear-gradient(to top,
+    rgba(255, 255, 255, 1) 30%, /* Match card background */
+    rgba(255, 255, 255, 0.9) 70%,
     rgba(255, 255, 255, 0) 100%
   );
-  box-shadow: inset 0 -8px 15px -10px rgba(0, 0, 0, 0.15); 
+  box-shadow: inset 0 -8px 15px -10px rgba(0, 0, 0, 0.1); /* Subtle inner shadow */
 }
 
 
-/* --- Main Content (Inside Scrollable Area) --- */
+/* Elements that will roll: apply transform origin and performance hints */
 .aboutContent {
-  background: transparent;
-  color: #333; 
-  font-size: 1.05rem; 
-  line-height: 1.8; 
-  padding: 80px 0 80px 0; 
-  margin: 0;
-  pointer-events: auto;
-  text-align: left; 
-
-  /* ADDED: Transition for transform */
-  transition: transform 0.1s linear; 
-  transform-origin: center center; /* Rotate around the element's center */
-}
-
-/* --- Footer Styling (Inside Scrollable Area) --- */
-.aboutFooter { 
-  margin-top: 40px; 
-  padding-top: 20px; 
-  border-top: 1px solid rgba(0, 0, 0, 0.1); 
-  color: rgba(60,60,60,0.8); 
-  font-size: 0.9rem;
-  text-align: center; 
-  padding-bottom: 20px; 
-
-  /* ADDED: Transition for transform */
-  transition: transform 0.1s linear; 
-  transform-origin: center center; 
-}
-
-/* ... (rest of styles: .aboutContent p, strong, .projectList, a, focus, media query) ... */
-.aboutContent p {
-  margin-bottom: 2em; 
-}
-
-.aboutContent strong {
-  color: #000;
-  font-weight: 600;
-  display: block; 
-  margin-bottom: 0.3em; 
-}
-
-.projectList { 
-  margin: 0.5em 0 2em 5px; 
-  padding-left: 20px; 
-  list-style-type: none; 
+  /* Padding adjusted to clear fades */
+  padding: 60px 14px 0 14px; 
+  font-size: 1.04rem;
+  line-height: 1.8;
   color: #333;
+  transform-origin: center center; /* Keep origin centered */
+  pointer-events: auto;
 }
 
-.projectList li {
-  margin-bottom: 0.6em; 
-  position: relative;
+.aboutContent p,
+.aboutContent ul,
+.aboutFooter {
+  /* Remove CSS transition, JS handles animation */
+  will-change: transform, opacity; /* GPU hint */
+  transform-origin: center center; /* Keep origin centered */
+  backface-visibility: hidden; /* Performance hint */
 }
 
-.projectList li::before {
-  content: '–'; 
-  position: absolute;
-  left: -20px; 
-  top: -1px; 
-  color: rgba(0, 0, 0, 0.5); 
-  font-weight: 600;
+/* Footer inside scroll area */
+.aboutFooter {
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(0,0,0,0.08);
+  color: rgba(60,60,60,0.8);
+  font-size: 0.92rem;
+  text-align: center;
+  /* Add significant bottom padding */
+  padding-bottom: 60px; 
 }
 
-.aboutContent a {
-  color: #000; 
-  text-decoration: none; 
-  background-image: linear-gradient(rgba(0,0,0,0.5) 1px, rgba(0,0,0,0.5) 1px); 
-  background-position: 0 100%;
-  background-repeat: no-repeat;
-  background-size: 0% 1px; 
-  transition: background-size 0.3s ease, color 0.3s ease;
-  padding-bottom: 2px;
-}
+/* List style */
+.projectList { list-style: none; padding-left: 20px; margin: 0.6em 0 1.8em 0; }
+.projectList li { margin-bottom: 0.6em; position: relative; padding-left: 8px; }
+.projectList li::before { content: "–"; position: absolute; left: -12px; top: 0; color: rgba(0,0,0,0.45); font-weight: 700; }
 
-.aboutContent a:hover {
-  color: #000;
-  background-size: 100% 1px; 
-}
+/* Links */
+.aboutContent a { color: #003380; text-decoration: underline; text-underline-offset: 3px; transition: color 0.2s ease; pointer-events: auto; }
+.aboutContent a:hover { color: #001f4d; }
 
+/* Accessibility focus */
 a:focus-visible,
-button:focus-visible {
-  outline: 2px dashed rgba(30, 30, 30, 0.6);
-  outline-offset: 3px;
-  border-radius: 6px;
-}
+button:focus-visible { outline: 2px dashed rgba(30, 30, 30, 0.6); outline-offset: 3px; border-radius: 6px; }
 
+/* Responsive */
 @media (max-width: 880px) {
-  .contentInner {
-     max-height: 90vh; 
-     padding: 30px 25px; 
-  }
-   .heroBlock {
-     margin-bottom: 20px; 
-     padding-bottom: 15px;
-     text-align: center; 
-   }
-  .sumiTitle {
-    font-size: clamp(2.4rem, 9vw, 3.5rem); 
-  }
-  .lead {
-    font-size: 1rem; 
-    max-width: none; 
-    margin-left: auto; 
-    margin-right: auto;
-  }
-  .aboutContent {
-    font-size: 1rem; 
-    padding: 40px 0 40px 0; 
-  }
-   /* .aboutFooter {
-     /* Adjust footer spacing if needed */
-   /* } */
-  .scrollableContent::before,
-  .scrollableContent::after {
-      height: 60px; 
-  }
+  .contentInner { height: 88vh; padding: 24px; width: 95%; }
+  .sumiTitle { font-size: clamp(2.2rem, 8vw, 3rem); }
+  .lead { font-size: 1rem; }
+  .aboutContent { padding: 40px 8px 0 8px; font-size: 1rem; line-height: 1.7; }
+  .aboutFooter { padding-bottom: 40px; margin-top: 30px; }
+  .scrollableContent::before, .scrollableContent::after { height: 60px; } /* Adjust fade height */
 }
