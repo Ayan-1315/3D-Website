@@ -1,62 +1,182 @@
-/* ContactPage.module.css */
-.pageContent {
+/* src/pages/ContactPage.module.css - Themed Styles */
+
+/* --- Container --- */
+.contactPage { /* Note: camelCase */
   position: relative;
-  padding: 18vh 64px 96px 64px;
-  max-width: 1100px;
-  margin: 0 auto;
-  color: rgba(15, 15, 15, 0.95);
-  z-index: 10;
-  background: transparent;
+  width: 100%;
+  height: 100vh; 
+  margin: 0;
+  padding: 0; 
+  overflow: hidden; 
+  background: transparent; 
+  color: #2f2f2f; 
+  display: flex; 
+  justify-content: center; 
+  align-items: center; 
+  box-sizing: border-box;
+  z-index: 3; 
   pointer-events: auto;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
-.heroBlock {
-  margin-bottom: 50px;
+/* Paper overlay */
+.paperOverlay {
+  position: fixed; 
+  inset: 0;
+  z-index: 1; /* Behind contentInner */
+  pointer-events: none;
+  background: linear-gradient(180deg, 
+    rgba(253, 253, 253, 0), 
+    rgba(248, 248, 246, 0)
+  ); 
+}
+
+/* Content inner centers and constrains width */
+.contentInner {
   position: relative;
+  z-index: 2; /* Above overlay */
+  max-width: 800px; /* Constrained width */
+  width: 90%; 
+  /* Remove fixed height, let content determine height */
+  /* height: 82vh; */ 
+  padding: 50px 60px; /* Generous padding */
+  margin: 0; /* Centering handled by parent */
+  box-sizing: border-box;
+  display: flex; 
+  flex-direction: column;
+  align-items: center; /* Center content horizontally */
+  text-align: center; /* Center text */
+  background: rgba(255, 255, 255, 0); /* Subtle background */
+  border-radius: 12px; 
+  /* box-shadow: 0 15px 40px rgba(0,0,0,0.08);  */
+  border: 1px solid rgba(0,0,0,0.04);
+}
+
+/* --- Header --- */
+.heroBlock {
+  margin: 0 0 30px 0; /* Space below header */
+  padding-bottom: 30px; /* Space below lead */
+  pointer-events: auto;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1); 
+  flex-shrink: 0; 
+  width: 100%; /* Ensure border spans width */
 }
 
 .sumiTitle {
-  font-size: 6rem;
-  line-height: 1.1;
-  margin: 0 0 12px 0;
-  z-index: 11;
+  font-size: clamp(2.8rem, 6vw, 4.5rem); 
+  line-height: 1.15; 
+  margin: 0 0 15px 0; 
+  font-weight: 700; 
+  color: #111; 
+  letter-spacing: -1.5px;
   position: relative;
-  letter-spacing: -2px;
-  color: rgba(0, 0, 0, 0.92);
   pointer-events: auto;
-  -webkit-user-select: text;
-  user-select: text;
-  transition: text-shadow 0.4s ease-in-out;
 }
 
 .lead {
-  font-size: 1rem;
-  color: rgba(28, 28, 28, 0.76);
-  max-width: 60ch;
-  line-height: 1.6;
-  position: relative;
-  z-index: 11;
+  font-size: 1.1rem; 
+  margin: 0 auto; 
+  color: #333; 
+  max-width: 60ch; 
+  line-height: 1.7; 
   pointer-events: auto;
 }
 
-.contactLinks { pointer-events: auto; }
+/* --- Contact Links Section --- */
+.contactLinks { 
+  pointer-events: auto; 
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 35px; /* Space between button and socials */
+  width: 100%;
+}
 
 .contactButton {
   display: inline-block;
-  font-size: 1.1rem;
+  font-size: 1.05rem; /* Slightly smaller */
   font-weight: 600;
-  color: #111;
+  color: #1a1a1a; /* Darker text */
   text-decoration: none;
-  background: linear-gradient(180deg, rgba(248,242,236,0.98), rgba(235,218,200,0.94));
-  padding: 16px 28px;
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  /* Use a gradient closer to nav buttons */
+  background: linear-gradient(180deg, rgba(248, 242, 236, 0), rgba(235, 218, 200, 0)); 
+  padding: 14px 26px; /* Adjusted padding */
+  border-radius: 10px; /* Slightly less rounded */
+  border: 1px solid rgba(0,0,0,0.06);
+  box-shadow: 0 8px 20px -5px rgba(0,0,0,0.1); /* Softer shadow */
   transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.contactSocials { margin-top: 40px; color: #333; }
-.contactSocials span { margin-right: 12px; font-weight: 500; }
-.contactSocials a { font-weight: 600; color: #111; text-decoration: none; padding: 4px 8px; margin: 0 4px; border-radius: 6px; transition: background 0.2s ease; }
-.contactSocials a:hover { background: rgba(0,0,0,0.05); }
+.contactButton:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 25px -5px rgba(0,0,0,0.15); /* Enhanced hover shadow */
+}
+
+.contactSocials { 
+  color: #444; /* Slightly darker grey */
+  font-size: 0.95rem;
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Space between "Find me on:" and links */
+  flex-wrap: wrap; /* Allow wrapping on small screens */
+  justify-content: center; /* Center links if they wrap */
+}
+.contactSocials span { 
+  margin-right: 5px; 
+  font-weight: 500; 
+}
+.contactSocials a { 
+  font-weight: 600; 
+  color: #111; 
+  text-decoration: none; 
+  padding: 5px 10px; 
+  margin: 0 2px; 
+  border-radius: 6px; 
+  transition: background 0.2s ease, color 0.2s ease;
+  border-bottom: 1px solid transparent; /* Prepare for hover underline */
+}
+.contactSocials a:hover { 
+  background: rgba(0,0,0,0.04); 
+  color: #000;
+  /* Optional: Add subtle underline on hover */
+  /* border-bottom: 1px solid rgba(0, 0, 0, 0.3); */
+}
+
+/* --- Accessibility focus states --- */
+a:focus-visible,
+button:focus-visible {
+  outline: 2px dashed rgba(30, 30, 30, 0.6);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* --- Responsive tweaks --- */
+@media (max-width: 880px) {
+  .contentInner {
+     max-height: 90vh; 
+     padding: 30px 25px; /* Adjust mobile padding */
+     width: 95%;
+  }
+   .heroBlock {
+     margin-bottom: 25px; 
+     padding-bottom: 20px;
+   }
+  .sumiTitle {
+    font-size: clamp(2.4rem, 9vw, 3.5rem); 
+  }
+  .lead {
+    font-size: 1rem; 
+  }
+  .contactLinks {
+    gap: 30px; /* Adjust gap */
+  }
+  .contactButton {
+      font-size: 1rem;
+      padding: 12px 22px;
+  }
+  .contactSocials {
+      font-size: 0.9rem;
+      gap: 8px; /* Adjust gap */
+  }
+}
