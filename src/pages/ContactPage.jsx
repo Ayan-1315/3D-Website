@@ -37,10 +37,10 @@ export default function ContactPage({ setScene, seasonalShadow }) {
               {/* Optional: Add GitHub icon here if desired */}
               GitHub
             </a>
-            <a href="https://linkedin.com/in/ayan-sen-788b1b229/" target="_blank" rel="noopener noreferrer">
+            <a href="https://www.linkedin.com/in/ayan-sen-1315abc" target="_blank" rel="noopener noreferrer">
               LinkedIn
             </a>
-            <a href="https://twitter.com" target="_blank" rel="noopener noreferrer">
+            <a href="https://x.com/Ayansen1315" target="_blank" rel="noopener noreferrer">
               X (Twitter)
             </a>
           </div>

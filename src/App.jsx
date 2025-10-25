@@ -155,7 +155,7 @@ function AppContent() {
 
         <div className="social-links">
            <a
-            href="https://github.com"
+            href="https://github.com/Ayan-1315"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="GitHub"
@@ -163,7 +163,7 @@ function AppContent() {
             <FontAwesomeIcon icon={faGithub} size="lg" />
           </a>
           <a
-            href="https://twitter.com"
+            href="https://x.com/Ayansen1315"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Twitter"
@@ -171,7 +171,7 @@ function AppContent() {
             <FontAwesomeIcon icon={faXTwitter} size="lg" />
           </a>
           <a
-            href="https://linkedin.com"
+            href="https://www.linkedin.com/in/ayan-sen-1315abc"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="LinkedIn"
