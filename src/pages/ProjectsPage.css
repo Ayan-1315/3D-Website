@@ -1,4 +1,4 @@
-/* src/pages/ProjectsPage.css */
+/* src/pages/ProjectsPage.css - Restored Layout + Background Image Styling */
 
 :root {
   --pad: 6vw;
@@ -8,20 +8,20 @@
 
 /* --- Projects Page Container --- */
 .projects-page {
-  position: relative; 
-  width: 100%;      
-  max-width: none;  /* Override max-width */
+  position: relative;
+  width: 100%;
+  max-width: none;
   height: 100vh;
-  margin: 0;        /* Override margin */
-  padding: 0;       /* Reset padding */
+  margin: 0;
+  padding: 0; /* Padding handled by header/scroller */
   overflow: hidden;
   background: transparent;
-  color: #111;
+  color: #111; /* Default text color (header) */
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
   z-index: 5;
-  pointer-events: auto; 
+  pointer-events: auto;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -29,46 +29,47 @@
 /* --- Header --- */
 .projects-header {
   z-index: 6;
-  padding: 80px var(--pad) 0 var(--pad); /* Add top padding here */
-  margin-bottom: 20px; 
+  padding: 50px var(--pad) 0 var(--pad); /* Top padding to position header */
+  margin-bottom: 20px;
   pointer-events: auto;
-  flex-shrink: 0; 
+  flex-shrink: 0;
 }
 
 .sumi-title {
-  font-size: clamp(3rem, 7vw, 5.2rem); 
-  top: -16px;
+  font-size: clamp(3rem, 7vw, 5.2rem);
+  /* top: -16px; <-- Removed explicit top offset */
   line-height: 1.1;
   margin: 0 0 8px;
   font-weight: 700;
   color: rgba(0, 0, 0, 0.92);
   letter-spacing: -2px;
-  position: relative; 
+  position: relative;
   z-index: 11;
   pointer-events: auto;
   transition: text-shadow 0.4s ease-in-out;
 }
 
-.projects-lead { 
+.projects-lead {
   font-size: 1rem;
-  top: -8px;
+  /* top: -8px; <-- Removed explicit top offset */
   margin: 0 0 20px;
   color: rgba(45,45,45,0.78);
   max-width: 60ch;
   line-height: 1.6;
-  position: relative; 
+  position: relative;
   z-index: 11;
   pointer-events: auto;
 }
 
 /* --- Scroller --- */
 .projects-scroller {
-  flex-grow: 1; 
-  top: -60px;
-  padding: 0px var(--pad) 40px var(--pad); /* Top, L/R, Bottom padding */
+  flex-grow: 1; /* Take remaining space */
+  /* top: -60px; <-- Removed explicit top offset */
+  /* MODIFIED: Adjusted padding (less top, consistent bottom/sides) */
+  padding: 10px var(--pad) 90px var(--pad);
   display: flex;
   gap: var(--gap);
-  align-items: center; 
+  align-items: center; /* Keep cards vertically centered */
   overflow-x: auto;
   overflow-y: hidden;
   touch-action: pan-x;
@@ -76,7 +77,7 @@
   perspective: 1000px;
   pointer-events: auto;
   box-sizing: border-box;
-  position: relative; 
+  position: relative; /* Keep relative for arrows */
 }
 .projects-scroller::-webkit-scrollbar {
   display: none;
@@ -85,91 +86,141 @@
 /* --- Cards --- */
 .project-card {
   flex: 0 0 var(--card-w);
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(250, 248, 244, 0));
+  /* background: linear-gradient(...); <-- Background set inline */
   border-radius: 14px;
-  padding: 32px;
-  box-shadow: 0 8px 25px -8px rgba(18, 18, 18, 0.249);
-  border: 1px solid rgba(0,0,0,0.03);
+  padding: 32px; /* Keep padding */
+  /* Use softer shadow from previous visual style */
+  box-shadow: 0 8px 25px -8px rgba(18, 18, 18, 0.12); 
+  border: 1px solid rgba(0,0,0,0.03); /* Lighter border */
+  /* Use height constraints from older layout */
   max-height: 450px; 
-  min-height: 350px;
+  min-height: 350px; 
   box-sizing: border-box;
   transition: transform 300ms cubic-bezier(.2,.9,.22,1), box-shadow 220ms;
   transform-style: preserve-3d;
   display: flex;
   flex-direction: column;
+  justify-content: flex-start; /* Align content to top */
+  position: relative; /* Needed for overlay */
+  overflow: hidden; /* Clip background image */
+  cursor: pointer;
   pointer-events: auto;
-}
-/* ... rest of card styles ... */
-.project-card:focus {
-  outline: none;
-  transform: translateY(-20px);
-  box-shadow: 0 14px 35px -10px rgba(231, 186, 89, 0.74);
-}
-.card-inner {
-  width: 100%;
-}
-.project-title {
-  margin: 0 0 10px;
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: #111;
-}
-.project-desc {
-  margin: 0;
-  color: rgba(35,35,35,0.78);
-  line-height: 1.6;
-}
-.project-card:hover {
-  transform: translateY(-8px);
-  box-shadow: 0 18px 40px -12px rgba(10, 10, 10, 0.589);
+  color: #fff; /* Default text color white for contrast */
+
+  /* Background Image Styles */
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
 }
 
+/* Overlay for Text Readability */
+.project-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg,
+      rgba(0, 0, 0, 0.1) 0%, /* Slight dim at top */
+      rgba(0, 0, 0, 0.4) 40%,
+      rgba(0, 0, 0, 0.7) 100% /* Darkest at bottom */
+  );
+  z-index: 1; /* Sit behind card-inner */
+  transition: background 0.3s ease;
+}
+.project-card:hover::before,
+.project-card:focus::before {
+   background: linear-gradient(180deg,
+      rgba(0, 0, 0, 0.3) 0%,
+      rgba(0, 0, 0, 0.6) 100%
+   );
+}
+
+/* Card Inner Content */
+.card-inner {
+  width: 100%;
+  position: relative; /* Ensure text is above overlay */
+  z-index: 2;
+}
+
+.project-title {
+  margin: 0 0 10px;
+  font-size: 1.3rem; /* Slightly larger */
+  font-weight: 700;
+  color: #fff; /* Ensure white */
+  text-shadow: 0 1px 3px rgba(0,0,0,0.4); /* Add shadow */
+}
+
+.project-desc {
+  margin: 0;
+  color: rgba(235, 235, 235, 0.95); /* Light grey */
+  line-height: 1.6;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.5); /* Add shadow */
+}
+
+/* Card Hover/Focus states using darker shadows */
+.project-card:focus {
+  outline: none;
+  transform: translateY(-6px); /* Keep slight lift */
+  box-shadow: 0 14px 35px -10px rgba(0, 0, 0, 0.3); /* Darker shadow */
+}
+.project-card:hover {
+  transform: translateY(-8px); /* Keep lift */
+  box-shadow: 0 18px 40px -12px rgba(0, 0, 0, 0.4); /* Darker shadow */
+}
 
 /* --- Navigation Arrows --- */
 .nav-arrow {
-  position: absolute; 
-  top: 55%;           
+  position: absolute;
+  /* Use older top positioning */
+  top: 55%; 
   transform: translateY(-50%);
   z-index: 20;
   width: 50px;
   height: 50px;
-  background: rgba(255, 255, 255, 0);
-  border: 1px solid rgba(0, 0, 0, 0);
-  border-radius: 50%;
+  /* Use refined visual styles */
+  background: rgba(255, 255, 255, 0.3); 
+  border: 1px solid rgba(0,0,0,0.05); 
+  border-radius: 50%; 
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: transform 0.2s ease-in-out, filter 0.2s ease-in-out, opacity 0.2s ease-in-out, background 0.2s ease-in-out;
   padding: 0;
-  color: #000000;
+  color: #e0e0e0; /* Use light color for arrow container */
   pointer-events: auto;
-  opacity: 1;
-  /* -webkit-backdrop-filter: blur(3px);
-  backdrop-filter: blur(3px); */
+  opacity: 0.6; /* Use refined opacity */
 }
 
 .nav-arrow svg {
   width: 28px;
   height: 28px;
-  filter: none;
+  filter: none; /* No default filter */
   transition: filter 0.2s ease-in-out;
+}
+/* Ensure SVG stroke is black */
+.nav-arrow svg path {
+    stroke: #111; 
 }
 
 .nav-arrow:hover {
-  transform: translateY(-50%) scale(1.1); 
+  transform: translateY(-50%) scale(1.1); /* Keep hover scale */
   opacity: 1;
-  filter: drop-shadow(3px 0px 3px rgb(0, 0, 0));
+  background: rgba(255, 255, 255, 0.6); /* Keep hover background */
+  /* Remove direct filter on arrow */
 }
 
+/* Apply filter to SVG only on hover */
 .nav-arrow:hover svg {
-  filter: drop-shadow(0px 0px 0px rgb(0, 0, 0));
+  filter: drop-shadow(0px 0px 6px rgba(0, 0, 0, 0.3)); /* Subtle glow */
+}
+.nav-arrow:hover svg path {
+    stroke: #000; /* Darken stroke */
 }
 
+/* Use older horizontal positioning */
 .nav-arrow-left {
   left: calc(var(--pad) * 0.5); 
 }
-
 .nav-arrow-right {
   right: calc(var(--pad) * 0.5); 
 }
@@ -182,6 +233,4 @@ button:focus-visible {
   border-radius: 6px;
 }
 
-/* --- Remove Media Queries for Fixed Layout --- */
-/* @media (max-width: 880px) { ... } */
-/* @media (max-width: 600px) { ... } */
+/* --- Removed Media Queries --- */
