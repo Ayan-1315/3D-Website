@@ -18,19 +18,14 @@ const VERT_WRAP = 22;
 const LEAF_TEXTURES = {
   spring: "/textures/leaf_pink.png",
   autumn: "/textures/leaf_yellow.png",
-  fall:   "/textures/leaf_red.png",
+  fall: "/textures/leaf_red.png",
 };
 
 const BACKGROUND_TEXTURES = {
   spring: "/textures/PinkLeafScene.png",
   autumn: "/textures/YellowLeafScene.png",
-  fall:   "/textures/RedLeafScene.png",
+  fall: "/textures/RedLeafScene.png",
 };
-
-// --- Aspect Ratio for Background Images ---
-// IMPORTANT: Set this to the actual aspect ratio (width / height) of your background images
-const BACKGROUND_ASPECT_RATIO = 16 / 9; // Example: 16:9
-// --- END ---
 
 const noise2D = createNoise2D(Math.random);
 
@@ -42,54 +37,37 @@ function clamp(v, min, max) {
   return Math.max(min, Math.min(max, v));
 }
 
-
 // --- Component for Seasonal Background Image ---
+// NOTE: This version uses scene.background for a reliable full-screen cover
 function SeasonalBackground({ season }) {
-  const { viewport } = useThree();
+  const { scene, gl } = useThree();
   const url = BACKGROUND_TEXTURES[season] || BACKGROUND_TEXTURES.spring;
   const texture = useLoader(THREE.TextureLoader, url);
 
   useEffect(() => {
-    if (texture) {
-      texture.encoding = THREE.sRGBEncoding;
-      texture.wrapS = THREE.ClampToEdgeWrapping;
-      texture.wrapT = THREE.ClampToEdgeWrapping;
-      texture.needsUpdate = true;
-    }
-  }, [texture]);
+    if (!texture) return;
 
-  // --- Calculate Scale based on Aspect Ratio to FIT ---
-  const calculatedScale = useMemo(() => {
-    const viewportAspect = viewport.width / viewport.height;
-    let scaleX, scaleY;
+    // Quality & mapping tweaks
+    texture.encoding = THREE.sRGBEncoding;
+    texture.wrapS = THREE.ClampToEdgeWrapping;
+    texture.wrapT = THREE.ClampToEdgeWrapping;
+    texture.anisotropy = Math.min(gl.capabilities.getMaxAnisotropy(), 8);
+    texture.needsUpdate = true;
 
-    // Compare aspect ratios
-    if (viewportAspect > BACKGROUND_ASPECT_RATIO) {
-      // Viewport is WIDER than the image - fit to height
-      scaleY = viewport.height; // Match viewport height
-      scaleX = viewport.height * BACKGROUND_ASPECT_RATIO; // Calculate width based on image aspect
-    } else {
-      // Viewport is TALLER than or equal aspect to the image - fit to width
-      scaleX = viewport.width; // Match viewport width
-      scaleY = viewport.width / BACKGROUND_ASPECT_RATIO; // Calculate height based on image aspect
-    }
-    // Return scale as [width, height, depth]
-    return [scaleX, scaleY, 1];
-  }, [viewport.width, viewport.height]);
-  // --- END Calculation ---
+    // Assign as scene background so it always fills the canvas
+    const prevBackground = scene.background;
+    scene.background = texture;
 
-  return (
-    // Use calculatedScale to fit the image
-    <mesh position={[0, 0, -10]} scale={calculatedScale}>
-      <planeGeometry args={[1, 1]} />
-      <meshBasicMaterial
-        map={texture}
-        depthTest={false}
-        depthWrite={false}
-        transparent={false} // Assuming opaque background
-      />
-    </mesh>
-  );
+    return () => {
+      // restore previous background (if any) to avoid leaking texture state
+      scene.background = prevBackground || null;
+      // Do not dispose texture here if you reuse it elsewhere in the app.
+      // If you want to dispose when unmounting, uncomment next line:
+      // texture.dispose();
+    };
+  }, [texture, scene, gl]);
+
+  return null; // no mesh needed — renderer draws the background
 }
 // --- End SeasonalBackground ---
 
@@ -216,12 +194,12 @@ function PhysicsLeaf({
 
     const angNoise = noise2D(bodyPos.x * 0.12, bodyPos.y * 0.12 + t * 0.4);
     const torque = clamp(angNoise * 0.002 + v.length() * 0.0002, -0.005, 0.005);
-    try { body.applyTorqueImpulse({ x: 0, y: 0, z: torque }, true); } catch (e) {e}
+    try { body.applyTorqueImpulse({ x: 0, y: 0, z: torque }, true); } catch (e) {e }
 
     body.setLinearDamping(0.6);
     body.setAngularDamping(0.9);
 
-    try { body.setLinvel({ x: v.x, y: v.y, z: v.z }, true); } catch (e) {e}
+    try { body.setLinvel({ x: v.x, y: v.y, z: v.z }, true); } catch (e) { e}
 
     const centerRadius = 1.25;
     if (Math.abs(bodyPos.x) < centerRadius && Math.abs(bodyPos.y) < centerRadius) {
@@ -256,7 +234,7 @@ function PhysicsLeaf({
       colliders="cuboid" collisionGroups={leafCollisionGroup} >
       <mesh scale={[scale, scale, scale]}>
         <planeGeometry args={[0.6, 0.6]} />
-        <meshStandardMaterial map={texture} side={THREE.DoubleSide} transparent={true} alphaTest={0.03} depthWrite={false}/>
+        <meshStandardMaterial map={texture} side={THREE.DoubleSide} transparent={true} alphaTest={0.03} depthWrite={false} />
       </mesh>
     </RigidBody>
   );
@@ -362,4 +340,3 @@ export default function LeavesTransition({
     </>
   );
 }
-// --- End Main Export ---
