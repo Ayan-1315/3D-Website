@@ -220,7 +220,7 @@ function PhysicsLeaf({
           try {
             bodyRef.current.setTranslation({ x: finalX, y: groundY + Math.random() * 0.08, z: Math.random() * 0.5 }, true);
             bodyRef.current.sleep();
-          } catch (e) {e}
+          } catch (e) {e }
         }
       }, 300);
       return;

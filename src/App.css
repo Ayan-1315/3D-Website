@@ -90,9 +90,9 @@ canvas {
   gap: 12px;
   padding: 8px 14px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.1); /* Slightly more visible */
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05); /* Subtle shadow */
-  border: 1px solid rgba(255,255,255,0.08); /* Slightly more visible border */
+  background: rgba(255, 255, 255, 0); /* Slightly more visible */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0); /* Subtle shadow */
+  border: 1px solid rgba(255, 255, 255, 0); /* Slightly more visible border */
   align-items: center;
   /* backdrop-filter: blur(4px); 
   -webkit-backdrop-filter: blur(4px); */
@@ -104,17 +104,17 @@ canvas {
   border-radius: 999px;
   color: rgba(9, 9, 9, 0.944);
   text-decoration: none;
-  background: rgba(255,255,255,0.03);
+  background: rgba(255, 255, 255, 0);
   transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease;
 }
 .bottom-nav .nav-item:hover {
   transform: translateY(-3px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2); 
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.419); 
 }
 .bottom-nav .nav-item.active {
-  background: linear-gradient(180deg, rgba(248,242,236,0.98), rgba(235,218,200,0.94));
+  background: linear-gradient(180deg, rgba(248,242,236,0.98), rgba(232, 179, 122, 0.94));
   transform: translateY(-3px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2); 
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.697); 
 }
 
 
