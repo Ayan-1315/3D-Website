@@ -23,18 +23,15 @@
 
 /* soft paper overlay */
 .paperOverlay {
+  /* display: none; */ /* Option 1: Hide it completely */
+  background: transparent; /* Option 2: Make it transparent */
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  /* Keep position/z-index if other elements rely on it */
   position: fixed;
   inset: 0;
-  z-index: 1;
+  z-index: 1; 
   pointer-events: none;
-  /* Restore background if you want fades to match */
-  background: linear-gradient(
-    180deg,
-    rgba(253, 253, 253, 0) 0%,
-    rgba(248, 248, 246, 0) 100%
-  );
-  /* -webkit-backdrop-filter: blur(2px); */ /* Keep commented if performance is issue */
-  /* backdrop-filter: blur(2px); */
 }
 
 /* --- Main inner card --- */

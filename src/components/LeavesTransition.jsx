@@ -4,37 +4,107 @@ import { RigidBody, interactionGroups } from "@react-three/rapier";
 import * as THREE from "three";
 import { createNoise2D } from "simplex-noise";
 
+// --- Collision Groups ---
 const GROUP_ENVIRONMENT = 0;
 const GROUP_LEAF = 1;
 
+// --- Configuration Constants ---
 const INSTANCED_COUNT = 100;
 const PHYSICS_COUNT = 6;
-const HORIZ_WRAP = 40;
+const HORIZ_WRAP = 30;
 const VERT_WRAP = 22;
 
+// --- Texture Paths ---
 const LEAF_TEXTURES = {
   spring: "/textures/leaf_pink.png",
   autumn: "/textures/leaf_yellow.png",
-  fall: "/textures/leaf_red.png",
+  fall:   "/textures/leaf_red.png",
 };
+
+const BACKGROUND_TEXTURES = {
+  spring: "/textures/PinkLeafScene.png",
+  autumn: "/textures/YellowLeafScene.png",
+  fall:   "/textures/RedLeafScene.png",
+};
+
+// --- Aspect Ratio for Background Images ---
+// IMPORTANT: Set this to the actual aspect ratio (width / height) of your background images
+const BACKGROUND_ASPECT_RATIO = 16 / 9; // Example: 16:9
+// --- END ---
 
 const noise2D = createNoise2D(Math.random);
 
-// Lightweight aerodynamic helpers
+// Helper functions
 function applyDrag(vel, dragCoef, delta) {
-  // vel is THREE.Vector3, we reduce velocity by factor proportional to dragCoef
   vel.multiplyScalar(Math.max(0, 1 - dragCoef * delta));
 }
-
 function clamp(v, min, max) {
   return Math.max(min, Math.min(max, v));
 }
 
-function InstancedLeaves({ texture, count = INSTANCED_COUNT, season, isSlowMo }) {
+
+// --- Component for Seasonal Background Image ---
+function SeasonalBackground({ season }) {
+  const { viewport } = useThree();
+  const url = BACKGROUND_TEXTURES[season] || BACKGROUND_TEXTURES.spring;
+  const texture = useLoader(THREE.TextureLoader, url);
+
+  useEffect(() => {
+    if (texture) {
+      texture.encoding = THREE.sRGBEncoding;
+      texture.wrapS = THREE.ClampToEdgeWrapping;
+      texture.wrapT = THREE.ClampToEdgeWrapping;
+      texture.needsUpdate = true;
+    }
+  }, [texture]);
+
+  // --- Calculate Scale based on Aspect Ratio to FIT ---
+  const calculatedScale = useMemo(() => {
+    const viewportAspect = viewport.width / viewport.height;
+    let scaleX, scaleY;
+
+    // Compare aspect ratios
+    if (viewportAspect > BACKGROUND_ASPECT_RATIO) {
+      // Viewport is WIDER than the image - fit to height
+      scaleY = viewport.height; // Match viewport height
+      scaleX = viewport.height * BACKGROUND_ASPECT_RATIO; // Calculate width based on image aspect
+    } else {
+      // Viewport is TALLER than or equal aspect to the image - fit to width
+      scaleX = viewport.width; // Match viewport width
+      scaleY = viewport.width / BACKGROUND_ASPECT_RATIO; // Calculate height based on image aspect
+    }
+    // Return scale as [width, height, depth]
+    return [scaleX, scaleY, 1];
+  }, [viewport.width, viewport.height]);
+  // --- END Calculation ---
+
+  return (
+    // Use calculatedScale to fit the image
+    <mesh position={[0, 0, -10]} scale={calculatedScale}>
+      <planeGeometry args={[1, 1]} />
+      <meshBasicMaterial
+        map={texture}
+        depthTest={false}
+        depthWrite={false}
+        transparent={false} // Assuming opaque background
+      />
+    </mesh>
+  );
+}
+// --- End SeasonalBackground ---
+
+
+// --- Component for Instanced (non-physics) Leaves ---
+function InstancedLeaves({
+  texture,
+  count = INSTANCED_COUNT,
+  season,
+  isSlowMo,
+}) {
   const meshRef = useRef();
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const slowMoTime = useRef(0);
-  const slowMoFactor = 0.33;
+  const slowMoFactor = 0.1;
 
   const seeds = useMemo(() => {
     const arr = new Array(count);
@@ -42,7 +112,6 @@ function InstancedLeaves({ texture, count = INSTANCED_COUNT, season, isSlowMo })
     for (let i = 0; i < count; i++) {
       let baseX = THREE.MathUtils.randFloatSpread(HORIZ_WRAP);
       let baseY = THREE.MathUtils.randFloatSpread(VERT_WRAP);
-      // avoid placing any instanced leaf exactly in the screen center
       if (Math.abs(baseX) < 1.2 && Math.abs(baseY) < 1.2) {
         const signX = Math.sign(baseX) || (Math.random() > 0.5 ? 1 : -1);
         baseX += signX * (1.5 + Math.random() * 2.0);
@@ -56,19 +125,7 @@ function InstancedLeaves({ texture, count = INSTANCED_COUNT, season, isSlowMo })
       const rotAmp = THREE.MathUtils.randFloat(0.15, 0.7);
       const scale = THREE.MathUtils.randFloat(0.45, 1.12);
       const phase = Math.random() * Math.PI * 2;
-      arr[i] = {
-        baseX,
-        baseY,
-        baseZ,
-        speedX,
-        swayFreq,
-        swayAmp,
-        rotBase,
-        rotFreq,
-        rotAmp,
-        scale,
-        phase,
-      };
+      arr[i] = { baseX, baseY, baseZ, speedX, swayFreq, swayAmp, rotBase, rotFreq, rotAmp, scale, phase };
     }
     return arr;
   }, [count, season]);
@@ -77,35 +134,22 @@ function InstancedLeaves({ texture, count = INSTANCED_COUNT, season, isSlowMo })
 
   useFrame((state, delta) => {
     if (!meshRef.current) return;
-
     const timeScale = isSlowMo ? slowMoFactor : 1.0;
     slowMoTime.current += delta * timeScale;
     const t = slowMoTime.current;
 
     for (let i = 0; i < count; i++) {
       const s = seeds[i];
-
-      // gently scale runtime offset with timeScale
       runtimeOffsets[i] += s.speedX * timeScale;
       let x = s.baseX + runtimeOffsets[i];
-
       const halfW = HORIZ_WRAP / 2;
-      if (x > halfW) {
-        runtimeOffsets[i] -= HORIZ_WRAP;
-        x = s.baseX + runtimeOffsets[i];
-      } else if (x < -halfW) {
-        runtimeOffsets[i] += HORIZ_WRAP;
-        x = s.baseX + runtimeOffsets[i];
-      }
+      if (x > halfW) { runtimeOffsets[i] -= HORIZ_WRAP; x = s.baseX + runtimeOffsets[i]; }
+      else if (x < -halfW) { runtimeOffsets[i] += HORIZ_WRAP; x = s.baseX + runtimeOffsets[i]; }
 
-      // Sway uses scaled time so slow-mo looks right
       const sway = Math.sin(t * s.swayFreq + s.phase);
-      // Add small per-leaf noise for subtle randomness
       const n = noise2D(s.baseX * 0.02 + t * 0.05, s.baseY * 0.02);
       const y = s.baseY + sway * s.swayAmp * (1 + s.baseZ / 6) + n * 0.08;
       const z = s.baseZ + Math.sin(t * (0.4 + s.swayFreq * 0.1) + s.phase * 0.5) * 0.06 + n * 0.03;
-
-      // rotation includes an additional small noise torque effect
       const rotZ = s.rotBase + Math.sin(t * s.rotFreq + s.phase * 0.7) * s.rotAmp + n * 0.05;
 
       dummy.position.set(x, y, z);
@@ -120,18 +164,22 @@ function InstancedLeaves({ texture, count = INSTANCED_COUNT, season, isSlowMo })
   return (
     <instancedMesh ref={meshRef} args={[null, null, count]}>
       <planeGeometry args={[0.6, 0.6]} />
-      <meshStandardMaterial
-        map={texture}
-        side={THREE.DoubleSide}
-        transparent
-        alphaTest={0.03}
-        depthWrite={false}
-      />
+      <meshStandardMaterial map={texture} side={THREE.DoubleSide} transparent alphaTest={0.03} depthWrite={false} />
     </instancedMesh>
   );
 }
+// --- End InstancedLeaves ---
 
-function PhysicsLeaf({ texture, initialPos, initialRot, scale, leafCollisionGroup, season }) {
+
+// --- Component for Single Physics-enabled Leaf ---
+function PhysicsLeaf({
+  texture,
+  initialPos,
+  initialRot,
+  scale,
+  leafCollisionGroup,
+  season,
+}) {
   const bodyRef = useRef();
   const { clock, viewport } = useThree();
 
@@ -139,14 +187,10 @@ function PhysicsLeaf({ texture, initialPos, initialRot, scale, leafCollisionGrou
     const pileWidth = 4;
     const screenEdge = viewport.width / 2 - pileWidth;
     switch (season) {
-      case "spring":
-        return -screenEdge;
-      case "fall":
-        return screenEdge;
-      case "autumn":
-        return 0;
-      default:
-        return 0;
+      case "spring": return -screenEdge;
+      case "fall": return screenEdge;
+      case "autumn": return 0;
+      default: return 0;
     }
   }, [season, viewport.width]);
 
@@ -154,49 +198,31 @@ function PhysicsLeaf({ texture, initialPos, initialRot, scale, leafCollisionGrou
     const body = bodyRef.current;
     if (!body || body.isSleeping?.()) return;
 
-    // Get body state from Rapier API
     const bodyPos = body.translation();
     const vel = body.linvel ? body.linvel() : { x: 0, y: 0, z: 0 };
-
-    // convert to THREE for calculations
     const v = new THREE.Vector3(vel.x, vel.y, vel.z);
-
-    // Basic aerodynamic drag proportional to velocity squared (light)
-    const dragCoef = 0.6; // small number keeps motion light but stable
-    // approximate per-frame reduction (not perfect physically but cheap)
+    const t = clock.elapsedTime;
     const delta = Math.min(0.016, clock.getDelta ? clock.getDelta() : 0.016);
-    applyDrag(v, dragCoef * 0.5, delta); // scaled down so not too heavy
 
-    // Apply a small upward buoyancy so leaves don't plummet
-    const lift = 0.0006 + (Math.abs(bodyPos.z) * 0.00002);
+    const dragCoef = 0.6;
+    applyDrag(v, dragCoef * 0.5, delta);
+
+    const lift = 0.0006 + Math.abs(bodyPos.z) * 0.00002;
     body.applyImpulse({ x: 0, y: lift, z: 0 }, true);
 
-    // Wind noise & seasonal bias
-    const t = clock.elapsedTime;
     const windX = noise2D(bodyPos.y * 0.08, t * 0.6) * 0.0012 + (season === "fall" ? -0.0008 : 0.0009);
     const windZ = noise2D(bodyPos.x * 0.08, t * 0.5) * 0.0009;
     body.applyImpulse({ x: windX, y: 0, z: windZ }, true);
 
-    // angular torque: small, noise-driven, proportional to current speed (so faster leaves tumble more)
     const angNoise = noise2D(bodyPos.x * 0.12, bodyPos.y * 0.12 + t * 0.4);
-    const torque = clamp(angNoise * 0.002 + (v.length() * 0.0002), -0.005, 0.005);
-    try {
-      body.applyTorqueImpulse({ x: 0, y: 0, z: torque }, true);
-    } catch (e) {
-      // fallback no-op if applyTorqueImpulse unsupported
-      e
-    }
+    const torque = clamp(angNoise * 0.002 + v.length() * 0.0002, -0.005, 0.005);
+    try { body.applyTorqueImpulse({ x: 0, y: 0, z: torque }, true); } catch (e) {e}
 
-    // damping (keeps simulation light but controlled)
     body.setLinearDamping(0.6);
     body.setAngularDamping(0.9);
 
-    // apply updated lowered velocity (cheap correction)
-    try {
-      body.setLinvel({ x: v.x, y: v.y, z: v.z }, true);
-    } catch (e) {e}
+    try { body.setLinvel({ x: v.x, y: v.y, z: v.z }, true); } catch (e) {e}
 
-    // If a leaf is dangerously close to the visual/UI center, nudge it away to avoid "stuck" leaf
     const centerRadius = 1.25;
     if (Math.abs(bodyPos.x) < centerRadius && Math.abs(bodyPos.y) < centerRadius) {
       const pushX = (Math.sign(bodyPos.x) || (Math.random() > 0.5 ? 1 : -1)) * (0.02 + Math.random() * 0.02);
@@ -204,16 +230,12 @@ function PhysicsLeaf({ texture, initialPos, initialRot, scale, leafCollisionGrou
       body.applyImpulse({ x: pushX, y: pushY, z: 0 }, true);
     }
 
-    // ground behavior: when leaf hits the ground, make it settle into pile area
     const groundY = -viewport.height / 2;
     if (bodyPos.y < groundY + 0.5) {
       body.setLinearDamping(10);
       body.setAngularDamping(10);
-      // gently push towards pile center
       const push = (pileCenterX - bodyPos.x) * 0.0025;
       body.applyImpulse({ x: push, y: 0, z: 0 }, true);
-
-      // transform into sleeping after a short timeout (non-blocking)
       setTimeout(() => {
         if (bodyRef.current && !bodyRef.current.isSleeping?.()) {
           const finalX = pileCenterX + (Math.random() - 0.5) * 4;
@@ -229,50 +251,29 @@ function PhysicsLeaf({ texture, initialPos, initialRot, scale, leafCollisionGrou
 
   return (
     <RigidBody
-      ref={bodyRef}
-      type="dynamic"
-      position={initialPos}
-      rotation={initialRot}
-      restitution={0.06}
-      friction={0.9}
-      linearDamping={0.6}
-      angularDamping={0.9}
-      colliders="cuboid"
-      collisionGroups={leafCollisionGroup}
-    >
+      ref={bodyRef} type="dynamic" position={initialPos} rotation={initialRot}
+      restitution={0.06} friction={0.9} linearDamping={0.6} angularDamping={0.9}
+      colliders="cuboid" collisionGroups={leafCollisionGroup} >
       <mesh scale={[scale, scale, scale]}>
         <planeGeometry args={[0.6, 0.6]} />
-        <meshStandardMaterial
-          map={texture}
-          side={THREE.DoubleSide}
-          transparent={true}
-          alphaTest={0.03}
-          depthWrite={false}
-        />
+        <meshStandardMaterial map={texture} side={THREE.DoubleSide} transparent={true} alphaTest={0.03} depthWrite={false}/>
       </mesh>
     </RigidBody>
   );
 }
+// --- End PhysicsLeaf ---
 
+
+// --- Component Managing Multiple Physics Leaves ---
 function PhysicsLeaves({ texture, count = PHYSICS_COUNT, season }) {
   const leafCollisionGroup = useMemo(() => interactionGroups([GROUP_LEAF], [GROUP_ENVIRONMENT]), []);
   const leaves = useMemo(() => {
     const arr = [];
     for (let i = 0; i < count; i++) {
-      // avoid seeding physics leaf exactly in the center
-      let x;
-      let y;
-      const minCenterDist = 1.8;
-      do {
-        x = THREE.MathUtils.randFloatSpread(HORIZ_WRAP);
-        y = THREE.MathUtils.randFloatSpread(VERT_WRAP);
-      } while (Math.abs(x) < minCenterDist && Math.abs(y) < minCenterDist);
-      arr.push({
-        id: i,
-        pos: [x, y, THREE.MathUtils.randFloat(-3, 3)],
-        rot: [0, 0, THREE.MathUtils.randFloat(-0.5, 0.5)],
-        scale: THREE.MathUtils.randFloat(0.6, 1.15),
-      });
+      let x, y; const minCenterDist = 1.8;
+      do { x = THREE.MathUtils.randFloatSpread(HORIZ_WRAP); y = THREE.MathUtils.randFloatSpread(VERT_WRAP); }
+      while (Math.abs(x) < minCenterDist && Math.abs(y) < minCenterDist);
+      arr.push({ id: i, pos: [x, y, THREE.MathUtils.randFloat(-3, 3)], rot: [0, 0, THREE.MathUtils.randFloat(-0.5, 0.5)], scale: THREE.MathUtils.randFloat(0.6, 1.15) });
     }
     return arr;
   }, [count]);
@@ -280,38 +281,23 @@ function PhysicsLeaves({ texture, count = PHYSICS_COUNT, season }) {
   return (
     <>
       {leaves.map((l) => (
-        <PhysicsLeaf
-          key={l.id}
-          texture={texture}
-          initialPos={l.pos}
-          initialRot={l.rot}
-          scale={l.scale}
-          leafCollisionGroup={leafCollisionGroup}
-          season={season}
-        />
+        <PhysicsLeaf key={l.id} texture={texture} initialPos={l.pos} initialRot={l.rot} scale={l.scale} leafCollisionGroup={leafCollisionGroup} season={season}/>
       ))}
     </>
   );
 }
+// --- End PhysicsLeaves ---
 
+
+// --- Component for Static Leaf Pile on the Ground ---
 function LeafPile({ texture, count = 20, season }) {
   const meshRef = useRef();
   const { viewport } = useThree();
   const dummy = useMemo(() => new THREE.Object3D(), []);
 
   const pileCenterX = useMemo(() => {
-    const pileWidth = 4;
-    const screenEdge = viewport.width / 2 - pileWidth;
-    switch (season) {
-      case "spring":
-        return -screenEdge;
-      case "fall":
-        return screenEdge;
-      case "autumn":
-        return 0;
-      default:
-        return 0;
-    }
+    const pileWidth = 4; const screenEdge = viewport.width / 2 - pileWidth;
+    switch (season) { case "spring": return -screenEdge; case "fall": return screenEdge; case "autumn": return 0; default: return 0; }
   }, [season, viewport.width]);
   const groundY = -viewport.height / 2;
 
@@ -323,9 +309,7 @@ function LeafPile({ texture, count = 20, season }) {
       const z = Math.random() * 0.5;
       const rotZ = Math.random() * Math.PI * 2;
       const scale = THREE.MathUtils.randFloat(0.6, 1.15);
-      dummy.position.set(x, y, z);
-      dummy.rotation.set(0, 0, rotZ);
-      dummy.scale.setScalar(scale);
+      dummy.position.set(x, y, z); dummy.rotation.set(0, 0, rotZ); dummy.scale.setScalar(scale);
       dummy.updateMatrix();
       meshRef.current.setMatrixAt(i, dummy.matrix);
     }
@@ -339,22 +323,25 @@ function LeafPile({ texture, count = 20, season }) {
     </instancedMesh>
   );
 }
+// --- End LeafPile ---
 
+
+// --- Main Exported Component ---
 export default function LeavesTransition({
   season = "spring",
   isSlowMo = false,
 }) {
   const { viewport } = useThree();
-  const url = LEAF_TEXTURES[season] || LEAF_TEXTURES.spring;
-  const texture = useLoader(THREE.TextureLoader, url);
+  const leafUrl = LEAF_TEXTURES[season] || LEAF_TEXTURES.spring;
+  const leafTexture = useLoader(THREE.TextureLoader, leafUrl);
 
   useEffect(() => {
-    if (texture) {
-      texture.encoding = THREE.sRGBEncoding;
-      texture.wrapS = texture.wrapT = THREE.ClampToEdgeWrapping;
-      texture.needsUpdate = true;
+    if (leafTexture) {
+      leafTexture.encoding = THREE.sRGBEncoding;
+      leafTexture.wrapS = leafTexture.wrapT = THREE.ClampToEdgeWrapping;
+      leafTexture.needsUpdate = true;
     }
-  }, [texture]);
+  }, [leafTexture]);
 
   const floorCollisionGroup = useMemo(() => interactionGroups([GROUP_ENVIRONMENT], [GROUP_LEAF]), []);
   const groundY = -viewport.height / 2;
@@ -362,9 +349,10 @@ export default function LeavesTransition({
 
   return (
     <>
-      {texture && <InstancedLeaves texture={texture} count={INSTANCED_COUNT} season={season} isSlowMo={isSlowMo} />}
-      {texture && <PhysicsLeaves texture={texture} count={PHYSICS_COUNT} season={season} />}
-      {texture && <LeafPile texture={texture} season={season} />}
+      <SeasonalBackground season={season} />
+      {leafTexture && <InstancedLeaves texture={leafTexture} count={INSTANCED_COUNT} season={season} isSlowMo={isSlowMo} />}
+      {leafTexture && <PhysicsLeaves texture={leafTexture} count={PHYSICS_COUNT} season={season} />}
+      {leafTexture && <LeafPile texture={leafTexture} season={season} />}
       <RigidBody type="fixed" colliders="cuboid" position={[0, groundY, 0]} collisionGroups={floorCollisionGroup}>
         <mesh scale={[floorSize, 0.5, 10]} visible={false}>
           <boxGeometry args={[1, 1, 1]} />
@@ -374,3 +362,4 @@ export default function LeavesTransition({
     </>
   );
 }
+// --- End Main Export ---
