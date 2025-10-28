@@ -117,7 +117,6 @@ canvas {
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.697); 
 }
 
-
 /* --- Media Query for Mobile Nav/Socials --- */
 @media (max-width: 880px) {
   .social-links { right: 12px; top: 12px; }
