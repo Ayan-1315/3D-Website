@@ -1,4 +1,4 @@
-/* src/pages/ProjectsPage.css (modified for responsiveness) */
+/* src/pages/ProjectsPage.css — updated to fix mobile bg bug + keep responsiveness */
 :root {
   --pad: 6vw;
   --card-w: 420px;
@@ -99,10 +99,14 @@
   pointer-events: auto;
   color: #fff; /* text color white for contrast */
 
-  /* Background Image Styles */
+  /* Background Image Styles - explicitly safe for mobile */
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
+  /* Fix: avoid device-specific "fixed" painting / sizing issues */
+  background-attachment: scroll;
+  background-origin: padding-box;
+  background-clip: border-box;
 }
 
 /* Overlay for Text Readability */
@@ -225,6 +229,10 @@ button:focus-visible {
   :root {
     --card-w: 360px;
   }
+  .project-card {
+    /* keep explicit attachment on medium screens too */
+    background-attachment: scroll;
+  }
 }
 
 /* Tablets / Large phones: smaller cards, padding, fonts */
@@ -252,6 +260,11 @@ button:focus-visible {
   .nav-arrow-right {
     right: 10px;
   }
+  .project-card {
+    /* avoid any mobile painting artifact by limiting height and ensuring attachment stays scroll */
+    background-attachment: scroll;
+    max-height: calc(100vh - 160px);
+  }
 }
 
 /* Phones: almost full-width cards, hide arrows, smaller text */
@@ -277,8 +290,11 @@ button:focus-visible {
     flex: 0 0 90%;
     max-height: none;
     min-height: 20vh;
-
     margin: 0 5% 0 5%;
+    /* mobile fix: explicitly prevent background from being interpreted as viewport bg on some devices */
+    background-attachment: scroll;
+    /* backup: ensure card's background doesn't overflow its box */
+    background-clip: padding-box;
   }
   .nav-arrow {
     display: none;
