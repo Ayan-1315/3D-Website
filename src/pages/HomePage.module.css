@@ -1,4 +1,4 @@
-/* HomePage.module.css */
+/* src/pages/HomePage.module.css (modified for responsiveness) */
 .homePageContent {
   position: relative;
   padding: 45vh 10vw 20vw 10vw;
@@ -97,7 +97,7 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Mobile adjustments using local class names */
+/* Tablet / small desktop */
 @media (max-width: 880px) {
   .homePageContent {
     padding: 15vh 20px 5vh 20px;
@@ -114,4 +114,12 @@
   .colorSwatchContainer {
     justify-content: center;
   }
+}
+
+/* Phones */
+@media (max-width: 600px) {
+  .sumiSub { font-size: 1.2rem; }
+  .homeLead { font-size: 0.9rem; }
+  .brushTitle { font-size: 0.7rem; }
+  .colorSwatch { width: 28px; height: 28px; }
 }

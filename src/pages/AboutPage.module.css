@@ -1,40 +1,32 @@
-/* src/pages/AboutPage.module.css */
-
-/* ... (Keep .aboutPage, .paperOverlay, .contentInner, .heroBlock, .sumiTitle, .lead rules the same) ... */
-/* --- Outer page container --- */
+/* src/pages/AboutPage.module.css (modified for responsiveness) */
+/* Outer page container */
 .aboutPage {
   position: relative;
   width: 100%;
   height: 100vh;
   margin: 0;
   padding: 0;
-  overflow: hidden;
-  /* Restore a subtle background if needed */
   background: radial-gradient(circle at top left, #fcfcfc00 0%, #f6f6f600 100%);
   color: #2f2f2f00;
   display: flex;
   justify-content: center;
   align-items: center;
   perspective: 1000px;
+  pointer-events: auto;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  pointer-events: auto;
 }
 
 /* soft paper overlay */
 .paperOverlay {
-  /* display: none; */ /* Option 1: Hide it completely */
-  background: transparent; /* Option 2: Make it transparent */
-  -webkit-backdrop-filter: none;
-  backdrop-filter: none;
-  /* Keep position/z-index if other elements rely on it */
+  background: transparent;
   position: fixed;
   inset: 0;
-  z-index: 1; 
+  z-index: 1;
   pointer-events: none;
 }
 
-/* --- Main inner card --- */
+/* Main inner card */
 .contentInner {
   position: relative;
   z-index: 2;
@@ -43,34 +35,30 @@
   height: 82vh;
   padding: 32px 40px;
   border-radius: 14px;
-  /* Restore subtle background for fades */
   background: rgba(139, 17, 17, 0);
-  /* box-shadow: 0 24px 60px rgba(0, 0, 0, 0.1), 0 10px 20px rgba(0, 0, 0, 0.05); */
   display: flex;
   flex-direction: column;
   overflow: hidden;
   transition: transform 0.25s ease;
   pointer-events: auto;
-  /* border: 1px solid rgba(0, 0, 0, 0.05); */
 }
 
 /* Header */
 .heroBlock {
   margin: 0 0 20px 0;
   padding-bottom: 15px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.389); /* Adjusted alpha */
+  border-bottom: 1px solid rgba(0, 0, 0, 0.389);
   text-align: center;
   flex-shrink: 0;
   pointer-events: auto;
 }
 
 .sumiTitle {
-  font-size: clamp(3rem, 7vw, 5.2rem); /* Adjusted clamp */
+  font-size: clamp(3rem, 7vw, 5.2rem);
   color: #111;
   font-weight: 700;
-  letter-spacing: -1.5px; /* Adjusted spacing */
+  letter-spacing: -1.5px;
   margin: 0 0 10px 0;
-  position: relative;
   pointer-events: auto;
 }
 
@@ -83,69 +71,17 @@
   pointer-events: auto;
 }
 
-/* --- Scrollable area --- */
+/* Scrollable area */
 .scrollableContent {
   flex: 1 1 0%;
   min-height: 0;
   overflow-y: auto;
   position: relative;
-  padding: 10px 6px 30px 6px;
+  padding: 10px 6px 0 6px;
   perspective: 800px;
   transform-style: preserve-3d;
-
-  /* Scrollbar styling */
-  /* scrollbar-width: thin; */
-  /* scrollbar-color: rgba(180, 180, 180, 0) transparent; */
+  -ms-overflow-style: none;
   pointer-events: auto;
-}
-.scrollableContent::-webkit-scrollbar {
-  width: 8px;
-}
-.scrollableContent::-webkit-scrollbar-thumb {
-  background: rgba(175, 18, 18, 0);
-  border-radius: 999px;
-}
-.scrollableContent::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-/* Fading Effect for Scroll Area */
-.scrollableContent::before,
-.scrollableContent::after {
-  content: "";
-  position: sticky;
-  left: 0;
-  right: 0;
-  /* MODIFIED: Reduced height for a larger clear area */
-  height: 60px;
-  z-index: 5;
-  pointer-events: none;
-}
-.scrollableContent::before {
-  top: -1px;
-  /* MODIFIED: Adjusted gradient stops, use card background color */
-  background: linear-gradient(
-    to bottom,
-    rgb(255, 255, 255) 30%,
-    rgba(255, 255, 255, 0.53) 40%,
-    rgba(255, 255, 255, 0) 100% /* Fade out completely */
-  );
-  /* Optional: Restore subtle shadow */
-  /* box-shadow: inset 0 8px 15px -10px rgba(0, 0, 0, 0.1); */
-}
-/* --- Scrollable area --- */
-.scrollableContent {
-  flex: 1 1 0%; 
-  min-height: 0; 
-  overflow-y: auto; 
-  position: relative;
-  /* Adjust side/top padding as needed, REMOVE bottom padding here */
-  padding: 10px 6px 0 6px; 
-  perspective: 800px;
-  transform-style: preserve-3d;
-  /* scrollbar-width: none; */
-  -ms-overflow-style: none; 
-  pointer-events: auto; 
 }
 .scrollableContent::-webkit-scrollbar { display: none; }
 
@@ -156,55 +92,56 @@
   position: sticky;
   left: 0;
   right: 0;
-  height: 60px; /* Keep fade height */
+  height: 60px;
   z-index: 5;
   pointer-events: none;
 }
 .scrollableContent::before {
   top: -1px;
-  /* Match the card background color exactly */
   background: linear-gradient(
     to bottom,
-    rgba(255, 255, 255, 1) 30%,  /* Start opaque matching card bg */
-    rgba(255, 255, 255, 0.7) 60%, 
-    rgba(255, 255, 255, 0) 100% 
-  ); 
-  box-shadow: inset 0 8px 15px -10px rgba(0, 0, 0, 0.1); 
+    rgba(255, 255, 255, 1) 30%,
+    rgba(255, 255, 255, 0.7) 60%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  box-shadow: inset 0 8px 15px -10px rgba(0, 0, 0, 0.1);
 }
 .scrollableContent::after {
   bottom: -1px;
-  /* Match the card background color exactly */
   background: linear-gradient(
     to top,
-    rgba(255, 255, 255, 1) 30%,  /* End opaque matching card bg */
+    rgba(255, 255, 255, 1) 30%,
     rgba(255, 255, 255, 0.7) 60%,
-    rgba(255, 255, 255, 0) 100% 
-  ); 
-  box-shadow: inset 0 -8px 15px -10px rgba(0, 0, 0, 0.1); 
+    rgba(255, 255, 255, 0) 100%
+  );
+  box-shadow: inset 0 -8px 15px -10px rgba(0, 0, 0, 0.1);
 }
 
-/* Elements that will roll */
+/* Content inside scroll area */
 .aboutContent {
-  /* Adjust top padding if needed, keep bottom padding 0 */
-  padding: 40px 14px 0 14px; 
+  padding: 40px 14px 0 14px;
   font-size: 1.04rem;
   line-height: 1.8;
-  color: #333; /* Adjusted color */
-  transform-origin: center center; 
+  color: #333;
+  transform-origin: center center;
   pointer-events: auto;
   text-align: left;
 }
 
-/* ... styles for p, ul, strong, a ... */
 .aboutContent p,
 .aboutContent ul,
 .aboutFooter {
-  will-change: transform, opacity; 
-  transform-origin: center center; 
-  backface-visibility: hidden; 
+  will-change: transform, opacity;
+  transform-origin: center center;
+  backface-visibility: hidden;
 }
 .aboutContent p { margin-bottom: 2em; }
-.aboutContent strong { color: #000; font-weight: 600; display: block; margin-bottom: 0.3em; }
+.aboutContent strong {
+  color: #000;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 0.3em;
+}
 
 /* Footer inside scroll area */
 .aboutFooter {
@@ -214,7 +151,6 @@
   color: rgba(60, 60, 60, 0.8);
   font-size: 0.92rem;
   text-align: center;
-  /* MODIFIED: Reduced bottom padding */
   padding-bottom: 40px;
 }
 
@@ -250,14 +186,6 @@
   color: #001f4d;
 }
 
-/* Accessibility focus */
-a:focus-visible,
-button:focus-visible {
-  outline: 2px dashed rgba(30, 30, 30, 0.6);
-  outline-offset: 3px;
-  border-radius: 6px;
-}
-
 /* Responsive */
 @media (max-width: 880px) {
   .contentInner {
@@ -283,5 +211,12 @@ button:focus-visible {
   .scrollableContent::before,
   .scrollableContent::after {
     height: 40px;
-  } /* Adjust mobile fade */
+  }
+}
+
+@media (max-width: 600px) {
+  .sumiTitle {
+    font-size: clamp(1.8rem, 8vw, 2.5rem);
+  }
+  .lead { font-size: 0.95rem; }
 }

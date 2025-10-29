@@ -1,3 +1,6 @@
+// src/components/LeavesTransition.jsx (no layout changes needed; canvas auto-scales)
+// The 3D scene uses React Three Fiber's viewport, so it naturally adapts to screen size.
+
 import React, { useMemo, useRef, useEffect } from "react";
 import { useFrame, useLoader, useThree } from "@react-three/fiber";
 import { RigidBody, interactionGroups } from "@react-three/rapier";
@@ -37,7 +40,6 @@ function clamp(v, min, max) {
 }
 
 // --- Component for Seasonal Background Image ---
-// NOTE: This version uses scene.background for a reliable full-screen cover
 function SeasonalBackground({ season }) {
   const { scene, gl } = useThree();
   const url = BACKGROUND_TEXTURES[season] || BACKGROUND_TEXTURES.spring;
@@ -60,26 +62,16 @@ function SeasonalBackground({ season }) {
     gl.toneMappingExposure = 1.2;    // optional: adds vibrancy
 
     return () => {
-      // restore previous background (if any) to avoid leaking texture state
       scene.background = prevBackground || null;
-      // Do not dispose texture here if you reuse it elsewhere in the app.
-      // If you want to dispose when unmounting, uncomment next line:
-      // texture.dispose();
+      // Do not dispose texture here if reused elsewhere.
     };
   }, [texture, scene, gl]);
 
-  return null; // no mesh needed — renderer draws the background
+  return null;
 }
-// --- End SeasonalBackground ---
-
 
 // --- Component for Instanced (non-physics) Leaves ---
-function InstancedLeaves({
-  texture,
-  count = INSTANCED_COUNT,
-  season,
-  isSlowMo,
-}) {
+function InstancedLeaves({ texture, count = INSTANCED_COUNT, season, isSlowMo }) {
   const meshRef = useRef();
   const dummy = useMemo(() => new THREE.Object3D(), []);
   const slowMoTime = useRef(0);
@@ -147,18 +139,9 @@ function InstancedLeaves({
     </instancedMesh>
   );
 }
-// --- End InstancedLeaves ---
-
 
 // --- Component for Single Physics-enabled Leaf ---
-function PhysicsLeaf({
-  texture,
-  initialPos,
-  initialRot,
-  scale,
-  leafCollisionGroup,
-  season,
-}) {
+function PhysicsLeaf({ texture, initialPos, initialRot, scale, leafCollisionGroup, season }) {
   const bodyRef = useRef();
   const { clock, viewport } = useThree();
 
@@ -240,8 +223,6 @@ function PhysicsLeaf({
     </RigidBody>
   );
 }
-// --- End PhysicsLeaf ---
-
 
 // --- Component Managing Multiple Physics Leaves ---
 function PhysicsLeaves({ texture, count = PHYSICS_COUNT, season }) {
@@ -265,8 +246,6 @@ function PhysicsLeaves({ texture, count = PHYSICS_COUNT, season }) {
     </>
   );
 }
-// --- End PhysicsLeaves ---
-
 
 // --- Component for Static Leaf Pile on the Ground ---
 function LeafPile({ texture, count = 20, season }) {
@@ -302,14 +281,9 @@ function LeafPile({ texture, count = 20, season }) {
     </instancedMesh>
   );
 }
-// --- End LeafPile ---
-
 
 // --- Main Exported Component ---
-export default function LeavesTransition({
-  season = "spring",
-  isSlowMo = false,
-}) {
+export default function LeavesTransition({ season = "spring", isSlowMo = false }) {
   const { viewport } = useThree();
   const leafUrl = LEAF_TEXTURES[season] || LEAF_TEXTURES.spring;
   const leafTexture = useLoader(THREE.TextureLoader, leafUrl);

@@ -1,12 +1,13 @@
+/* Global UI Styles (modified for responsiveness) */
 :root {
-  --bg: #fff; /* Base background if nothing else covers */
-  --ui-z: 10; /* Z-index for the main UI layer */
+  --bg: #fff;
+  --ui-z: 10;
 }
 
 html, body, #root {
   height: 100%;
   margin: 0;
-  background: var(--bg); /* Body background */
+  background: var(--bg);
   font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -20,26 +21,25 @@ canvas {
   display: block;
   position: fixed;
   inset: 0;
-  z-index: 0; /* Ensures it's behind the UI container */
-  pointer-events: auto; /* Allow clicks on 3D elements */
+  z-index: 0;
+  pointer-events: auto;
 }
 
 /* UI container sits above canvas */
 .ui-container {
-  position: relative; /* Must be relative or absolute for z-index */
-  z-index: var(--ui-z); /* Use variable (e.g., 10) */
-  pointer-events: none; /* Pass clicks through empty areas */
+  position: relative;
+  z-index: var(--ui-z);
+  pointer-events: none;
   height: 100%;
 }
 
 /* Interactive UI elements get pointer events back */
 .bottom-nav,
 .social-links,
-/* Add page root classes here if they don't inherit pointer-events: auto */
-.home-page-content, /* From HomePage.jsx */
-.projects-page,    /* From ProjectsPage.jsx */
-.about-page,       /* From AboutPage.jsx */
-.contact-page {    /* From ContactPage.jsx */
+.home-page-content,
+.projects-page,
+.about-page,
+.contact-page {
   pointer-events: auto;
 }
 
@@ -48,20 +48,19 @@ canvas {
   position: fixed;
   right: 24px;
   top: 24px;
-  z-index: calc(var(--ui-z) + 1); /* Ensure above page content */
+  z-index: calc(var(--ui-z) + 1);
   display: flex;
   gap: 8px;
   align-items: center;
 }
-/* ... rest of social-links styles ... */
 .social-links a {
-  display: flex; 
+  display: flex;
   align-items: center;
   justify-content: center;
   width: 40px;
   height: 40px;
   text-decoration: none;
-  color: rgba(17, 17, 17, 0.92); 
+  color: rgba(17, 17, 17, 0.92);
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.8);
   box-shadow: 0 2px 8px rgba(0,0,0,0.1);
@@ -70,7 +69,7 @@ canvas {
 .social-links a:hover,
 .social-links a:focus {
   background: #000;
-  color: #fff; 
+  color: #fff;
   box-shadow: 0 4px 15px rgba(0,0,0,0.4);
   transform: translateY(-2px);
   outline: none;
@@ -82,20 +81,17 @@ canvas {
   left: 50%;
   transform: translateX(-50%);
   bottom: 14px;
-  z-index: calc(var(--ui-z) + 1); /* Ensure above page content */
+  z-index: calc(var(--ui-z) + 1);
 }
-/* ... rest of bottom-nav styles ... */
 .bottom-nav .nav-inner {
   display: flex;
   gap: 12px;
   padding: 8px 14px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0); /* Slightly more visible */
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0); /* Subtle shadow */
-  border: 1px solid rgba(255, 255, 255, 0); /* Slightly more visible border */
+  background: rgba(255, 255, 255, 0);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0);
+  border: 1px solid rgba(255, 255, 255, 0);
   align-items: center;
-  /* backdrop-filter: blur(4px); 
-  -webkit-backdrop-filter: blur(4px); */
 }
 .bottom-nav .nav-item {
   display: inline-flex;
@@ -109,24 +105,26 @@ canvas {
 }
 .bottom-nav .nav-item:hover {
   transform: translateY(-3px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.419); 
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.419);
 }
 .bottom-nav .nav-item.active {
   background: linear-gradient(180deg, rgba(248,242,236,0.98), rgba(232, 179, 122, 0.94));
   transform: translateY(-3px);
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.697); 
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.697);
 }
 
-/* --- Media Query for Mobile Nav/Socials --- */
+/* --- Media Queries for Nav/Socials --- */
 @media (max-width: 880px) {
   .social-links { right: 12px; top: 12px; }
-  /* .bottom-nav { ... } */
 }
 
-/* Focus styles */
-a:focus-visible,
-button:focus-visible {
-  outline: 2px dashed rgba(30, 30, 30, 0.6);
-  outline-offset: 3px;
-  border-radius: 6px;
+@media (max-width: 600px) {
+  .social-links a {
+    width: 35px;
+    height: 35px;
+  }
+  .bottom-nav .nav-item {
+    padding: 6px 16px;
+    font-size: 0.85rem;
+  }
 }
