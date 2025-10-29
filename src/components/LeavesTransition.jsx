@@ -9,11 +9,10 @@ const GROUP_ENVIRONMENT = 0;
 const GROUP_LEAF = 1;
 
 // --- Configuration Constants ---
-const INSTANCED_COUNT = 100;
+const INSTANCED_COUNT = 80;
 const PHYSICS_COUNT = 6;
 const HORIZ_WRAP = 30;
-const VERT_WRAP = 22;
-
+const VERT_WRAP = 15;
 // --- Texture Paths ---
 const LEAF_TEXTURES = {
   spring: "/textures/leaf_pink.png",
@@ -57,6 +56,8 @@ function SeasonalBackground({ season }) {
     // Assign as scene background so it always fills the canvas
     const prevBackground = scene.background;
     scene.background = texture;
+    scene.backgroundIntensity = 0.3; // try 1.2–2.0 for stronger color
+    gl.toneMappingExposure = 1.2;    // optional: adds vibrancy
 
     return () => {
       // restore previous background (if any) to avoid leaking texture state
@@ -101,7 +102,7 @@ function InstancedLeaves({
       const rotBase = THREE.MathUtils.randFloat(0, Math.PI * 2);
       const rotFreq = THREE.MathUtils.randFloat(0.2, 0.9);
       const rotAmp = THREE.MathUtils.randFloat(0.15, 0.7);
-      const scale = THREE.MathUtils.randFloat(0.45, 1.12);
+      const scale = THREE.MathUtils.randFloat(0.9, 1.8);
       const phase = Math.random() * Math.PI * 2;
       arr[i] = { baseX, baseY, baseZ, speedX, swayFreq, swayAmp, rotBase, rotFreq, rotAmp, scale, phase };
     }
