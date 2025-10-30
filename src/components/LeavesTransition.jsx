@@ -75,10 +75,9 @@ function SeasonalBackground({ season }) {
     canvas.style.backgroundAttachment = "scroll";
 
     const prevBackground = scene.background;
-    // keep scene.background null to avoid tiling; CSS handles visual
 
     const handleResize = () => {
-      // nothing needed — CSS cover does the crop
+      // CSS cover handles resizing
     };
     window.addEventListener("resize", handleResize);
 
@@ -91,6 +90,7 @@ function SeasonalBackground({ season }) {
       window.removeEventListener("resize", handleResize);
       scene.background = prevBackground || null;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gl, scene, texture, url]);
 
   return null;
@@ -110,11 +110,11 @@ function InstancedLeaves({
 
   const { viewport } = useThree();
 
-  // improved responsive sizing
+  // responsive sizing: tightened clamps so we don't blow up on desktop or phone
   const baseFactor = viewport.width / 1440;
-  let sizeFactor = Math.max(0.65, Math.min(1.6, baseFactor)); // raised min from 0.45 -> 0.65
+  let sizeFactor = Math.max(0.7, Math.min(1.45, baseFactor)); // tightened range
   if (typeof window !== "undefined" && window.innerWidth <= 420) {
-    sizeFactor = Math.max(sizeFactor, 0.95); // boost very small phones
+    sizeFactor = Math.max(sizeFactor, 0.9);
   }
   const seasonScale = season === "spring" ? 0.75 : 1.0;
 
@@ -159,16 +159,14 @@ function InstancedLeaves({
     [count]
   );
 
-  // Prepare a short-lived material config change: brighten slightly with emissive
+  // small, subtle emissive to increase legibility
   useEffect(() => {
     if (!meshRef.current) return;
-    // material will be created by react-three; ensure emissive is present
     const mat = meshRef.current.material;
     if (mat) {
-      // Slight tint to help against darker background; keep subtle
       mat.color = mat.color || new THREE.Color(0xffffff);
-      mat.emissive = new THREE.Color(0x111111);
-      mat.emissiveIntensity = 0.18;
+      mat.emissive = new THREE.Color(0x0b0b0b);
+      mat.emissiveIntensity = 0.08; // lowered from earlier; subtle
       mat.transparent = true;
       mat.alphaTest = 0.03;
       mat.needsUpdate = true;
@@ -209,16 +207,13 @@ function InstancedLeaves({
       dummy.position.set(x, y, z);
       dummy.rotation.set(0, 0, rotZ);
 
-      // Vertical boost: leaves closer to "ground" (lower y) are larger
-      // s.baseY ranges approx [-VERT_WRAP/2, VERT_WRAP/2]
+      // Vertical boost: mild only — limit to 1.0..1.4
       const normalizedY = (s.baseY + VERT_WRAP / 2) / VERT_WRAP; // 0 at bottom, 1 at top
-      const bottomBoost = 1 + (1 - normalizedY) * 0.9; // up to ~1.9x at bottom
+      const bottomFactor = 1 + (1 - normalizedY) * 0.4; // bottom gives up to +40%
 
-      // Apply responsive sizing: base scale * seasonScale * sizeFactor * bottomBoost
-      const appliedScale = Math.max(
-        0.85,
-        s.scale * seasonScale * sizeFactor * bottomBoost
-      );
+      // responsive sizing: base scale * seasonScale * sizeFactor * bottomFactor
+      const appliedScaleRaw = s.scale * seasonScale * sizeFactor * bottomFactor;
+      const appliedScale = Math.max(0.75, Math.min(1.6, appliedScaleRaw)); // clamp so no huge values
 
       dummy.scale.setScalar(appliedScale);
       dummy.updateMatrix();
@@ -229,8 +224,8 @@ function InstancedLeaves({
 
   return (
     <instancedMesh ref={meshRef} args={[null, null, count]}>
-      {/* larger base geometry so mobile reads better */}
-      <planeGeometry args={[1.2, 1.2]} />
+      {/* base geometry reduced to 0.9 (was 1.2) to fix oversized leaves */}
+      <planeGeometry args={[0.9, 0.9]} />
       <meshStandardMaterial
         map={texture}
         side={THREE.DoubleSide}
@@ -256,18 +251,17 @@ function PhysicsLeaf({
   const { clock, viewport } = useThree();
 
   const baseFactor = viewport.width / 1440;
-  let sizeFactor = Math.max(0.65, Math.min(1.6, baseFactor));
+  let sizeFactor = Math.max(0.7, Math.min(1.45, baseFactor));
   if (typeof window !== "undefined" && window.innerWidth <= 420) {
-    sizeFactor = Math.max(sizeFactor, 0.95);
+    sizeFactor = Math.max(sizeFactor, 0.9);
   }
   const seasonScale = season === "spring" ? 0.75 : 1.0;
 
-  // boost physics leaves if initial pos is near bottom (initialPos[1] is world y)
+  // mild bottom boost, clamp to avoid huge scales
   const normalizedInitialY = (initialPos[1] + VERT_WRAP / 2) / VERT_WRAP; // ~0..1
-  const bottomBoost = 1 + (1 - normalizedInitialY) * 0.8;
+  const bottomBoost = 1 + (1 - normalizedInitialY) * 0.36; // up to ~1.36x
 
-  // ensure readable minimum scale
-  const appliedScale = Math.max(0.85, scale * sizeFactor * seasonScale * bottomBoost);
+  const appliedScale = Math.max(0.75, Math.min(1.5, scale * sizeFactor * seasonScale * bottomBoost));
 
   const pileCenterX = useMemo(() => {
     const pileWidth = 4;
@@ -379,15 +373,15 @@ function PhysicsLeaf({
       collisionGroups={leafCollisionGroup}
     >
       <mesh scale={[appliedScale, appliedScale, appliedScale]}>
-        <planeGeometry args={[1.2, 1.2]} />
+        <planeGeometry args={[0.9, 0.9]} />
         <meshStandardMaterial
           map={texture}
           side={THREE.DoubleSide}
           transparent={true}
           alphaTest={0.03}
           depthWrite={false}
-          emissive={new THREE.Color(0x0f0f0f)}
-          emissiveIntensity={0.12}
+          emissive={new THREE.Color(0x0b0b0b)}
+          emissiveIntensity={0.08}
         />
       </mesh>
     </RigidBody>
@@ -442,9 +436,9 @@ function LeafPile({ texture, count = 20, season }) {
   const dummy = useMemo(() => new THREE.Object3D(), []);
 
   const baseFactor = viewport.width / 1440;
-  let sizeFactor = Math.max(0.65, Math.min(1.6, baseFactor));
+  let sizeFactor = Math.max(0.7, Math.min(1.45, baseFactor));
   if (typeof window !== "undefined" && window.innerWidth <= 420) {
-    sizeFactor = Math.max(sizeFactor, 0.95);
+    sizeFactor = Math.max(sizeFactor, 0.9);
   }
   const seasonScale = season === "spring" ? 0.75 : 1.0;
 
@@ -473,13 +467,13 @@ function LeafPile({ texture, count = 20, season }) {
       const rotZ = Math.random() * Math.PI * 2;
       const scale = THREE.MathUtils.randFloat(0.9, 1.5);
 
-      // vertical boost for pile pieces: piles near bottom should appear larger
+      // vertical boost for pile pieces: mild bump only
       const normalizedY = (y + VERT_WRAP / 2) / VERT_WRAP;
-      const bottomBoost = 1 + (1 - normalizedY) * 0.9;
+      const bottomBoost = 1 + (1 - normalizedY) * 0.36; // up to +36%
 
       dummy.position.set(x, y, z);
       dummy.rotation.set(0, 0, rotZ);
-      dummy.scale.setScalar(Math.max(0.85, scale * sizeFactor * seasonScale * bottomBoost));
+      dummy.scale.setScalar(Math.max(0.75, scale * sizeFactor * seasonScale * bottomBoost));
       dummy.updateMatrix();
       meshRef.current.setMatrixAt(i, dummy.matrix);
     }
@@ -488,15 +482,15 @@ function LeafPile({ texture, count = 20, season }) {
 
   return (
     <instancedMesh ref={meshRef} args={[null, null, count]}>
-      <planeGeometry args={[1.2, 1.2]} />
+      <planeGeometry args={[0.9, 0.9]} />
       <meshStandardMaterial
         map={texture}
         side={THREE.DoubleSide}
         transparent={true}
         alphaTest={0.03}
         depthWrite={false}
-        emissive={new THREE.Color(0x0f0f0f)}
-        emissiveIntensity={0.12}
+        emissive={new THREE.Color(0x0b0b0b)}
+        emissiveIntensity={0.08}
       />
     </instancedMesh>
   );
@@ -526,7 +520,7 @@ export default function LeavesTransition({
   const groundY = -viewport.height / 2;
   const floorSize = viewport.width * 1.2;
 
-  // ensure we keep some density on mobile while preserving perf
+  // keep reasonable density on mobile
   const instancedCount = typeof window !== "undefined" && window.innerWidth < 600
     ? Math.max(14, Math.floor(INSTANCED_COUNT * 0.45))
     : INSTANCED_COUNT;
