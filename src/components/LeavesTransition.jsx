@@ -39,10 +39,7 @@ function clamp(v, min, max) {
 
 /*
   SeasonalBackground:
-  - Instead of relying solely on scene.background (which can tile),
-    we apply the seasonal image as a CSS background on the renderer's DOM element.
-  - This gives reliable `background-size: cover` behavior across devices and
-    avoids RepeatWrapping artifacts on narrow screens.
+  Use CSS background on the renderer DOM element so the image behaves like background-size:cover.
 */
 function SeasonalBackground({ season }) {
   const { gl, scene } = useThree();
@@ -52,10 +49,8 @@ function SeasonalBackground({ season }) {
   useEffect(() => {
     if (!gl || !gl.domElement) return;
 
-    // Configure the texture for fallback (scene.background) but prefer CSS on canvas element
     if (texture) {
       texture.encoding = THREE.sRGBEncoding;
-      // Keep leaf textures clamped; for background we'll prefer CSS so clamp is safe.
       texture.wrapS = THREE.ClampToEdgeWrapping;
       texture.wrapT = THREE.ClampToEdgeWrapping;
       texture.anisotropy = Math.min(gl.capabilities.getMaxAnisotropy(), 8);
@@ -73,27 +68,21 @@ function SeasonalBackground({ season }) {
       backgroundAttachment: canvas.style.backgroundAttachment || "",
     };
 
-    // Apply CSS background to canvas to mimic `background-size: cover` exactly.
-    // This prevents tiling and ensures the image is center-cropped when aspect ratio changes.
     canvas.style.backgroundImage = `url("${url}")`;
     canvas.style.backgroundSize = "cover";
     canvas.style.backgroundPosition = "center center";
     canvas.style.backgroundRepeat = "no-repeat";
     canvas.style.backgroundAttachment = "scroll";
 
-    // Optionally keep a subtle THREE fallback (useful if you want the environment to be sampled)
     const prevBackground = scene.background;
-    // Keep scene.background null to avoid visual tiling; if you prefer a fallback, uncomment:
-    // scene.background = texture;
+    // keep scene.background null to avoid tiling; CSS handles visual
 
     const handleResize = () => {
-      // CSS cover handles resizing — nothing required here,
-      // but keep handler in case you want to do extra on resize later.
+      // nothing needed — CSS cover does the crop
     };
     window.addEventListener("resize", handleResize);
 
     return () => {
-      // restore previous canvas style
       canvas.style.backgroundImage = prevStyle.backgroundImage;
       canvas.style.backgroundSize = prevStyle.backgroundSize;
       canvas.style.backgroundPosition = prevStyle.backgroundPosition;
@@ -120,8 +109,14 @@ function InstancedLeaves({
   const slowMoFactor = 0.1;
 
   const { viewport } = useThree();
-  const sizeFactor = Math.max(0.45, Math.min(1.6, viewport.width / 1440));
-  const seasonScale = season === "spring" ? 0.7 : 1.0;
+
+  // improved responsive sizing
+  const baseFactor = viewport.width / 1440;
+  let sizeFactor = Math.max(0.65, Math.min(1.6, baseFactor)); // raised min from 0.45 -> 0.65
+  if (typeof window !== "undefined" && window.innerWidth <= 420) {
+    sizeFactor = Math.max(sizeFactor, 0.95); // boost very small phones
+  }
+  const seasonScale = season === "spring" ? 0.75 : 1.0;
 
   const seeds = useMemo(() => {
     const arr = new Array(count);
@@ -164,6 +159,22 @@ function InstancedLeaves({
     [count]
   );
 
+  // Prepare a short-lived material config change: brighten slightly with emissive
+  useEffect(() => {
+    if (!meshRef.current) return;
+    // material will be created by react-three; ensure emissive is present
+    const mat = meshRef.current.material;
+    if (mat) {
+      // Slight tint to help against darker background; keep subtle
+      mat.color = mat.color || new THREE.Color(0xffffff);
+      mat.emissive = new THREE.Color(0x111111);
+      mat.emissiveIntensity = 0.18;
+      mat.transparent = true;
+      mat.alphaTest = 0.03;
+      mat.needsUpdate = true;
+    }
+  }, []);
+
   useFrame((state, delta) => {
     if (!meshRef.current) return;
     const timeScale = isSlowMo ? slowMoFactor : 1.0;
@@ -198,7 +209,17 @@ function InstancedLeaves({
       dummy.position.set(x, y, z);
       dummy.rotation.set(0, 0, rotZ);
 
-      const appliedScale = s.scale * seasonScale * sizeFactor;
+      // Vertical boost: leaves closer to "ground" (lower y) are larger
+      // s.baseY ranges approx [-VERT_WRAP/2, VERT_WRAP/2]
+      const normalizedY = (s.baseY + VERT_WRAP / 2) / VERT_WRAP; // 0 at bottom, 1 at top
+      const bottomBoost = 1 + (1 - normalizedY) * 0.9; // up to ~1.9x at bottom
+
+      // Apply responsive sizing: base scale * seasonScale * sizeFactor * bottomBoost
+      const appliedScale = Math.max(
+        0.85,
+        s.scale * seasonScale * sizeFactor * bottomBoost
+      );
+
       dummy.scale.setScalar(appliedScale);
       dummy.updateMatrix();
       meshRef.current.setMatrixAt(i, dummy.matrix);
@@ -208,7 +229,8 @@ function InstancedLeaves({
 
   return (
     <instancedMesh ref={meshRef} args={[null, null, count]}>
-      <planeGeometry args={[0.6, 0.6]} />
+      {/* larger base geometry so mobile reads better */}
+      <planeGeometry args={[1.2, 1.2]} />
       <meshStandardMaterial
         map={texture}
         side={THREE.DoubleSide}
@@ -219,9 +241,9 @@ function InstancedLeaves({
     </instancedMesh>
   );
 }
+// --- End InstancedLeaves ---
 
-// --- PhysicsLeaf, PhysicsLeaves, LeafPile, and main component unchanged (kept for brevity) ---
-
+// --- Component for Single Physics-enabled Leaf ---
 function PhysicsLeaf({
   texture,
   initialPos,
@@ -233,9 +255,19 @@ function PhysicsLeaf({
   const bodyRef = useRef();
   const { clock, viewport } = useThree();
 
-  const sizeFactor = Math.max(0.45, Math.min(1.6, viewport.width / 1440));
-  const seasonScale = season === "spring" ? 0.7 : 1.0;
-  const appliedScale = scale * sizeFactor * seasonScale;
+  const baseFactor = viewport.width / 1440;
+  let sizeFactor = Math.max(0.65, Math.min(1.6, baseFactor));
+  if (typeof window !== "undefined" && window.innerWidth <= 420) {
+    sizeFactor = Math.max(sizeFactor, 0.95);
+  }
+  const seasonScale = season === "spring" ? 0.75 : 1.0;
+
+  // boost physics leaves if initial pos is near bottom (initialPos[1] is world y)
+  const normalizedInitialY = (initialPos[1] + VERT_WRAP / 2) / VERT_WRAP; // ~0..1
+  const bottomBoost = 1 + (1 - normalizedInitialY) * 0.8;
+
+  // ensure readable minimum scale
+  const appliedScale = Math.max(0.85, scale * sizeFactor * seasonScale * bottomBoost);
 
   const pileCenterX = useMemo(() => {
     const pileWidth = 4;
@@ -347,18 +379,21 @@ function PhysicsLeaf({
       collisionGroups={leafCollisionGroup}
     >
       <mesh scale={[appliedScale, appliedScale, appliedScale]}>
-        <planeGeometry args={[0.6, 0.6]} />
+        <planeGeometry args={[1.2, 1.2]} />
         <meshStandardMaterial
           map={texture}
           side={THREE.DoubleSide}
           transparent={true}
           alphaTest={0.03}
           depthWrite={false}
+          emissive={new THREE.Color(0x0f0f0f)}
+          emissiveIntensity={0.12}
         />
       </mesh>
     </RigidBody>
   );
 }
+// --- End PhysicsLeaf ---
 
 function PhysicsLeaves({ texture, count = PHYSICS_COUNT, season }) {
   const leafCollisionGroup = useMemo(
@@ -406,8 +441,12 @@ function LeafPile({ texture, count = 20, season }) {
   const { viewport } = useThree();
   const dummy = useMemo(() => new THREE.Object3D(), []);
 
-  const sizeFactor = Math.max(0.45, Math.min(1.6, viewport.width / 1440));
-  const seasonScale = season === "spring" ? 0.7 : 1.0;
+  const baseFactor = viewport.width / 1440;
+  let sizeFactor = Math.max(0.65, Math.min(1.6, baseFactor));
+  if (typeof window !== "undefined" && window.innerWidth <= 420) {
+    sizeFactor = Math.max(sizeFactor, 0.95);
+  }
+  const seasonScale = season === "spring" ? 0.75 : 1.0;
 
   const pileCenterX = useMemo(() => {
     const pileWidth = 4;
@@ -433,9 +472,14 @@ function LeafPile({ texture, count = 20, season }) {
       const z = Math.random() * 0.5;
       const rotZ = Math.random() * Math.PI * 2;
       const scale = THREE.MathUtils.randFloat(0.9, 1.5);
+
+      // vertical boost for pile pieces: piles near bottom should appear larger
+      const normalizedY = (y + VERT_WRAP / 2) / VERT_WRAP;
+      const bottomBoost = 1 + (1 - normalizedY) * 0.9;
+
       dummy.position.set(x, y, z);
       dummy.rotation.set(0, 0, rotZ);
-      dummy.scale.setScalar(scale * sizeFactor * seasonScale);
+      dummy.scale.setScalar(Math.max(0.85, scale * sizeFactor * seasonScale * bottomBoost));
       dummy.updateMatrix();
       meshRef.current.setMatrixAt(i, dummy.matrix);
     }
@@ -444,13 +488,15 @@ function LeafPile({ texture, count = 20, season }) {
 
   return (
     <instancedMesh ref={meshRef} args={[null, null, count]}>
-      <planeGeometry args={[0.6, 0.6]} />
+      <planeGeometry args={[1.2, 1.2]} />
       <meshStandardMaterial
         map={texture}
         side={THREE.DoubleSide}
         transparent={true}
         alphaTest={0.03}
         depthWrite={false}
+        emissive={new THREE.Color(0x0f0f0f)}
+        emissiveIntensity={0.12}
       />
     </instancedMesh>
   );
@@ -480,13 +526,18 @@ export default function LeavesTransition({
   const groundY = -viewport.height / 2;
   const floorSize = viewport.width * 1.2;
 
+  // ensure we keep some density on mobile while preserving perf
+  const instancedCount = typeof window !== "undefined" && window.innerWidth < 600
+    ? Math.max(14, Math.floor(INSTANCED_COUNT * 0.45))
+    : INSTANCED_COUNT;
+
   return (
     <>
       <SeasonalBackground season={season} />
       {leafTexture && (
         <InstancedLeaves
           texture={leafTexture}
-          count={window.innerWidth < 600 ? 2 : INSTANCED_COUNT}
+          count={instancedCount}
           season={season}
           isSlowMo={isSlowMo}
         />
