@@ -1,7 +1,4 @@
 // src/components/LeavesTransition.jsx
-// Updated: background cover math + responsive particle sizes (sizeFactor + minor season-scale)
-// Replace your existing LeavesTransition.jsx with this file.
-
 import React, { useMemo, useRef, useEffect } from "react";
 import { useFrame, useLoader, useThree } from "@react-three/fiber";
 import { RigidBody, interactionGroups } from "@react-three/rapier";
@@ -40,90 +37,75 @@ function clamp(v, min, max) {
   return Math.max(min, Math.min(max, v));
 }
 
-// --- Component for Seasonal Background Image ---
-// This sets the scene.background texture but also ensures the texture repeat/offset
-// are adjusted so the image behaves like CSS `background-size: cover` across aspect changes.
+/*
+  SeasonalBackground:
+  - Instead of relying solely on scene.background (which can tile),
+    we apply the seasonal image as a CSS background on the renderer's DOM element.
+  - This gives reliable `background-size: cover` behavior across devices and
+    avoids RepeatWrapping artifacts on narrow screens.
+*/
 function SeasonalBackground({ season }) {
-  const { scene, gl } = useThree();
+  const { gl, scene } = useThree();
   const url = BACKGROUND_TEXTURES[season] || BACKGROUND_TEXTURES.spring;
   const texture = useLoader(THREE.TextureLoader, url);
 
-  // function to compute repeat/offset so image acts like cover (center-cropped)
-  const applyCoverMath = () => {
-    if (!texture || !texture.image) return;
-    const canvasW = gl.domElement.clientWidth || window.innerWidth;
-    const canvasH = gl.domElement.clientHeight || window.innerHeight;
-    const canvasAspect = canvasW / Math.max(1, canvasH);
-    const imgW = texture.image.width || 1;
-    const imgH = texture.image.height || 1;
-    const imgAspect = imgW / Math.max(1, imgH);
-
-    // reset
-    texture.repeat.set(1, 1);
-    texture.offset.set(0, 0);
-
-    // cover logic: scale along the smaller axis so the other axis overflows (cropped)
-    if (canvasAspect > imgAspect) {
-      // canvas is wider -> repeat in X
-      const scaleX = canvasAspect / imgAspect;
-      texture.repeat.set(scaleX, 1);
-      // center it
-      texture.offset.set((1 - scaleX) / 2, 0);
-    } else {
-      // canvas is taller -> repeat in Y
-      const scaleY = imgAspect / canvasAspect;
-      texture.repeat.set(1, scaleY);
-      texture.offset.set(0, (1 - scaleY) / 2);
-    }
-    texture.needsUpdate = true;
-  };
-
   useEffect(() => {
-    if (!texture) return;
-    // safe texture configuration
-    texture.encoding = THREE.sRGBEncoding;
-    texture.wrapS = THREE.RepeatWrapping;
-    texture.wrapT = THREE.RepeatWrapping;
-    texture.anisotropy = Math.min(gl.capabilities.getMaxAnisotropy(), 8);
-    texture.minFilter = THREE.LinearFilter;
-    texture.magFilter = THREE.LinearFilter;
-    texture.needsUpdate = true;
+    if (!gl || !gl.domElement) return;
 
-    // apply cover math once image is loaded (texture.image exists then)
-    const onImageLoad = () => {
-      try {
-        applyCoverMath();
-      } catch (e) {
-        e;
-      }
+    // Configure the texture for fallback (scene.background) but prefer CSS on canvas element
+    if (texture) {
+      texture.encoding = THREE.sRGBEncoding;
+      // Keep leaf textures clamped; for background we'll prefer CSS so clamp is safe.
+      texture.wrapS = THREE.ClampToEdgeWrapping;
+      texture.wrapT = THREE.ClampToEdgeWrapping;
+      texture.anisotropy = Math.min(gl.capabilities.getMaxAnisotropy(), 8);
+      texture.minFilter = THREE.LinearFilter;
+      texture.magFilter = THREE.LinearFilter;
+      texture.needsUpdate = true;
+    }
+
+    const canvas = gl.domElement;
+    const prevStyle = {
+      backgroundImage: canvas.style.backgroundImage || "",
+      backgroundSize: canvas.style.backgroundSize || "",
+      backgroundPosition: canvas.style.backgroundPosition || "",
+      backgroundRepeat: canvas.style.backgroundRepeat || "",
+      backgroundAttachment: canvas.style.backgroundAttachment || "",
     };
 
-    if (window.innerWidth < 600) {
-      texture.minFilter = THREE.NearestFilter;
-      texture.magFilter = THREE.NearestFilter;
-      texture.anisotropy = 1;
-    }
+    // Apply CSS background to canvas to mimic `background-size: cover` exactly.
+    // This prevents tiling and ensures the image is center-cropped when aspect ratio changes.
+    canvas.style.backgroundImage = `url("${url}")`;
+    canvas.style.backgroundSize = "cover";
+    canvas.style.backgroundPosition = "center center";
+    canvas.style.backgroundRepeat = "no-repeat";
+    canvas.style.backgroundAttachment = "scroll";
 
-    if (texture.image) onImageLoad();
-    // in case of async, listen for update
-    const handleResize = () => applyCoverMath();
+    // Optionally keep a subtle THREE fallback (useful if you want the environment to be sampled)
+    const prevBackground = scene.background;
+    // Keep scene.background null to avoid visual tiling; if you prefer a fallback, uncomment:
+    // scene.background = texture;
+
+    const handleResize = () => {
+      // CSS cover handles resizing — nothing required here,
+      // but keep handler in case you want to do extra on resize later.
+    };
     window.addEventListener("resize", handleResize);
 
-    const prevBackground = scene.background;
-    scene.background = texture;
-    scene.backgroundIntensity = 0.3;
-    gl.toneMappingExposure = 1.2;
-
     return () => {
+      // restore previous canvas style
+      canvas.style.backgroundImage = prevStyle.backgroundImage;
+      canvas.style.backgroundSize = prevStyle.backgroundSize;
+      canvas.style.backgroundPosition = prevStyle.backgroundPosition;
+      canvas.style.backgroundRepeat = prevStyle.backgroundRepeat;
+      canvas.style.backgroundAttachment = prevStyle.backgroundAttachment;
       window.removeEventListener("resize", handleResize);
       scene.background = prevBackground || null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [texture, scene, gl, season]);
+  }, [gl, scene, texture, url]);
 
   return null;
 }
-// --- End SeasonalBackground ---
 
 // --- Component for Instanced (non-physics) Leaves ---
 function InstancedLeaves({
@@ -137,11 +119,8 @@ function InstancedLeaves({
   const slowMoTime = useRef(0);
   const slowMoFactor = 0.1;
 
-  // Access viewport for responsive sizing
   const { viewport } = useThree();
-  // sizeFactor scales with width relative to 1440 base; clamp to avoid extremes
   const sizeFactor = Math.max(0.45, Math.min(1.6, viewport.width / 1440));
-  // small seasonal reduction so pink petals don't overwhelm:
   const seasonScale = season === "spring" ? 0.7 : 1.0;
 
   const seeds = useMemo(() => {
@@ -161,7 +140,6 @@ function InstancedLeaves({
       const rotBase = THREE.MathUtils.randFloat(0, Math.PI * 2);
       const rotFreq = THREE.MathUtils.randFloat(0.2, 0.9);
       const rotAmp = THREE.MathUtils.randFloat(0.15, 0.7);
-      // keep base scale similar but will be scaled by sizeFactor & seasonScale in runtime
       const scale = THREE.MathUtils.randFloat(0.9, 1.8);
       const phase = Math.random() * Math.PI * 2;
       arr[i] = {
@@ -220,7 +198,6 @@ function InstancedLeaves({
       dummy.position.set(x, y, z);
       dummy.rotation.set(0, 0, rotZ);
 
-      // Apply responsive sizing: base scale * seasonScale * sizeFactor
       const appliedScale = s.scale * seasonScale * sizeFactor;
       dummy.scale.setScalar(appliedScale);
       dummy.updateMatrix();
@@ -231,7 +208,6 @@ function InstancedLeaves({
 
   return (
     <instancedMesh ref={meshRef} args={[null, null, count]}>
-      {/* keep neutral 1x geometry and rely on dummy.scale for sizing */}
       <planeGeometry args={[0.6, 0.6]} />
       <meshStandardMaterial
         map={texture}
@@ -243,9 +219,9 @@ function InstancedLeaves({
     </instancedMesh>
   );
 }
-// --- End InstancedLeaves ---
 
-// --- Component for Single Physics-enabled Leaf ---
+// --- PhysicsLeaf, PhysicsLeaves, LeafPile, and main component unchanged (kept for brevity) ---
+
 function PhysicsLeaf({
   texture,
   initialPos,
@@ -257,7 +233,6 @@ function PhysicsLeaf({
   const bodyRef = useRef();
   const { clock, viewport } = useThree();
 
-  // compute responsive sizeFactor for physics leaves too
   const sizeFactor = Math.max(0.45, Math.min(1.6, viewport.width / 1440));
   const seasonScale = season === "spring" ? 0.7 : 1.0;
   const appliedScale = scale * sizeFactor * seasonScale;
@@ -358,7 +333,6 @@ function PhysicsLeaf({
     }
   });
 
-  // Using mesh scale to apply responsive sizing (geometry stays 0.6x0.6)
   return (
     <RigidBody
       ref={bodyRef}
@@ -385,9 +359,7 @@ function PhysicsLeaf({
     </RigidBody>
   );
 }
-// --- End PhysicsLeaf ---
 
-// --- Component Managing Multiple Physics Leaves ---
 function PhysicsLeaves({ texture, count = PHYSICS_COUNT, season }) {
   const leafCollisionGroup = useMemo(
     () => interactionGroups([GROUP_LEAF], [GROUP_ENVIRONMENT]),
@@ -402,7 +374,6 @@ function PhysicsLeaves({ texture, count = PHYSICS_COUNT, season }) {
         x = THREE.MathUtils.randFloatSpread(HORIZ_WRAP);
         y = THREE.MathUtils.randFloatSpread(VERT_WRAP);
       } while (Math.abs(x) < minCenterDist && Math.abs(y) < minCenterDist);
-      // keep scale in the same domain; PhysicsLeaf will apply sizeFactor & seasonScale
       arr.push({
         id: i,
         pos: [x, y, THREE.MathUtils.randFloat(-3, 3)],
@@ -429,15 +400,12 @@ function PhysicsLeaves({ texture, count = PHYSICS_COUNT, season }) {
     </>
   );
 }
-// --- End PhysicsLeaves ---
 
-// --- Component for Static Leaf Pile on the Ground ---
 function LeafPile({ texture, count = 20, season }) {
   const meshRef = useRef();
   const { viewport } = useThree();
   const dummy = useMemo(() => new THREE.Object3D(), []);
 
-  // responsive sizeFactor
   const sizeFactor = Math.max(0.45, Math.min(1.6, viewport.width / 1440));
   const seasonScale = season === "spring" ? 0.7 : 1.0;
 
@@ -464,7 +432,6 @@ function LeafPile({ texture, count = 20, season }) {
       const y = groundY + Math.random() * 0.15;
       const z = Math.random() * 0.5;
       const rotZ = Math.random() * Math.PI * 2;
-      // increased base range so fallen pile looks substantial; will be multiplied by sizeFactor & seasonScale
       const scale = THREE.MathUtils.randFloat(0.9, 1.5);
       dummy.position.set(x, y, z);
       dummy.rotation.set(0, 0, rotZ);
@@ -488,7 +455,6 @@ function LeafPile({ texture, count = 20, season }) {
     </instancedMesh>
   );
 }
-// --- End LeafPile ---
 
 // --- Main Exported Component ---
 export default function LeavesTransition({

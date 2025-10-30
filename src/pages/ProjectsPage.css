@@ -10,10 +10,12 @@
   position: relative;
   width: 100%;
   max-width: none;
-  height: 100vh;
+  /* allow natural height and avoid forcing a fullscreen painting on mobile */
+  height: auto;
+  min-height: calc(100vh - 80px); /* keeps a full-viewport feel but not forced; adjust header offset as needed */
   margin: 0;
   padding: 0; /* Padding handled by header/scroller */
-  overflow: hidden;
+  overflow: visible; /* allow content to grow naturally */
   background: transparent;
   color: #111; /* Default text color (header) */
   display: flex;
@@ -60,11 +62,12 @@
 
 /* --- Scroller --- */
 .projects-scroller {
-  flex-grow: 1;
+  /* don't force it to expand to fill a rigid full-screen area */
+  flex-grow: 0;
   padding: 10px var(--pad) 90px var(--pad);
   display: flex;
   gap: var(--gap);
-  align-items: center;
+  align-items: flex-start; /* prevents cards from vertically stretching */
   overflow-x: auto;
   overflow-y: hidden;
   touch-action: pan-x;
@@ -230,7 +233,6 @@ button:focus-visible {
     --card-w: 360px;
   }
   .project-card {
-    /* keep explicit attachment on medium screens too */
     background-attachment: scroll;
   }
 }
@@ -249,6 +251,7 @@ button:focus-visible {
   }
   .projects-scroller {
     padding: 5px var(--pad) 60px var(--pad);
+    gap: 20px;
   }
   .nav-arrow {
     width: 40px;
@@ -261,7 +264,6 @@ button:focus-visible {
     right: 10px;
   }
   .project-card {
-    /* avoid any mobile painting artifact by limiting height and ensuring attachment stays scroll */
     background-attachment: scroll;
     max-height: calc(100vh - 160px);
   }
@@ -285,15 +287,14 @@ button:focus-visible {
   }
   .projects-scroller {
     padding: 5px var(--pad) 50px var(--pad);
+    gap: 18px;
   }
   .project-card {
     flex: 0 0 90%;
     max-height: none;
     min-height: 20vh;
     margin: 0 5% 0 5%;
-    /* mobile fix: explicitly prevent background from being interpreted as viewport bg on some devices */
     background-attachment: scroll;
-    /* backup: ensure card's background doesn't overflow its box */
     background-clip: padding-box;
   }
   .nav-arrow {
