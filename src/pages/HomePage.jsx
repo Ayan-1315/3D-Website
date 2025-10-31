@@ -15,7 +15,6 @@ export default function HomePage({
   setBrushColor,
   is3DContext = false,
   seasonalShadow,
-  seasonalSlogan,
 }) {
   const titleRef = useRef(null);
   const subtitleRef = useRef(null);
@@ -54,40 +53,56 @@ export default function HomePage({
           Software Engineer
         </h2>
 
-        <p className={styles.homeLead} style={{ color: seasonalSlogan.color }}>
-          {seasonalSlogan.text}
+        <p className={styles.homeDescription}>
+          I build immersive, interactive systems that blend logic and imagination,
+          turning complex ideas into living digital experiences.
         </p>
 
-        <div className={styles.brushSettings}>
-          <h3 className={styles.brushTitle}>Brush Color</h3>
-          <div className={styles.colorSwatchContainer}>
-            <button
-              className={`${styles.colorSwatch} ${brushColor === COLORS.default ? styles.colorSwatchActive : ""}`}
-              style={{ backgroundColor: COLORS.default }}
-              onClick={() => setBrushColor(COLORS.default)}
-              aria-label="Set brush color to black"
-            />
-            <button
-              className={`${styles.colorSwatch} ${brushColor === COLORS.spring ? styles.colorSwatchActive : ""}`}
-              style={{ backgroundColor: COLORS.spring }}
-              onClick={() => setBrushColor(COLORS.spring)}
-              aria-label="Set brush color to spring pink"
-            />
-            <button
-              className={`${styles.colorSwatch} ${brushColor === COLORS.fall ? styles.colorSwatchActive : ""}`}
-              style={{ backgroundColor: COLORS.fall }}
-              onClick={() => setBrushColor(COLORS.fall)}
-              aria-label="Set brush color to fall red"
-            />
-            <button
-              className={`${styles.colorSwatch} ${brushColor === COLORS.autumn ? styles.colorSwatchActive : ""}`}
-              style={{ backgroundColor: COLORS.autumn }}
-              onClick={() => setBrushColor(COLORS.autumn)}
-              aria-label="Set brush color to autumn gold"
-            />
-          </div>
-        </div>
+        <a
+          href="/AyanSen_Resume.pdf" // Ensure your resume is in the /public folder
+          download="AyanSen_Resume.pdf"
+          className={styles.resumeButton}
+        >
+          Download Resume
+        </a>
+
+        {/* The "homeLead" (poetry) <p> tag has been removed.
+        */}
+
       </header>
+
+      {/* --- BRUSH SETTINGS MOVED HERE --- */}
+      <div className={styles.brushSettings}>
+        <h3 className={styles.brushTitle}>Brush Color</h3>
+        <div className={styles.colorSwatchContainer}>
+          <button
+            className={`${styles.colorSwatch} ${brushColor === COLORS.default ? styles.colorSwatchActive : ""}`}
+            style={{ backgroundColor: COLORS.default }}
+            onClick={() => setBrushColor(COLORS.default)}
+            aria-label="Set brush color to black"
+          />
+          <button
+            className={`${styles.colorSwatch} ${brushColor === COLORS.spring ? styles.colorSwatchActive : ""}`}
+            style={{ backgroundColor: COLORS.spring }}
+            onClick={() => setBrushColor(COLORS.spring)}
+            aria-label="Set brush color to spring pink"
+          />
+          <button
+            className={`${styles.colorSwatch} ${brushColor === COLORS.fall ? styles.colorSwatchActive : ""}`}
+            style={{ backgroundColor: COLORS.fall }}
+            onClick={() => setBrushColor(COLORS.fall)}
+            aria-label="Set brush color to fall red"
+          />
+          <button
+            className={`${styles.colorSwatch} ${brushColor === COLORS.autumn ? styles.colorSwatchActive : ""}`}
+            style={{ backgroundColor: COLORS.autumn }}
+            onClick={() => setBrushColor(COLORS.autumn)}
+            aria-label="Set brush color to autumn gold"
+          />
+        </div>
+      </div>
+      {/* --- END OF BRUSH SETTINGS --- */}
+
     </div>
   );
 }
