@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from "react";
-import ProjectDetailModal from "../components/ProjectDetailModal"; // Assuming this is the correct path
-import "./ProjectsPage.css";
+import ProjectDetailModal from "../components/ProjectDetailModal"; 
+import "./ProjectsPage.module.css";
 
 const projects = [
   {

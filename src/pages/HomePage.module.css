@@ -36,6 +36,9 @@
   border-radius: 4px;
   margin: 0 auto 1.5rem; /* 'auto' margin works well with text-align: center */
   transition: all 0.25s cubic-bezier(0.25, 0.8, 0.25, 1);
+  position: relative;
+  z-index: 11;
+  pointer-events: auto;
 }
 
 .resumeButton:hover,
@@ -93,13 +96,14 @@
   
   /* Appearance */
   background: rgba(255, 255, 255, 0.5);
-  -webkit-backdrop-filter: blur(8px);
-  backdrop-filter: blur(8px);
+  /* -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px); */
   border: 1px solid rgba(255, 255, 255, 0.2);
   padding: 12px 16px;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
+  pointer-events: auto; /* Makes the panel clickable */
 }
 
 /* 6. Ensure .brushTitle aligns correctly */
@@ -129,6 +133,7 @@
   transition: transform 0.2s ease, box-shadow 0.2s ease, outline 0.2s ease;
   outline: 2px solid transparent;
   outline-offset: 3px;
+  pointer-events: auto;
 }
 .colorSwatch:hover {
   transform: scale(1.1);
