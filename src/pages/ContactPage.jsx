@@ -1,6 +1,8 @@
 import React, { useEffect } from "react";
-// Correct the import to use CSS Modules
 import styles from "./ContactPage.module.css"; 
+// --- IMPORTS ADDED ---
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faGithub, faLinkedinIn, faXTwitter } from "@fortawesome/free-brands-svg-icons";
 
 export default function ContactPage({ setScene, seasonalShadow }) {
   useEffect(() => {
@@ -8,40 +10,58 @@ export default function ContactPage({ setScene, seasonalShadow }) {
   }, [setScene]);
 
   return (
-    // Apply CSS Module class names
     <div className={styles.contactPage} role="main" aria-label="Contact page">
       <div className={styles.paperOverlay} /> 
       
-      {/* Added content inner wrapper */}
       <div className={styles.contentInner}>
         <header className={styles.heroBlock}>
           <h1 className={styles.sumiTitle} style={{ textShadow: seasonalShadow }}>
             Contact
           </h1>
+
+          {/* --- NEW TEXT CONTENT ADDED --- */}
           <p className={styles.lead}>
-            Let's create something together.
-            <br />
-            You can find me on social media or send an email.
+            I'm actively exploring new opportunities. If my work resonates with 
+            your team, I would be excited to discuss how I can contribute.
+            <br /><br />
+            This site is a living experiment—if you spot a bug or have feedback, 
+            please send me a note.
           </p>
         </header>
 
         <section className={styles.contactLinks}>
-          <a href="mailto:your-email@example.com" className={styles.contactButton}>
-            ayan.sen1315@gmail.com {/* Replace with your actual email */}
+          <a href="mailto:ayan.sen1315@gmail.com" className={styles.contactButton}>
+            ayan.sen1315@gmail.com
           </a>
 
+          {/* --- SOCIAL LINKS UPDATED TO BUTTONS --- */}
           <div className={styles.contactSocials}>
-            <span>Find me on:</span>
-            {/* Added icons alongside text for better visual */}
-            <a href="https://github.com/Ayan-1315" target="_blank" rel="noopener noreferrer">
-              {/* Optional: Add GitHub icon here if desired */}
-              GitHub
+            <a 
+              href="https://github.com/Ayan-1315" 
+              target="_blank" 
+              rel="noopener noreferrer" 
+              className={styles.socialButton}
+              aria-label="GitHub"
+            >
+              <FontAwesomeIcon icon={faGithub} />
             </a>
-            <a href="https://www.linkedin.com/in/ayan-sen-1315abc" target="_blank" rel="noopener noreferrer">
-              LinkedIn
+            <a 
+              href="https://www.linkedin.com/in/ayan-sen-1315abc" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className={styles.socialButton}
+              aria-label="LinkedIn"
+            >
+              <FontAwesomeIcon icon={faLinkedinIn} />
             </a>
-            <a href="https://x.com/Ayansen1315" target="_blank" rel="noopener noreferrer">
-              X (Twitter)
+            <a 
+              href="https://x.com/Ayansen1315" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className={styles.socialButton}
+              aria-label="X (Twitter)"
+            >
+              <FontAwesomeIcon icon={faXTwitter} />
             </a>
           </div>
         </section>
