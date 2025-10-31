@@ -1,4 +1,3 @@
-/* src/pages/ProjectsPage.css — updated to fix mobile bg bug + keep responsiveness */
 :root {
   --pad: 6vw;
   --card-w: 420px;
@@ -6,18 +5,17 @@
 }
 
 /* --- Projects Page Container --- */
-.projects-page {
+.projectsPage {
   position: relative;
   width: 100%;
   max-width: none;
-  /* allow natural height and avoid forcing a fullscreen painting on mobile */
   height: auto;
-  min-height: calc(100vh - 80px); /* keeps a full-viewport feel but not forced; adjust header offset as needed */
+  min-height: calc(100vh - 80px); 
   margin: 0;
-  padding: 0; /* Padding handled by header/scroller */
-  overflow: visible; /* allow content to grow naturally */
+  padding: 0; 
+  overflow: visible; 
   background: transparent;
-  color: #111; /* Default text color (header) */
+  color: #111;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -28,15 +26,15 @@
 }
 
 /* --- Header --- */
-.projects-header {
+.projectsHeader {
   z-index: 6;
-  padding: 50px var(--pad) 0 var(--pad); /* Top padding to position header */
+  padding: 50px var(--pad) 0 var(--pad); 
   margin-bottom: 20px;
   pointer-events: auto;
   flex-shrink: 0;
 }
 
-.sumi-title {
+.sumiTitle {
   font-size: clamp(3rem, 7vw, 5.2rem);
   line-height: 1.1;
   margin: 0 0 8px;
@@ -49,7 +47,7 @@
   transition: text-shadow 0.4s ease-in-out;
 }
 
-.projects-lead {
+.projectsLead {
   font-size: 1rem;
   margin: 0 0 20px;
   color: rgba(45,45,45,0.78);
@@ -61,13 +59,12 @@
 }
 
 /* --- Scroller --- */
-.projects-scroller {
-  /* don't force it to expand to fill a rigid full-screen area */
+.projectsScroller {
   flex-grow: 0;
   padding: 10px var(--pad) 90px var(--pad);
   display: flex;
   gap: var(--gap);
-  align-items: flex-start; /* prevents cards from vertically stretching */
+  align-items: flex-start;
   overflow-x: auto;
   overflow-y: hidden;
   touch-action: pan-x;
@@ -77,12 +74,12 @@
   box-sizing: border-box;
   position: relative;
 }
-.projects-scroller::-webkit-scrollbar {
+.projectsScroller::-webkit-scrollbar {
   display: none;
 }
 
 /* --- Cards --- */
-.project-card {
+.projectCard {
   flex: 0 0 var(--card-w);
   border-radius: 14px;
   padding: 32px;
@@ -100,47 +97,45 @@
   overflow: hidden;
   cursor: pointer;
   pointer-events: auto;
-  color: #fff; /* text color white for contrast */
+  color: #fff;
 
-  /* Background Image Styles - explicitly safe for mobile */
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
-  /* Fix: avoid device-specific "fixed" painting / sizing issues */
   background-attachment: scroll;
   background-origin: padding-box;
   background-clip: border-box;
 }
 
 /* Overlay for Text Readability */
-.project-card::before {
+.projectCard::before {
   content: '';
   position: absolute;
   inset: 0;
   background: linear-gradient(180deg,
-      rgba(0, 0, 0, 0.1) 0%,
-      rgba(0, 0, 0, 0.4) 40%,
-      rgba(0, 0, 0, 0.7) 100%
+       rgba(0, 0, 0, 0.1) 0%,
+       rgba(0, 0, 0, 0.4) 40%,
+       rgba(0, 0, 0, 0.7) 100%
   );
   z-index: 1;
   transition: background 0.3s ease;
 }
-.project-card:hover::before,
-.project-card:focus::before {
-   background: linear-gradient(180deg,
-      rgba(0, 0, 0, 0.3) 0%,
-      rgba(0, 0, 0, 0.6) 100%
-   );
+.projectCard:hover::before,
+.projectCard:focus::before {
+    background: linear-gradient(180deg,
+       rgba(0, 0, 0, 0.3) 0%,
+       rgba(0, 0, 0, 0.6) 100%
+    );
 }
 
 /* Card Inner Content */
-.card-inner {
+.cardInner {
   width: 100%;
   position: relative;
   z-index: 2;
 }
 
-.project-title {
+.projectTitle {
   margin: 0 0 10px;
   font-size: 1.3rem;
   font-weight: 700;
@@ -148,7 +143,7 @@
   text-shadow: 0 1px 3px rgba(0,0,0,0.4);
 }
 
-.project-desc {
+.projectDesc {
   margin: 0;
   color: rgba(235, 235, 235, 0.95);
   line-height: 1.6;
@@ -156,18 +151,18 @@
 }
 
 /* Card Hover/Focus states */
-.project-card:focus {
+.projectCard:focus {
   outline: none;
   transform: translateY(-6px);
   box-shadow: 0 14px 35px -10px rgba(0, 0, 0, 0.3);
 }
-.project-card:hover {
+.projectCard:hover {
   transform: translateY(-8px);
   box-shadow: 0 18px 40px -12px rgba(0, 0, 0, 0.4);
 }
 
 /* --- Navigation Arrows --- */
-.nav-arrow {
+.navArrow {
   position: absolute;
   top: 55%;
   transform: translateY(-50%);
@@ -188,33 +183,33 @@
   opacity: 0.6;
 }
 
-.nav-arrow svg {
+.navArrow svg {
   width: 28px;
   height: 28px;
   filter: none;
   transition: filter 0.2s ease-in-out;
 }
-.nav-arrow svg path {
-    stroke: #111;
+.navArrow svg path {
+     stroke: #111;
 }
 
-.nav-arrow:hover {
+.navArrow:hover {
   transform: translateY(-50%) scale(1.1);
   opacity: 1;
   background: rgba(255, 255, 255, 0.6);
 }
 
-.nav-arrow:hover svg {
+.navArrow:hover svg {
   filter: drop-shadow(0px 0px 6px rgba(0, 0, 0, 0.3));
 }
-.nav-arrow:hover svg path {
-    stroke: #000;
+.navArrow:hover svg path {
+     stroke: #000;
 }
 
-.nav-arrow-left {
+.navArrowLeft {
   left: calc(var(--pad) * 0.5);
 }
-.nav-arrow-right {
+.navArrowRight {
   right: calc(var(--pad) * 0.5);
 }
 
@@ -230,74 +225,74 @@ button:focus-visible {
 /* Medium screens: reduce card width */
 @media (max-width: 1024px) {
   :root {
-    --card-w: 360px;
+     --card-w: 360px;
   }
-  .project-card {
-    background-attachment: scroll;
+  .projectCard {
+     background-attachment: scroll;
   }
 }
 
 /* Tablets / Large phones: smaller cards, padding, fonts */
 @media (max-width: 880px) {
   :root {
-    --card-w: 320px;
-    --pad: 5vw;
+     --card-w: 320px;
+     --pad: 5vw;
   }
-  .projects-header {
-    padding: 30px var(--pad) 0 var(--pad);
+  .projectsHeader {
+     padding: 30px var(--pad) 0 var(--pad);
   }
-  .projects-lead {
-    max-width: 50ch;
+  .projectsLead {
+     max-width: 50ch;
   }
-  .projects-scroller {
-    padding: 5px var(--pad) 60px var(--pad);
-    gap: 20px;
+  .projectsScroller {
+     padding: 5px var(--pad) 60px var(--pad);
+     gap: 20px;
   }
-  .nav-arrow {
-    width: 40px;
-    height: 40px;
+  .navArrow {
+     width: 40px;
+     height: 40px;
+    }
+  .navArrowLeft {
+     left: 10px;
   }
-  .nav-arrow-left {
-    left: 10px;
+  .navArrowRight {
+     right: 10px;
   }
-  .nav-arrow-right {
-    right: 10px;
-  }
-  .project-card {
-    background-attachment: scroll;
-    max-height: calc(100vh - 160px);
+  .projectCard {
+     background-attachment: scroll;
+     max-height: calc(100vh - 160px);
   }
 }
 
 /* Phones: almost full-width cards, hide arrows, smaller text */
 @media (max-width: 600px) {
   :root {
-    --card-w: 80%;
-    --pad: 6vw;
+     --card-w: 80%;
+     --pad: 6vw;
   }
-  .projects-header {
-    padding: 20px var(--pad) 0 var(--pad);
+  .projectsHeader {
+     padding: 20px var(--pad) 0 var(--pad);
   }
-  .sumi-title {
-    font-size: 2.5rem;
+  .sumiTitle {
+     font-size: 2.5rem;
   }
-  .projects-lead {
-    font-size: 0.9rem;
-    max-width: 100%;
+  .projectsLead {
+     font-size: 0.9rem;
+     max-width: 100%;
   }
-  .projects-scroller {
-    padding: 5px var(--pad) 50px var(--pad);
-    gap: 18px;
+  .projectsScroller {
+     padding: 5px var(--pad) 50px var(--pad);
+     gap: 18px;
+}
+  .projectCard {
+     flex: 0 0 90%;
+     max-height: none;
+     min-height: 20vh;
+     margin: 0 5% 0 5%;
+     background-attachment: scroll;
+     background-clip: padding-box;
   }
-  .project-card {
-    flex: 0 0 90%;
-    max-height: none;
-    min-height: 20vh;
-    margin: 0 5% 0 5%;
-    background-attachment: scroll;
-    background-clip: padding-box;
-  }
-  .nav-arrow {
-    display: none;
+  .navArrow {
+     display: none;
   }
 }

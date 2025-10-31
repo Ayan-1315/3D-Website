@@ -1,7 +1,9 @@
 import React, { useEffect, useRef } from "react";
-import ProjectDetailModal from "../components/ProjectDetailModal"; 
-import "./ProjectsPage.module.css";
+import ProjectDetailModal from "../components/ProjectDetailModal";
+// 1. IMPORT CHANGED to CSS Module:
+import styles from "./ProjectsPage.module.css"; 
 
+// Your project data ("values") are unchanged:
 const projects = [
   {
     id: 1,
@@ -67,7 +69,7 @@ const projects = [
     tech: ["Python", "Pillow", "NumPy", "ASCII Mapping", "CLI Tools"],
     bgImageUrl: "/images/AsciiArt.jpg"
   }
-];
+]; //
 
 // --- End project data ---
 
@@ -215,36 +217,45 @@ export default function ProjectsPage({
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setScene, projects.length]);
 
+  // 2. ALL CLASSNAMES ARE UPDATED to use the 'styles' object:
   return (
-    <div className="projects-page">
-      <header className="projects-header">
+    <div className={styles.projectsPage}>
+      <header className={styles.projectsHeader}>
         <h1
-          className="sumi-title"
+          className={styles.sumiTitle} // Assumes .sumiTitle is in your module
           style={{ textShadow: seasonalShadow }}
         >
           Projects
         </h1>
-        <p className="projects-lead">
+        <p className={styles.projectsLead}>
           Selected experiments — click to open.
         </p>
       </header>
 
-      <button className="nav-arrow nav-arrow-left" onClick={handleScrollLeft} aria-label="Scroll left">
+      <button 
+        className={`${styles.navArrow} ${styles.navArrowLeft}`} 
+        onClick={handleScrollLeft} 
+        aria-label="Scroll left"
+      >
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M15.75 19.5L8.25 12L15.75 4.5" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       </button>
-      <button className="nav-arrow nav-arrow-right" onClick={handleScrollRight} aria-label="Scroll right">
+      <button 
+        className={`${styles.navArrow} ${styles.navArrowRight}`} 
+        onClick={handleScrollRight} 
+        aria-label="Scroll right"
+      >
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M8.25 4.5L15.75 12L8.25 19.5" stroke="black" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
       </button>
 
-      <div className="projects-scroller" ref={scrollerRef} tabIndex={0} aria-label="Projects carousel">
+      <div className={styles.projectsScroller} ref={scrollerRef} tabIndex={0} aria-label="Projects carousel">
         {extendedProjects.map((p, i) => (
           <article
             key={`${p.id}-${i}`} // Use original ID + index for uniqueness
-            className="project-card"
+            className={styles.projectCard}
             tabIndex={0}
             role="button"
             onClick={() => handleCardClick(p)}
@@ -252,9 +263,9 @@ export default function ProjectsPage({
               backgroundImage: `url(${p.bgImageUrl})`
             }}
           >
-            <div className="card-inner">
-              <h3 className="project-title">{p.title}</h3>
-              <p className="project-desc">{p.desc}</p>
+            <div className={styles.cardInner}>
+              <h3 className={styles.projectTitle}>{p.title}</h3>
+              <p className={styles.projectDesc}>{p.desc}</p>
             </div>
           </article>
         ))}
