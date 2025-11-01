@@ -63,7 +63,7 @@ export default function HomePage({
           download="AyanSen_Resume.pdf"
           className={styles.resumeButton}
         >
-          Download Resume
+          <span className={styles.buttonText}>Download Resume</span>
         </a>
 
         {/* The "homeLead" (poetry) <p> tag has been removed.

@@ -1,13 +1,22 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import styles from "./ContactPage.module.css"; 
-// --- IMPORTS ADDED ---
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faGithub, faLinkedinIn, faXTwitter } from "@fortawesome/free-brands-svg-icons";
+import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
 
 export default function ContactPage({ setScene, seasonalShadow }) {
+  const [feedback, setFeedback] = useState("");
+
   useEffect(() => {
     setScene(null);
   }, [setScene]);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    // This is a basic placeholder. You can wire this up to Netlify, etc.
+    // To use Vercel's form handling, you would change the <form> tag.
+    alert("Feedback submitted. Thank you!");
+    setFeedback("");
+  };
 
   return (
     <div className={styles.contactPage} role="main" aria-label="Contact page">
@@ -18,8 +27,6 @@ export default function ContactPage({ setScene, seasonalShadow }) {
           <h1 className={styles.sumiTitle} style={{ textShadow: seasonalShadow }}>
             Contact
           </h1>
-
-          {/* --- NEW TEXT CONTENT ADDED --- */}
           <p className={styles.lead}>
             I'm actively exploring new opportunities. If my work resonates with 
             your team, I would be excited to discuss how I can contribute.
@@ -29,41 +36,47 @@ export default function ContactPage({ setScene, seasonalShadow }) {
           </p>
         </header>
 
-        <section className={styles.contactLinks}>
+        <section className={styles.contactSection}>
+
           <a href="mailto:ayan.sen1315@gmail.com" className={styles.contactButton}>
-            ayan.sen1315@gmail.com
+            <FontAwesomeIcon icon={faEnvelope} className={styles.emailIcon} />
+            <span>ayan.sen1315@gmail.com</span>
           </a>
 
-          {/* --- SOCIAL LINKS UPDATED TO BUTTONS --- */}
-          <div className={styles.contactSocials}>
-            <a 
-              href="https://github.com/Ayan-1315" 
-              target="_blank" 
-              rel="noopener noreferrer" 
-              className={styles.socialButton}
-              aria-label="GitHub"
-            >
-              <FontAwesomeIcon icon={faGithub} />
-            </a>
-            <a 
-              href="https://www.linkedin.com/in/ayan-sen-1315abc" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className={styles.socialButton}
-              aria-label="LinkedIn"
-            >
-              <FontAwesomeIcon icon={faLinkedinIn} />
-            </a>
-            <a 
-              href="https://x.com/Ayansen1315" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className={styles.socialButton}
-              aria-label="X (Twitter)"
-            >
-              <FontAwesomeIcon icon={faXTwitter} />
-            </a>
+          <div className={styles.divider}>
+            <span>or</span>
           </div>
+
+          {/* --- NEW CONTENT ADDED HERE --- */}
+          <h3 className={styles.formHeading}>Report an issue or leave feedback</h3>
+          <p className={styles.formIntro}>
+            This project is actively maintained. Your feedback on performance, 
+            design, or any bugs you find is invaluable.
+          </p>
+          {/* --- END NEW CONTENT --- */}
+
+          <form 
+            className={styles.feedbackForm} 
+            onSubmit={handleSubmit}
+            name="feedback"
+            data-netlify="true" // For Netlify forms
+          >
+            <input type="hidden" name="form-name" value="feedback" />
+            <label htmlFor="feedback-box" className="visually-hidden">Bug Report or Feedback</label>
+            <textarea 
+              id="feedback-box"
+              name="message"
+              className={styles.feedbackBox}
+              placeholder="Type your feedback here..."
+              value={feedback}
+              onChange={(e) => setFeedback(e.target.value)}
+              required
+            />
+            <button type="submit" className={styles.reportButton}>
+              <span className={styles.buttonText}>Report</span>
+            </button>
+          </form>
+          
         </section>
       </div> 
     </div>

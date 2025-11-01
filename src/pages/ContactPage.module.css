@@ -1,16 +1,16 @@
-/* --- Container --- */
+/* --- 1. UPDATED Container --- */
 .contactPage {
   position: relative;
   width: 100%;
-  height: 100vh;
+  min-height: 100vh; /* Fills the screen, but allows scrolling */
   margin: 0;
-  padding: 0;
+  padding: 120px 2rem 5rem 2rem; /* Top padding to clear header, bottom for space */
   overflow: hidden;
   background: transparent;
   color: #2f2f2f;
   display: flex;
-  justify-content: center;
-  align-items: center;
+  justify-content: center; /* Horizontally centers contentInner */
+  align-items: flex-start; /* Aligns content to the top */
   box-sizing: border-box;
   z-index: 3;
   pointer-events: auto;
@@ -35,8 +35,8 @@
   position: relative;
   z-index: 2;
   max-width: 800px;
-  width: 90%;
-  padding: 50px 60px;
+  width: 100%; /* Was 90% */
+  padding: 0; /* Padding is now on the .contactPage */
   margin: 0;
   box-sizing: border-box;
   display: flex;
@@ -44,8 +44,6 @@
   align-items: center;
   text-align: center;
   background: rgba(255, 255, 255, 0);
-  border-radius: 12px;
-  border: 1px solid rgba(0,0,0,0.04);
 }
 
 /* --- Header --- */
@@ -78,80 +76,181 @@
   pointer-events: auto;
 }
 
-/* --- Contact Links Section --- */
-.contactLinks {
+/* --- Main Contact Section --- */
+.contactSection {
   pointer-events: auto;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 35px;
+  align-items: center; 
+  gap: 25px; 
   width: 100%;
 }
 
+/* --- 2. UPDATED Email Button (Clickable Fix) --- */
 .contactButton {
-  display: inline-block;
-  font-size: 1.05rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
   font-weight: 600;
-  color: #1a1a1a;
+  color: #111;
   text-decoration: none;
-  background: linear-gradient(180deg, rgba(248, 242, 236, 0), rgba(235, 218, 200, 0));
-  padding: 14px 26px;
-  border-radius: 10px;
-  border: 1px solid rgba(0,0,0,0.06);
-  box-shadow: 0 8px 20px -5px rgba(0,0,0,0.1);
+  background: #ffffff; 
+  padding: 12px 24px;
+  border-radius: 8px;
+  border: 2px solid #111; 
+  box-shadow: 0 4px 10px -4px rgba(0,0,0,0.1);
   transition: transform 0.2s ease, box-shadow 0.2s ease;
+  width: 100%; 
+  max-width: 400px; 
+  box-sizing: border-box;
+  /* --- CLICKABLE FIX --- */
+  position: relative;
+  z-index: 11;
+  pointer-events: auto;
 }
 
 .contactButton:hover {
   transform: translateY(-3px);
-  box-shadow: 0 12px 25px -5px rgba(0,0,0,0.15);
+  box-shadow: 0 8px 15px -5px rgba(0,0,0,0.15);
 }
 
-/* --- STYLES FOR SOCIALS UPDATED --- */
-.contactSocials {
-  display: flex;
-  align-items: center;
-  gap: 20px; /* Space between buttons */
-  justify-content: center;
+.emailIcon {
+  margin-right: 12px; 
+  font-size: 1.1rem;
 }
 
-/* --- NEW STYLE FOR SOCIAL BUTTONS --- */
-.socialButton {
+/* --- Divider --- */
+.divider {
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  font-size: 1.25rem; /* Icon size */
+  width: 100%;
+  max-width: 400px;
+  color: #888;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+.divider::before,
+.divider::after {
+  content: '';
+  flex-grow: 1;
+  height: 1px;
+  background: #ccc;
+}
+.divider span {
+  padding: 0 15px;
+}
+
+/* --- 3. NEW Text Content Styles --- */
+.formHeading {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #222;
+  margin-top: 10px;
+  margin-bottom: 0px;
+}
+
+.formIntro {
+  font-size: 0.95rem;
+  color: #555;
+  max-width: 100%;
+  margin: 0.5rem 0 0 0;
+  line-height: 1.6;
+}
+
+/* --- Feedback Form --- */
+.feedbackForm {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 400px; 
+  gap: 15px; 
+}
+
+.feedbackBox {
+  width: 100%;
+  min-height: 120px;
+  padding: 12px;
+  font-family: inherit;
+  font-size: 0.95rem;
   color: #111;
-  text-decoration: none;
-  background: rgba(255, 255, 255, 0.4);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 50%; /* Makes it circular */
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  transition: all 0.2s ease-out;
+  background: #ffffff; 
+  border: 2px solid #111; 
+  border-radius: 8px;
+  box-sizing: border-box; 
+  resize: vertical;
+  /* --- CLICKABLE FIX --- */
+  position: relative;
+  z-index: 11;
+  pointer-events: auto;
 }
 
-.socialButton:hover {
-  transform: translateY(-4px) scale(1.05);
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.12);
-  background: rgba(255, 255, 255, 0.7);
-  color: #000;
+.feedbackBox::placeholder {
+  color: #888;
 }
 
-/* --- OLD STYLES (now removed) --- */
-/*
-.contactSocials span { ... }
-.contactSocials a { ... }
-.contactSocials a:hover { ... }
-*/
+.feedbackBox:focus {
+  outline: 2px solid #444;
+  border-color: #444;
+}
+
+/* --- 4. UPDATED Report Button (Hover Fix) --- */
+.reportButton {
+  align-self: flex-end; 
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #111111; /* Text color default */
+  background: #ffffff; /* White background default */
+  border: 2px solid #111;
+  padding: 10px 24px;
+  border-radius: 8px;
+  cursor: pointer;
+  /* --- CLICKABLE FIX & ANIMATION PREP --- */
+  position: relative;
+  z-index: 11;
+  pointer-events: auto;
+  overflow: hidden; /* This hides the ::before element initially */
+  transition: color 0.4s ease-in-out; /* Text color transition */
+}
+
+/* The text span is needed to keep text above the ::before pseudo-element */
+.buttonText {
+  position: relative;
+  z-index: 2;
+}
+
+/* This is the black box that "wipes" in */
+.reportButton::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: #111;
+  z-index: 1;
+  transform: translateX(-101%); /* Start fully to the left */
+  transition: transform 0.4s cubic-bezier(0.7, 0, 0.2, 1);
+}
+
+.reportButton:hover {
+  color: #ffffff; /* Text turns white on hover */
+}
+
+.reportButton:hover::before {
+  transform: translateX(0); /* Wipe moves in from the left */
+}
 
 /* --- Responsive tweaks --- */
 @media (max-width: 880px) {
   .contentInner {
-    max-height: 90vh;
-    padding: 30px 25px;
-    width: 95%;
+    max-height: none; /* Allow content to flow */
+    padding: 0; /* Padding is on parent */
+    width: 100%;
+  }
+  .contactPage {
+    padding: 100px 1rem 5rem 1rem; /* Adjust mobile padding */
   }
   .heroBlock {
     margin-bottom: 25px;
@@ -163,32 +262,72 @@
   .lead {
     font-size: 1rem;
   }
-  .contactLinks {
-    gap: 30px;
-  }
+  .contactSection { gap: 25px; } 
   .contactButton {
-    font-size: 1rem;
+    font-size: 0.95rem;
     padding: 12px 22px;
+    max-width: 100%; 
   }
-  .contactSocials {
-    gap: 18px; /* Responsive gap */
-  }
-  .socialButton {
-    width: 44px;
-    height: 44px;
-    font-size: 1.1rem;
+  .feedbackForm {
+    max-width: 100%; 
   }
 }
 
 @media (max-width: 600px) {
   .sumiTitle { font-size: clamp(2rem, 8vw, 3rem); }
   .lead { font-size: 1rem; }
-  .contactLinks { gap: 20px; }
-  .contactButton { padding: 12px 20px; font-size: 0.95rem; }
-  .contactSocials { gap: 15px; }
-  .socialButton {
-    width: 40px;
-    height: 40px;
-    font-size: 1rem;
+  .contactButton { padding: 12px 20px; font-size: 0.9rem; }
+  .reportButton {
+    align-self: stretch; 
+    font-size: 0.9rem;
+    padding: 12px;
   }
+}
+
+.contactPage::before {
+  content: '';
+  position: fixed; /* Stick to the top of the viewport */
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 120px; /* The height of the fade area */
+  
+  /* The gradient: solid white at top, fading to transparent */
+  background: linear-gradient(
+    to bottom,
+    rgba(255, 255, 255, 1) 40%, /* Solid white (matches page bg) */
+    rgba(255, 255, 255, 0.9) 70%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  
+  /* This z-index is the key:
+    - It's HIGHER than .contentInner (z-index: 2)
+    - It's LOWER than your nav bars (which are z-index: 10)
+  */
+  z-index: 5; 
+  
+  /* This lets mouse clicks pass through the fade */
+  pointer-events: none; 
+}
+
+/* This adds a matching fade at the bottom to hide content
+  before it scrolls under your bottom navigation bar.
+*/
+.contactPage::after {
+  content: '';
+  position: fixed; /* Stick to the bottom of the viewport */
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 100px; /* Height of the bottom fade */
+  
+  background: linear-gradient(
+    to top,
+    rgba(255, 255, 255, 1) 40%,
+    rgba(255, 255, 255, 0.9) 70%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  
+  z-index: 5; /* Same z-index as the top fade */
+  pointer-events: none;
 }
