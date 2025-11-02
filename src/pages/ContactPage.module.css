@@ -2,15 +2,15 @@
 .contactPage {
   position: relative;
   width: 100%;
-  min-height: 100vh; /* Fills the screen, but allows scrolling */
+  height: 100vh; /* Full viewport height */
   margin: 0;
-  padding: 120px 2rem 5rem 2rem; /* Top padding to clear header, bottom for space */
+  padding: 0; /* Remove padding */
   overflow: hidden;
   background: transparent;
   color: #2f2f2f;
-  display: flex;
-  justify-content: center; /* Horizontally centers contentInner */
-  align-items: flex-start; /* Aligns content to the top */
+  display: flex; /* Use flex to center the card */
+  justify-content: center;
+  align-items: center;
   box-sizing: border-box;
   z-index: 3;
   pointer-events: auto;
@@ -18,7 +18,7 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Paper overlay */
+/* Paper overlay (unchanged) */
 .paperOverlay {
   position: fixed;
   inset: 0;
@@ -30,29 +30,31 @@
   );
 }
 
-/* Content inner centers and constrains width */
+/* --- 2. UPDATED Content Inner (This is the card) --- */
 .contentInner {
   position: relative;
   z-index: 2;
   max-width: 800px;
-  width: 100%; /* Was 90% */
-  padding: 0; /* Padding is now on the .contactPage */
+  width: 90%;
+  height: 90vh; /* Fixed height, like About page */
+  padding: 30px 40px; /* Internal padding for the card */
   margin: 0;
   box-sizing: border-box;
-  display: flex;
+  display: flex; /* Use flex to position header and scroll area */
   flex-direction: column;
-  align-items: center;
   text-align: center;
   background: rgba(255, 255, 255, 0);
+  border-radius: 12px;
+  border: none;
+  overflow: hidden; /* --- THIS IS THE KEY --- Clips the content */
 }
 
-/* --- Header --- */
+/* --- 3. UPDATED Header --- */
 .heroBlock {
-  margin: 0 0 30px 0;
-  padding-bottom: 30px;
+  margin: 0; /* Remove bottom margin */
+  padding-bottom: 20px;
   pointer-events: auto;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-  flex-shrink: 0;
+  flex-shrink: 0; /* Prevents header from shrinking */
   width: 100%;
 }
 
@@ -70,13 +72,25 @@
 .lead {
   font-size: 1.1rem;
   margin: 0 auto;
-  color: #333;
+  color: #181818;
   max-width: 60ch;
   line-height: 1.7;
   pointer-events: auto;
 }
 
-/* --- Main Contact Section --- */
+/* --- 4. NEW Scrollable Area --- */
+.scrollableArea {
+  flex: 1 1 0%; /* Takes up remaining space */
+  min-height: 0; /* Required for flex scrolling */
+  overflow-y: auto; /* --- THIS MAKES IT SCROLL --- */
+  padding: 0 10px; /* Padding inside the scroll area */
+  margin: 0 -10px; /* Compensate for padding */
+}
+.scrollableArea::-webkit-scrollbar {
+  display: none; /* Hide scrollbar Chrome/Safari */
+}
+
+/* --- 5. UPDATED Contact Section --- */
 .contactSection {
   pointer-events: auto;
   display: flex;
@@ -84,9 +98,13 @@
   align-items: center; 
   gap: 25px; 
   width: 100%;
+  padding-top: 30px; /* Space from the header */
+  padding-bottom: 30px; /* Space at the bottom */
 }
 
-/* --- 2. UPDATED Email Button (Clickable Fix) --- */
+/* All other styles (.contactButton, .feedbackForm, etc.) remain the same */
+/* as in your previous file. They are all correct. */
+
 .contactButton {
   display: inline-flex;
   align-items: center;
@@ -104,7 +122,6 @@
   width: 100%; 
   max-width: 400px; 
   box-sizing: border-box;
-  /* --- CLICKABLE FIX --- */
   position: relative;
   z-index: 11;
   pointer-events: auto;
@@ -120,13 +137,12 @@
   font-size: 1.1rem;
 }
 
-/* --- Divider --- */
 .divider {
   display: flex;
   align-items: center;
   width: 100%;
   max-width: 400px;
-  color: #888;
+  color: #39393984;
   font-size: 0.9rem;
   font-weight: 500;
 }
@@ -135,13 +151,12 @@
   content: '';
   flex-grow: 1;
   height: 1px;
-  background: #ccc;
+  background: #39393984;
 }
 .divider span {
   padding: 0 15px;
 }
 
-/* --- 3. NEW Text Content Styles --- */
 .formHeading {
   font-size: 1.3rem;
   font-weight: 600;
@@ -152,13 +167,12 @@
 
 .formIntro {
   font-size: 0.95rem;
-  color: #555;
+  color: #222222;
   max-width: 100%;
   margin: 0.5rem 0 0 0;
   line-height: 1.6;
 }
 
-/* --- Feedback Form --- */
 .feedbackForm {
   display: flex;
   flex-direction: column;
@@ -179,7 +193,6 @@
   border-radius: 8px;
   box-sizing: border-box; 
   resize: vertical;
-  /* --- CLICKABLE FIX --- */
   position: relative;
   z-index: 11;
   pointer-events: auto;
@@ -194,33 +207,29 @@
   border-color: #444;
 }
 
-/* --- 4. UPDATED Report Button (Hover Fix) --- */
 .reportButton {
   align-self: flex-end; 
   font-family: inherit;
   font-size: 0.95rem;
   font-weight: 600;
-  color: #111111; /* Text color default */
-  background: #ffffff; /* White background default */
+  color: #111111; 
+  background: #ffffff; 
   border: 2px solid #111;
   padding: 10px 24px;
   border-radius: 8px;
   cursor: pointer;
-  /* --- CLICKABLE FIX & ANIMATION PREP --- */
   position: relative;
   z-index: 11;
   pointer-events: auto;
-  overflow: hidden; /* This hides the ::before element initially */
-  transition: color 0.4s ease-in-out; /* Text color transition */
+  overflow: hidden; 
+  transition: color 0.4s ease-in-out; 
 }
 
-/* The text span is needed to keep text above the ::before pseudo-element */
 .buttonText {
   position: relative;
   z-index: 2;
 }
 
-/* This is the black box that "wipes" in */
 .reportButton::before {
   content: '';
   position: absolute;
@@ -230,30 +239,30 @@
   height: 100%;
   background: #111;
   z-index: 1;
-  transform: translateX(-101%); /* Start fully to the left */
+  transform: translateX(-101%); 
   transition: transform 0.4s cubic-bezier(0.7, 0, 0.2, 1);
 }
 
 .reportButton:hover {
-  color: #ffffff; /* Text turns white on hover */
+  color: #ffffff; 
 }
 
 .reportButton:hover::before {
-  transform: translateX(0); /* Wipe moves in from the left */
+  transform: translateX(0); 
 }
+
+/* --- 6. REMOVED .contactPage::before and .contactPage::after --- */
+
 
 /* --- Responsive tweaks --- */
 @media (max-width: 880px) {
   .contentInner {
-    max-height: none; /* Allow content to flow */
-    padding: 0; /* Padding is on parent */
-    width: 100%;
-  }
-  .contactPage {
-    padding: 100px 1rem 5rem 1rem; /* Adjust mobile padding */
+    height: 88vh; /* Adjust height for tablets */
+    padding: 24px;
+    width: 95%;
   }
   .heroBlock {
-    margin-bottom: 25px;
+    margin-bottom: 20px;
     padding-bottom: 20px;
   }
   .sumiTitle {
@@ -282,52 +291,4 @@
     font-size: 0.9rem;
     padding: 12px;
   }
-}
-
-.contactPage::before {
-  content: '';
-  position: fixed; /* Stick to the top of the viewport */
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 120px; /* The height of the fade area */
-  
-  /* The gradient: solid white at top, fading to transparent */
-  background: linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 1) 40%, /* Solid white (matches page bg) */
-    rgba(255, 255, 255, 0.9) 70%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  
-  /* This z-index is the key:
-    - It's HIGHER than .contentInner (z-index: 2)
-    - It's LOWER than your nav bars (which are z-index: 10)
-  */
-  z-index: 5; 
-  
-  /* This lets mouse clicks pass through the fade */
-  pointer-events: none; 
-}
-
-/* This adds a matching fade at the bottom to hide content
-  before it scrolls under your bottom navigation bar.
-*/
-.contactPage::after {
-  content: '';
-  position: fixed; /* Stick to the bottom of the viewport */
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 100px; /* Height of the bottom fade */
-  
-  background: linear-gradient(
-    to top,
-    rgba(255, 255, 255, 1) 40%,
-    rgba(255, 255, 255, 0.9) 70%,
-    rgba(255, 255, 255, 0) 100%
-  );
-  
-  z-index: 5; /* Same z-index as the top fade */
-  pointer-events: none;
 }

@@ -150,7 +150,7 @@ export default function AboutPage({ setScene, seasonalShadow }) {
              <p>
               <strong>Where I share code:</strong>{" "}
               <a href="https://github.com/Ayan-1315" target="_blank" rel="noreferrer">
-                github.com/Ayan-115
+                GitHub -  Home Page
               </a>
             </p>
             <p>
