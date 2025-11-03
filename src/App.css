@@ -88,7 +88,7 @@ canvas {
   gap: 12px;
   padding: 8px 14px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0);
+  background: #ffffff00;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0);
   border: 1px solid rgba(255, 255, 255, 0);
   align-items: center;
