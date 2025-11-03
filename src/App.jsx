@@ -22,6 +22,7 @@ import ContactPage from "./pages/ContactPage.jsx";
 import LeavesTransition from "./components/LeavesTransition.jsx";
 import FPSMonitor from "./components/FPSMonitor.jsx";
 import MouseBrushStroke from "./components/MouseBrushStroke.jsx";
+import Loader from "./components/Loader.jsx";
 import "./App.css";
 
 const SEASONS = ["spring", "autumn", "fall"];
@@ -39,7 +40,6 @@ const COLORS = {
   autumn: "rgba(255, 178, 110, 0.9)",
 };
 
-
 function AppContent() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [transitionSeason, setTransitionSeason] = useState(() =>
@@ -48,16 +48,13 @@ function AppContent() {
   const [pageScene, setPageScene] = useState(null);
   const [brushColor, setBrushColor] = useState(COLORS.default);
 
-  // --- State for the selected project modal ---
   const [selectedProject, setSelectedProject] = useState(null);
-  const isModalOpen = !!selectedProject; // True if a project is selected
-  // --- END ---
+  const isModalOpen = !!selectedProject;
 
   const navigate = useNavigate();
   const location = useLocation();
   const currentSeasonRef = useRef(transitionSeason);
 
-  // ... (handleLinkClick, onTransitionComplete, seasonalShadow, seasonalSlogan hooks are unchanged) ...
   const handleLinkClick = (path) => (e) => {
     e.preventDefault();
     if (location.pathname === path || isTransitioning) return;
@@ -74,53 +71,91 @@ function AppContent() {
     setIsTransitioning(false);
   }, []);
 
-  // Calculate seasonalShadow based on transitionSeason
   const seasonalShadow = useMemo(() => {
     let color;
     switch (transitionSeason) {
-      case "spring": color = "rgba(255, 96, 123, 0.87)"; break;
-      case "fall": color = "rgba(248, 77, 68, 0.93)"; break;
-      case "autumn": color = "rgba(255, 178, 110, 0.93)"; break;
-      default: color = "rgba(0, 0, 0, 0.15)";
+      case "spring":
+        color = "rgba(255, 96, 123, 0.87)";
+        break;
+      case "fall":
+        color = "rgba(248, 77, 68, 0.93)";
+        break;
+      case "autumn":
+        color = "rgba(255, 178, 110, 0.93)";
+        break;
+      default:
+        color = "rgba(0, 0, 0, 0.15)";
     }
     return `3px 3px 6px ${color}`;
   }, [transitionSeason]);
 
-  // Calculate seasonalSlogan based on transitionSeason (only needed for HomePage)
   const seasonalSlogan = useMemo(() => {
     switch (transitionSeason) {
       case "spring":
-        return { color: "rgba(220, 80, 110, 0.9)", text: (<>With every spring, a new bloom;<br />with every fall, a fond farewell.</>) };
+        return {
+          color: "rgba(220, 80, 110, 0.9)",
+          text: (
+            <>
+              With every spring, a new bloom;
+              <br />
+              with every fall, a fond farewell.
+            </>
+          ),
+        };
       case "fall":
-        return { color: "rgba(200, 60, 50, 0.95)", text: (<>The crimson leaf, a final dance,<br />before the winter's quiet trance.</>) };
+        return {
+          color: "rgba(200, 60, 50, 0.95)",
+          text: (
+            <>
+              The crimson leaf, a final dance,
+              <br />
+              before the winter's quiet trance.
+            </>
+          ),
+        };
       case "autumn":
-        return { color: "rgba(210, 130, 60, 0.95)", text: (<>A golden hush, the air is still,<br />as sunlight fades upon the hill.</>) };
+        return {
+          color: "rgba(210, 130, 60, 0.95)",
+          text: (
+            <>
+              A golden hush, the air is still,
+              <br />
+              as sunlight fades upon the hill.
+            </>
+          ),
+        };
       default:
-        return { color: "rgba(28, 28, 28, 0.76)", text: (<>A quiet canvas, awaiting a new season.<br />Explore motion, texture, and code.</>) };
+        return {
+          color: "rgba(28, 28, 28, 0.76)",
+          text: (
+            <>
+              A quiet canvas, awaiting a new season.
+              <br />
+              Explore motion, texture, and code.
+            </>
+          ),
+        };
     }
   }, [transitionSeason]);
-
 
   return (
     <>
       <MouseBrushStroke brushColor={brushColor} />
 
-      <div
-        className="ui-container"
-        style={{ position: 'relative', zIndex: 10 }}
-      >
-        {/* ... (Nav and Social Links) ... */}
-         <nav className="bottom-nav" role="navigation" aria-label="Primary">
+      <div className="ui-container" style={{ position: "relative", zIndex: 10 }}>
+        <nav className="bottom-nav" role="navigation" aria-label="Primary">
           <div className="nav-inner">
-             <a
-              className={`nav-item${location.pathname === "/" ? " active" : ""}`}
+            <a
+              className={`nav-item${
+                location.pathname === "/" ? " active" : ""
+              }`}
               href="/"
               onClick={handleLinkClick("/")}
             >
               <span className="nav-dot" aria-hidden="true" />
               <span className="nav-label">Home</span>
             </a>
-             <a
+            <a
               className={`nav-item${
                 location.pathname === "/projects" ? " active" : ""
               }`}
@@ -154,7 +189,7 @@ function AppContent() {
         </nav>
 
         <div className="social-links">
-           <a
+          <a
             href="https://github.com/Ayan-1315"
             target="_blank"
             rel="noopener noreferrer"
@@ -179,7 +214,6 @@ function AppContent() {
             <FontAwesomeIcon icon={faLinkedinIn} size="lg" />
           </a>
         </div>
-
 
         <Routes>
           <Route
@@ -210,8 +244,8 @@ function AppContent() {
               <ProjectsPage
                 setScene={setPageScene}
                 seasonalShadow={seasonalShadow}
-                selectedProject={selectedProject} // Pass state
-                setSelectedProject={setSelectedProject} // Pass setter
+                selectedProject={selectedProject}
+                setSelectedProject={setSelectedProject}
               />
             }
           />
@@ -235,7 +269,7 @@ function AppContent() {
         <directionalLight position={[0, 0, 5]} intensity={1} />
 
         <Physics gravity={[0, -3.2, 0]} iterations={PHYSICS_ITERATIONS}>
-          <Suspense fallback={null}>
+          <Suspense fallback={<Loader />}>
             {pageScene}
 
             <Routes>
@@ -259,9 +293,7 @@ function AppContent() {
               isTransitioning={isTransitioning}
               onTransitionComplete={onTransitionComplete}
               season={transitionSeason}
-              // --- PASS isSlowMo prop based on modal state ---
               isSlowMo={isModalOpen}
-              // --- END ---
             />
           </Suspense>
         </Physics>

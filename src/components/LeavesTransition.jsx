@@ -90,7 +90,6 @@ function SeasonalBackground({ season }) {
       window.removeEventListener("resize", handleResize);
       scene.background = prevBackground || null;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [gl, scene, texture, url]);
 
   return null;
