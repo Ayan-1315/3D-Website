@@ -10,10 +10,10 @@
 }
 
 .homeDescription {
-  font-family: 'Times New Roman', Times, serif;
+  /* font-family: 'Times New Roman', Times, serif; */
   font-size: 1.15rem;
   line-height: 1.6;
-  color: rgba(28, 28, 28, 0.85);
+  color: #181818;
   max-width: 500px; 
   margin: 1.25rem auto 1.5rem; /* 'auto' margin works well with text-align: center */
   padding: 0 1rem;

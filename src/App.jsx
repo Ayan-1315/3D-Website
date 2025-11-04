@@ -20,8 +20,9 @@ import ProjectsPage from "./pages/ProjectsPage.jsx";
 import AboutPage from "./pages/AboutPage.jsx";
 import ContactPage from "./pages/ContactPage.jsx";
 import LeavesTransition from "./components/LeavesTransition.jsx";
+import FPSMonitor from "./components/FPSMonitor.jsx";
 import MouseBrushStroke from "./components/MouseBrushStroke.jsx";
-import Loader from "./components/Loader.jsx"; // <-- Correct name
+import Loader from "./components/Loader.jsx"; 
 import "./App.css";
 
 const SEASONS = ["spring", "autumn", "fall"];
@@ -195,6 +196,7 @@ function AppContent() {
               <AboutPage
                 setScene={setPageScene}
                 seasonalShadow={seasonalShadow}
+                handleLinkClick={handleLinkClick} 
               />
             }
           />
@@ -229,9 +231,7 @@ function AppContent() {
         <directionalLight position={[0, 0, 5]} intensity={1} />
 
         <Physics gravity={[0, -3.2, 0]} iterations={PHYSICS_ITERATIONS}>
-          {/* --- FALLBACK IS NOW NULL --- */}
           <Suspense fallback={null}> 
-            {/* --- LOADER IS NOW THE CONTROLLER --- */}
             <Loader />
 
             {pageScene}
@@ -261,6 +261,8 @@ function AppContent() {
             />
           </Suspense>
         </Physics>
+
+        <FPSMonitor />
       </Canvas>
     </>
   );

@@ -230,13 +230,15 @@ export default function ProjectsPage({
     <div className={styles.projectsPage}>
       <header className={styles.projectsHeader}>
         <h1
-          className={styles.sumiTitle} // Assumes .sumiTitle is in your module
+          className={styles.sumiTitle}
           style={{ textShadow: seasonalShadow }}
         >
           Projects
         </h1>
+        {/* --- NEW TEXT HERE --- */}
         <p className={styles.projectsLead}>
-          Selected experiments — click to open.
+          A collection of my work. Each project is an experiment in code,
+          design, and interaction. Click any card to learn more.
         </p>
       </header>
 
