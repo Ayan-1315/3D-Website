@@ -20,7 +20,6 @@ import ProjectsPage from "./pages/ProjectsPage.jsx";
 import AboutPage from "./pages/AboutPage.jsx";
 import ContactPage from "./pages/ContactPage.jsx";
 import LeavesTransition from "./components/LeavesTransition.jsx";
-import FPSMonitor from "./components/FPSMonitor.jsx";
 import MouseBrushStroke from "./components/MouseBrushStroke.jsx";
 import Loader from "./components/Loader.jsx"; 
 import "./App.css";
@@ -262,7 +261,6 @@ function AppContent() {
           </Suspense>
         </Physics>
 
-        <FPSMonitor />
       </Canvas>
     </>
   );
