@@ -20,9 +20,8 @@ import ProjectsPage from "./pages/ProjectsPage.jsx";
 import AboutPage from "./pages/AboutPage.jsx";
 import ContactPage from "./pages/ContactPage.jsx";
 import LeavesTransition from "./components/LeavesTransition.jsx";
-import FPSMonitor from "./components/FPSMonitor.jsx";
 import MouseBrushStroke from "./components/MouseBrushStroke.jsx";
-import Loader from "./components/Loader.jsx";
+import Loader from "./components/Loader.jsx"; // <-- Correct name
 import "./App.css";
 
 const SEASONS = ["spring", "autumn", "fall"];
@@ -40,6 +39,7 @@ const COLORS = {
   autumn: "rgba(255, 178, 110, 0.9)",
 };
 
+
 function AppContent() {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [transitionSeason, setTransitionSeason] = useState(() =>
@@ -49,7 +49,7 @@ function AppContent() {
   const [brushColor, setBrushColor] = useState(COLORS.default);
 
   const [selectedProject, setSelectedProject] = useState(null);
-  const isModalOpen = !!selectedProject;
+  const isModalOpen = !!selectedProject; 
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -74,17 +74,10 @@ function AppContent() {
   const seasonalShadow = useMemo(() => {
     let color;
     switch (transitionSeason) {
-      case "spring":
-        color = "rgba(255, 96, 123, 0.87)";
-        break;
-      case "fall":
-        color = "rgba(248, 77, 68, 0.93)";
-        break;
-      case "autumn":
-        color = "rgba(255, 178, 110, 0.93)";
-        break;
-      default:
-        color = "rgba(0, 0, 0, 0.15)";
+      case "spring": color = "rgba(255, 96, 123, 0.87)"; break;
+      case "fall": color = "rgba(248, 77, 68, 0.93)"; break;
+      case "autumn": color = "rgba(255, 178, 110, 0.93)"; break;
+      default: color = "rgba(0, 0, 0, 0.15)";
     }
     return `3px 3px 6px ${color}`;
   }, [transitionSeason]);
@@ -92,70 +85,36 @@ function AppContent() {
   const seasonalSlogan = useMemo(() => {
     switch (transitionSeason) {
       case "spring":
-        return {
-          color: "rgba(220, 80, 110, 0.9)",
-          text: (
-            <>
-              With every spring, a new bloom;
-              <br />
-              with every fall, a fond farewell.
-            </>
-          ),
-        };
+        return { color: "rgba(220, 80, 110, 0.9)", text: (<>With every spring, a new bloom;<br />with every fall, a fond farewell.</>) };
       case "fall":
-        return {
-          color: "rgba(200, 60, 50, 0.95)",
-          text: (
-            <>
-              The crimson leaf, a final dance,
-              <br />
-              before the winter's quiet trance.
-            </>
-          ),
-        };
+        return { color: "rgba(200, 60, 50, 0.95)", text: (<>The crimson leaf, a final dance,<br />before the winter's quiet trance.</>) };
       case "autumn":
-        return {
-          color: "rgba(210, 130, 60, 0.95)",
-          text: (
-            <>
-              A golden hush, the air is still,
-              <br />
-              as sunlight fades upon the hill.
-            </>
-          ),
-        };
+        return { color: "rgba(210, 130, 60, 0.95)", text: (<>A golden hush, the air is still,<br />as sunlight fades upon the hill.</>) };
       default:
-        return {
-          color: "rgba(28, 28, 28, 0.76)",
-          text: (
-            <>
-              A quiet canvas, awaiting a new season.
-              <br />
-              Explore motion, texture, and code.
-            </>
-          ),
-        };
+        return { color: "rgba(28, 28, 28, 0.76)", text: (<>A quiet canvas, awaiting a new season.<br />Explore motion, texture, and code.</>) };
     }
   }, [transitionSeason]);
+
 
   return (
     <>
       <MouseBrushStroke brushColor={brushColor} />
 
-      <div className="ui-container" style={{ position: "relative", zIndex: 10 }}>
+      <div
+        className="ui-container"
+        style={{ position: 'relative', zIndex: 10 }}
+      >
         <nav className="bottom-nav" role="navigation" aria-label="Primary">
           <div className="nav-inner">
-            <a
-              className={`nav-item${
-                location.pathname === "/" ? " active" : ""
-              }`}
+             <a
+              className={`nav-item${location.pathname === "/" ? " active" : ""}`}
               href="/"
               onClick={handleLinkClick("/")}
             >
               <span className="nav-dot" aria-hidden="true" />
               <span className="nav-label">Home</span>
             </a>
-            <a
+             <a
               className={`nav-item${
                 location.pathname === "/projects" ? " active" : ""
               }`}
@@ -189,7 +148,7 @@ function AppContent() {
         </nav>
 
         <div className="social-links">
-          <a
+           <a
             href="https://github.com/Ayan-1315"
             target="_blank"
             rel="noopener noreferrer"
@@ -214,6 +173,7 @@ function AppContent() {
             <FontAwesomeIcon icon={faLinkedinIn} size="lg" />
           </a>
         </div>
+
 
         <Routes>
           <Route
@@ -244,8 +204,8 @@ function AppContent() {
               <ProjectsPage
                 setScene={setPageScene}
                 seasonalShadow={seasonalShadow}
-                selectedProject={selectedProject}
-                setSelectedProject={setSelectedProject}
+                selectedProject={selectedProject} 
+                setSelectedProject={setSelectedProject} 
               />
             }
           />
@@ -269,7 +229,11 @@ function AppContent() {
         <directionalLight position={[0, 0, 5]} intensity={1} />
 
         <Physics gravity={[0, -3.2, 0]} iterations={PHYSICS_ITERATIONS}>
-          <Suspense fallback={<Loader />}>
+          {/* --- FALLBACK IS NOW NULL --- */}
+          <Suspense fallback={null}> 
+            {/* --- LOADER IS NOW THE CONTROLLER --- */}
+            <Loader />
+
             {pageScene}
 
             <Routes>
@@ -297,8 +261,6 @@ function AppContent() {
             />
           </Suspense>
         </Physics>
-
-        <FPSMonitor />
       </Canvas>
     </>
   );
