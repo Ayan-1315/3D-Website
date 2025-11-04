@@ -207,6 +207,31 @@
   border-color: #444;
 }
 
+.userEmail {
+  width: 100%;
+  padding: 12px; /* Standardized padding to match textarea */
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: #111;
+  background: #ffffff;
+  border: 2px solid #111;
+  border-radius: 8px;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 11;
+  pointer-events: auto;
+  height: 48px; /* Give it a specific height */
+}
+
+.userEmail::placeholder {
+  color: #888;
+}
+
+.userEmail:focus {
+  outline: 2px solid #444;
+  border-color: #444;
+}
+
 .reportButton {
   align-self: flex-end; 
   font-family: inherit;
