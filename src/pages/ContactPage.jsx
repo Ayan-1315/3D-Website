@@ -1,26 +1,21 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react"; // Removed useState
 import styles from "./ContactPage.module.css"; 
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEnvelope } from "@fortawesome/free-solid-svg-icons";
 
 export default function ContactPage({ setScene, seasonalShadow }) {
-  const [feedback, setFeedback] = useState("");
 
   useEffect(() => {
     setScene(null);
   }, [setScene]);
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    alert("Feedback submitted. Thank you!");
-    setFeedback("");
-  };
+  // We no longer need the 'handleSubmit' function,
+  // Formspree will handle the submission.
 
   return (
     <div className={styles.contactPage} role="main" aria-label="Contact page">
       <div className={styles.paperOverlay} /> 
       
-      {/* This is now the fixed-size card */}
       <div className={styles.contentInner}>
         <header className={styles.heroBlock}>
           <h1 className={styles.sumiTitle} style={{ textShadow: seasonalShadow }}>
@@ -35,13 +30,12 @@ export default function ContactPage({ setScene, seasonalShadow }) {
           </p>
         </header>
 
-        {/* --- NEW Scrollable Wrapper --- */}
         <div className={styles.scrollableArea}>
           <section className={styles.contactSection}>
 
-              <a href="mailto:ayan.sen1315@gmail.com" className={styles.contactButton}>
+              <a href="mailto:ayansen1315@gmail.com" className={styles.contactButton}>
                 <FontAwesomeIcon icon={faEnvelope} className={styles.emailIcon} />
-                <span>ayan.sen1315@gmail.com</span>
+                <span>ayansen1315@gmail.com</span>
               </a>
 
               <div className={styles.divider}>
@@ -54,31 +48,43 @@ export default function ContactPage({ setScene, seasonalShadow }) {
                 design, or any bugs you find is invaluable.
               </p>
 
+            {/* --- FORM UPDATED FOR FORMSPREE --- */}
               <form 
                 className={styles.feedbackForm} 
-                onSubmit={handleSubmit}
-                name="feedback"
-                data-netlify="true"
+              // 1. REMOVED onSubmit and data-netlify
+              // 2. ADDED action and method
+              action="https://formspree.io/f/xgvpjqwy" // <-- PASTE YOUR URL HERE
+              method="POST"
               >
-                <input type="hidden" name="form-name" value="feedback" />
+              {/* 3. NEW EMAIL FIELD ADDED */}
+              <label htmlFor="user-email" className="visually-hidden">Your Email</label>
+              <input
+                id="user-email"
+                type="email"
+                name="email" // This 'name' is the key for the data
+                className={styles.feedbackBox} // Re-using your style
+                placeholder="Your email (so I can reply)"
+                required
+              />
+
+              {/* 4. TEXTAREA UPDATED */}
                 <label htmlFor="feedback-box" className="visually-hidden">Bug Report or Feedback</label>
                 <textarea 
                   id="feedback-box"
-                  name="message"
+                 name="message" // This 'name' is the key
                   className={styles.feedbackBox}
                   placeholder="Type your feedback here..."
-                  value={feedback}
-                  onChange={(e) => setFeedback(e.target.value)}
                   required
                 />
+
                 <button type="submit" className={styles.reportButton}>
                   <span className={styles.buttonText}>Report</span>
                 </button>
               </form>
           
           </section>
-        </div> {/* --- End .scrollableArea --- */}
-      </div> {/* --- End .contentInner --- */}
+        </div> 
+      </div> 
     </div>
   );
 }
