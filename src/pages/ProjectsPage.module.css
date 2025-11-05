@@ -287,10 +287,10 @@ button:focus-visible {
   }
   .projectsScroller {
     padding: 5px var(--pad) 50px var(--pad);
-    gap: 18px;
+    gap: 10px;
   }
   .projectCard {
-    flex: 0 0 90%;
+    /* flex: 0 0 90%; */
     max-height: none;
     min-height: 20vh;
     margin: 0 5% 0 5%;

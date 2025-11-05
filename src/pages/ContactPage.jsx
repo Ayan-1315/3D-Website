@@ -51,7 +51,7 @@ export default function ContactPage({ setScene, seasonalShadow }) {
             {/* --- FORM UPDATED FOR FORMSPREE --- */}
               <form 
         className={styles.feedbackForm} 
-              action="https://formspree.io/f/YOUR_UNIQUE_ID" // <-- Make sure you've set this!
+              action="https://formspree.io/f/xgvpjqwy"
               method="POST"
        >
               {/* 1. Email field now uses 'userEmail' class */}
