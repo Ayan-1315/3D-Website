@@ -272,23 +272,13 @@ button:focus-visible {
 /* Phones: almost full-width cards, hide arrows, smaller text */
 @media (max-width: 600px) {
   :root {
-    --card-w: 88%; /* better fit inside viewport */
+    --card-w: 88%;
     --pad: 6vw;
   }
 
-  .projectsHeader {
-    padding: 20px var(--pad) 0 var(--pad);
-  }
-
-  .sumiTitle {
-    font-size: 2rem;
-    line-height: 1.1;
-  }
-
-  .projectsLead {
-    font-size: 0.9rem;
-    max-width: 100%;
-  }
+  .projectsHeader { padding: 55px var(--pad) 0 var(--pad); }
+  .sumiTitle { font-size: 2rem; line-height: 1.1; }
+  .projectsLead { font-size: 0.85rem; max-width: 100%; }
 
   .projectsScroller {
     display: flex;
@@ -296,14 +286,26 @@ button:focus-visible {
     gap: 12px;
     padding: 8px var(--pad) 56px var(--pad);
     overflow-x: auto;
-    /* smooth scroll on older iOS browsers */
-    -webkit-overflow-scrolling: touch; /* stylelint-disable-line property-no-vendor-prefix */
-    scroll-snap-type: x proximity;
-    box-sizing: border-box;
-  }
+    touch-action: pan-x;
 
-  .projectsScroller::-webkit-scrollbar {
-    display: none;
+    /* Stop container shake at the ends */
+    scroll-snap-type: x proximity;
+    scroll-snap-stop: always;
+    scroll-padding-inline: calc((100% - var(--card-w)) / 2);
+    overscroll-behavior-x: contain; /* prevent chaining to body */
+    scrollbar-gutter: stable both-edges; /* avoid layout shift when scrollbar appears */
+
+    box-sizing: border-box;
+    position: relative;
+  }
+  .projectsScroller::-webkit-scrollbar { display: none; }
+
+  /* Ghost spacers so first/last cards can center without bouncing */
+  .projectsScroller::before,
+  .projectsScroller::after {
+    content: "";
+    flex: 0 0 calc((100% - var(--card-w)) / 2);
+    pointer-events: none;
   }
 
   .projectCard {
@@ -318,11 +320,14 @@ button:focus-visible {
     background-attachment: scroll;
     background-clip: padding-box;
     scroll-snap-align: center;
-  }
 
-  .navArrow {
-    display: none;
+    transform: none !important;        /* keep stable on tap/hold */
+    transition: box-shadow 220ms;      /* no translate on mobile */
   }
+  .projectCard:hover,
+  .projectCard:focus { transform: 8px; }
+
+  .navArrow { display: none; }
 
   .projectCard img,
   .projectCard video,
@@ -332,14 +337,15 @@ button:focus-visible {
     display: block;
   }
 
-  /* Better wrapping + hyphenation support (desktop + older Safari/iOS) */
-  .projectCard .title,
+  .projectCard .title{
+    font-size: 1.1rem;
+  }
+  .projectDesc {
+    font-size: 0.85rem;
+  }
   .projectCard .meta {
-    /* Preferred: allow long words to break anywhere if needed */
     overflow-wrap: anywhere;
-    /* Backwards/extra compatibility */
-    word-break: break-word; /* kept as fallback even though deprecated in spec */
-    /* Hyphenation with vendor prefixes for Safari/older iOS */
+    word-break: break-word;
     -webkit-hyphens: auto;
     -ms-hyphens: auto;
     hyphens: auto;

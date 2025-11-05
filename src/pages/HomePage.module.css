@@ -175,26 +175,84 @@
 /* Tablet / small desktop */
 @media (max-width: 880px) {
   .homePageContent {
-    padding: 15vh 20px 5vh 20px;
+    min-height: 88vh;
+    padding: 10vh 20px 12vh; /* room for bottom nav */
     text-align: center;
     align-items: center;
+    box-sizing: border-box;
   }
+
+  .heroBlock { max-width: 92%; }
+
   .sumiTitle {
-    font-size: clamp(2.6rem, 12vw, 3.6rem);
+    font-size: clamp(2.4rem, 9vw, 3.2rem);
     letter-spacing: -1px;
+    line-height: 1.1;
   }
-  .heroBlock {
-    max-width: 90%;
+
+  .sumiSub { font-size: 1.3rem; }
+
+  .homeDescription {
+    font-size: 1.05rem;
+    line-height: 1.6;
+    max-width: 560px;
+    padding: 0 .75rem;
+    margin: 1rem auto 1.25rem;
   }
-  .colorSwatchContainer {
-    justify-content: center;
+
+  .brushSettings {
+    bottom: 76px; /* sit above bottom nav */
+    left: 16px;
+    padding: 10px 14px;
   }
+
+  .colorSwatch { width: 30px; height: 30px; }
 }
 
 /* Phones */
 @media (max-width: 600px) {
-  .sumiSub { font-size: 1.2rem; }
-  .homeLead { font-size: 0.9rem; }
+  .homePageContent {
+    min-height: auto;               /* let content drive height */
+    padding: 14vh 16px 110px;       /* top space + room for bottom nav/brush */
+    box-sizing: border-box;
+  }
+
+  .heroBlock { max-width: 94%; }
+
+  .sumiTitle {
+    font-size: clamp(2.2rem, 11vw, 2.8rem);
+    line-height: 1.1;
+    letter-spacing: -1px;
+    margin-bottom: 10px;
+  }
+
+  .sumiSub {
+    font-size: 1.1rem;
+    margin: 6px 0 18px;
+  }
+
+  .homeDescription {
+    font-size: 1rem;
+    line-height: 1.6;
+    max-width: 480px;
+    padding: 0 .5rem;
+    margin: 0 auto 18px;
+  }
+
+  .resumeButton {
+    font-size: 0.95rem;
+    padding: 12px 20px;  /* larger tap target */
+    margin: 0 auto 1.25rem;
+  }
+
+  .brushSettings {
+    bottom: 76px;  /* clear the bottom nav */
+    left: 12px;
+    padding: 10px 12px;
+    border-radius: 10px;
+  }
+
   .brushTitle { font-size: 0.7rem; }
+
   .colorSwatch { width: 28px; height: 28px; }
 }

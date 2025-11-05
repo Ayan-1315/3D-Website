@@ -178,17 +178,19 @@
 
 @media (max-width: 880px) {
   .modal-content {
-    padding: 25px;
-    max-width: 90%;
+    padding: 24px;
+    max-width: 88%;
   }
   .modal-title {
-    font-size: 1.8rem;
+    font-size: clamp(1.7rem, 4.5vw, 2rem);
+    line-height: 1.2;
   }
   .modal-details {
     font-size: 0.95rem;
+    line-height: 1.6;
   }
   .modal-links {
-    gap: 10px;
+    gap: 12px;
   }
   .modal-link-button {
     font-size: 0.9rem;
@@ -198,21 +200,25 @@
 
 @media (max-width: 600px) {
   .modal-backdrop {
-    padding: 15px;
+    padding: 12px;
   }
   .modal-content {
-    padding: 20px;
-    max-height: 90vh;
+    padding: 18px;
+    max-width: 94%;
+    max-height: 68vh;
   }
   .modal-scroll-area {
-    padding-right: 5px; 
-    margin-right: -5px;
+    padding-right: 4px;
+    margin-right: -4px;
+    scrollbar-width: none;
   }
   .modal-title {
-    font-size: 1.6rem;
+    font-size: clamp(1.35rem, 6.2vw, 1.6rem);
+    line-height: 1.25;
   }
   .modal-details {
-    font-size: 0.9rem;
+    font-size: 0.88rem;
+    line-height: 1.55;
   }
   .modal-links {
     gap: 8px;

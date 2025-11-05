@@ -190,7 +190,7 @@
 /* Responsive */
 @media (max-width: 880px) {
   .contentInner {
-    height: 88vh;
+    height: 82vh;
     padding: 24px;
     width: 95%;
   }
@@ -216,8 +216,23 @@
 }
 
 @media (max-width: 600px) {
-  .sumiTitle {
-    font-size: clamp(1.8rem, 8vw, 2.5rem);
+  .contentInner {
+    height: 82vh;
+    padding: 24px;
+    width: 95%;
   }
-  .lead { font-size: 0.95rem; }
+  .sumiTitle {
+    font-size: clamp(2rem, 8vw, 2.5rem);
+  }
+  .lead { font-size: 0.85rem; }
+  .aboutContent {
+    padding: 20px 6px 0 6px;
+    font-size: 0.85rem;
+    line-height: 1.6;
+  }
+  .aboutFooter {
+    padding-bottom: 20px;
+    margin-top: 20px;
+  }
+
 }
