@@ -272,32 +272,76 @@ button:focus-visible {
 /* Phones: almost full-width cards, hide arrows, smaller text */
 @media (max-width: 600px) {
   :root {
-    --card-w: 80%;
+    --card-w: 88%; /* better fit inside viewport */
     --pad: 6vw;
   }
+
   .projectsHeader {
     padding: 20px var(--pad) 0 var(--pad);
   }
+
   .sumiTitle {
-    font-size: 2.5rem;
+    font-size: 2rem;
+    line-height: 1.1;
   }
+
   .projectsLead {
     font-size: 0.9rem;
     max-width: 100%;
   }
+
   .projectsScroller {
-    padding: 5px var(--pad) 50px var(--pad);
-    gap: 10px;
+    display: flex;
+    flex-direction: row;
+    gap: 12px;
+    padding: 8px var(--pad) 56px var(--pad);
+    overflow-x: auto;
+    /* smooth scroll on older iOS browsers */
+    -webkit-overflow-scrolling: touch; /* stylelint-disable-line property-no-vendor-prefix */
+    scroll-snap-type: x proximity;
+    box-sizing: border-box;
   }
+
+  .projectsScroller::-webkit-scrollbar {
+    display: none;
+  }
+
   .projectCard {
-    /* flex: 0 0 90%; */
-    max-height: none;
-    min-height: 20vh;
-    margin: 0 5% 0 5%;
+    flex: 0 0 var(--card-w);
+    max-width: var(--card-w);
+    min-height: 22vh;
+    height: auto;
+    box-sizing: border-box;
+    padding: 20px;
+    border-radius: 12px;
+    overflow: hidden;
     background-attachment: scroll;
     background-clip: padding-box;
+    scroll-snap-align: center;
   }
+
   .navArrow {
     display: none;
+  }
+
+  .projectCard img,
+  .projectCard video,
+  .projectCard iframe {
+    max-width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* Better wrapping + hyphenation support (desktop + older Safari/iOS) */
+  .projectCard .title,
+  .projectCard .meta {
+    /* Preferred: allow long words to break anywhere if needed */
+    overflow-wrap: anywhere;
+    /* Backwards/extra compatibility */
+    word-break: break-word; /* kept as fallback even though deprecated in spec */
+    /* Hyphenation with vendor prefixes for Safari/older iOS */
+    -webkit-hyphens: auto;
+    -ms-hyphens: auto;
+    hyphens: auto;
   }
 }
