@@ -149,16 +149,15 @@ export default function AboutPage({
             </p>
             <p>
               <strong>Technical skills:</strong> Experienced in building full
-                
-                <strong>Core skills:</strong> Proficient in HTML, CSS, and
-                JavaScript with strong expertise in building dynamic web
-                applications using React.js and Node.js. Experienced in
-                real-time communication through WebSockets / Socket.io and
-                skilled in 3D web development using Three.js
-                (react-three-fiber). Adept at working with MongoDB for scalable
-                data management and Python for AI / ML projects, including BERT
-                and LLM-based models. Also passionate about experimenting with
-                Unity to create interactive game experiences.
+              <strong>Core skills:</strong> Proficient in HTML, CSS, and
+              JavaScript with strong expertise in building dynamic web
+              applications using React.js and Node.js. Experienced in real-time
+              communication through WebSockets / Socket.io and skilled in 3D web
+              development using Three.js (react-three-fiber). Adept at working
+              with MongoDB for scalable data management and Python for AI / ML
+              projects, including BERT and LLM-based models. Also passionate
+              about experimenting with Unity to create interactive game
+              experiences.
             </p>
             <p>
               <strong>Personal focus:</strong> Real-time systems, generative
@@ -166,19 +165,30 @@ export default function AboutPage({
               people feel connected to technology — not ruled by it.
             </p>
             <p>
-              
               <strong>Curiosity:</strong> I have a wide range of interests
               beyond code — space science, technology, and biology always draw
               me in, while history catches my attention every now and then. I
               love learning something new every day; that’s what keeps me going.
             </p>
             <p>
-              <strong>Dream:</strong> I’m deeply drawn to the mysteries of the
+              <strong>Dream:</strong>I’m deeply drawn to the mysteries of the
               cosmos — a curiosity that fuels my drive to pursue a career in
               space research. I want to explore the unknown, contribute to
               discoveries that expand our understanding of the universe, and
               turn imagination into knowledge. Every late-night experiment and
-              quiet spark of curiosity is a small step toward that vast horizon.
+              quiet spark of curiosity is a small step toward that vast .
+              <br />
+              But my curiosity doesn’t end with the stars. I want to travel to
+              every single destination on Earth — every forgotten corner, every
+              undiscovered place that still hides a story beneath the soil or
+              sky. And if the universe allows, I want my final destination to be
+              space itself — to see the Earth not as home, but as a beautiful
+              blue memory floating in the dark.
+              <br />
+              I don’t know if that’s possible
+              in a single lifetime… maybe my lifespan isn’t enough for this
+              incredible journey — but I’m still holding on to it, chasing the
+              impossible like it owes me an answer.
             </p>
             <p>
               <strong>When not building:</strong> I dive into stories — lost in
@@ -215,7 +225,7 @@ export default function AboutPage({
             </p>
           </section>
           <footer className={styles.aboutFooter}>
-            <small>Last updated: October 22, 2025</small>
+            <small>Last updated: Novemer 6th, 2025</small>
           </footer>
         </div>
       </div>

@@ -320,9 +320,9 @@
     max-width: 80vh;
   }
   .reportButton {
-    align-self: stretch;
     font-size: 0.8rem;
     padding: 12px;
+    max-width: 30vh;
   }
   .contentInner {
     height: 88vh; /* Adjust height for mobile */
