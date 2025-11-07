@@ -59,8 +59,8 @@ export default function HomePage({
         </p>
 
         <a
-          href="/AyanSen_Resume.pdf" // Ensure your resume is in the /public folder
-          download="AyanSen_Resume.pdf"
+          href="/AyanSen_sofdev-Resume.pdf" // Ensure your resume is in the /public folder
+          download="AyanSen_sofdev-Resume.pdf"
           className={styles.resumeButton}
         >
           <span className={styles.buttonText}>Download Resume</span>
