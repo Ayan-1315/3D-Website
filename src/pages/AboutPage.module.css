@@ -217,7 +217,7 @@
 
 @media (max-width: 600px) {
   .contentInner {
-    height: 84vh;
+    height: 75vh;
     padding: 24px;
     width: 95%;
   }
