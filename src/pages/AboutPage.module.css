@@ -222,9 +222,9 @@
     width: 95%;
   }
   .sumiTitle {
-    font-size: clamp(2rem, 8vw, 2.5rem);
+    font-size: clamp(3.5rem, 8vw, 2.5rem);
   }
-  .lead { font-size: 0.85rem; }
+  .lead { font-size: 1rem; }
   .aboutContent {
     padding: 20px 6px 0 6px;
     font-size: 0.85rem;
