@@ -340,4 +340,10 @@
   .formIntro {
     font-size: 0.8rem;
   }
+  .contactPage {
+    align-items: flex-start;
+    padding-top: 20px;
+    height: auto;
+    max-height: 100vh;
+  }
 }

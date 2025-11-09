@@ -350,4 +350,7 @@ button:focus-visible {
     -ms-hyphens: auto;
     hyphens: auto;
   }
+  .projectsPage {
+    max-height: 100vh;
+  }
 }
