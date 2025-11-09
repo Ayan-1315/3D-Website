@@ -217,7 +217,7 @@
 
 @media (max-width: 600px) {
   .contentInner {
-    height: 75vh;
+    height: 72vh;
     padding: 24px;
     width: 95%;
   }
@@ -233,6 +233,12 @@
   .aboutFooter {
     padding-bottom: 20px;
     margin-top: 20px;
+  }
+  .aboutPage {
+    align-items: flex-start;
+    padding-top: 20px;
+    height: auto;
+    max-height: 100vh;
   }
 
 }
