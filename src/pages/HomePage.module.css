@@ -220,27 +220,27 @@
   .heroBlock { max-width: 94%; }
 
   .sumiTitle {
-    font-size: clamp(2.2rem, 11vw, 2.8rem);
+    font-size: clamp(4rem, 11vw, 2.8rem);
     line-height: 1.1;
     letter-spacing: -1px;
     margin-bottom: 10px;
   }
 
   .sumiSub {
-    font-size: 1.1rem;
+    font-size: 1.5rem;
     margin: 6px 0 18px;
   }
 
   .homeDescription {
-    font-size: 1rem;
-    line-height: 1.6;
+    font-size: 1.2rem;
+    line-height: 1.7;
     max-width: 480px;
     padding: 0 .5rem;
     margin: 0 auto 18px;
   }
 
   .resumeButton {
-    font-size: 0.95rem;
+    font-size: 1rem;
     padding: 12px 20px;  /* larger tap target */
     margin: 0 auto 1.25rem;
   }

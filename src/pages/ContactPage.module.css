@@ -309,18 +309,19 @@
 
 @media (max-width: 600px) {
   .sumiTitle {
-    font-size: clamp(2rem, 8vw, 3rem);
+    font-size: clamp(3.5rem, 8vw, 3rem);
   }
   .lead {
-    font-size: 0.85rem;
+    font-size: 1rem;
+    line-height: 1.3;
   }
   .contactButton {
     padding: 12px 20px;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     max-width: 80vh;
   }
   .reportButton {
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     padding: 12px;
     max-width: 30vh;
   }
@@ -332,13 +333,13 @@
   .scrollableArea {
     padding: 0 5px; /* Reduce padding inside scroll area */
     margin: 0 -5px; /* Compensate for padding */
-    font-size: 0.8rem;
+    font-size: 0.9rem;
   }
   .formHeading {
-    font-size: 1.1rem;
+    font-size: 1.3rem;
   }
   .formIntro {
-    font-size: 0.8rem;
+    font-size: 0.9rem;
   }
   .contactPage {
     align-items: flex-start;

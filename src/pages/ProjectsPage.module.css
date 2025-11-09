@@ -277,8 +277,8 @@ button:focus-visible {
   }
 
   .projectsHeader { padding: 55px var(--pad) 0 var(--pad); }
-  .sumiTitle { font-size: 2rem; line-height: 1.1; }
-  .projectsLead { font-size: 0.85rem; max-width: 100%; }
+  .sumiTitle { font-size: clamp(3.5rem, 8vw, 3rem) }
+  .projectsLead { font-size: 1rem; line-height: 1.3; }
 
   .projectsScroller {
     display: flex;
@@ -338,10 +338,10 @@ button:focus-visible {
   }
 
   .projectCard .title{
-    font-size: 1.1rem;
+    font-size: 1.2rem;
   }
   .projectDesc {
-    font-size: 0.85rem;
+    font-size: 0.9rem;
   }
   .projectCard .meta {
     overflow-wrap: anywhere;
