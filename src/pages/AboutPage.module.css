@@ -224,10 +224,10 @@
   .sumiTitle {
     font-size: clamp(3.5rem, 8vw, 2.5rem);
   }
-  .lead { font-size: 1rem; }
+  .lead { font-size: 1rem; line-height: 0.95;  }
   .aboutContent {
     padding: 20px 6px 0 6px;
-    font-size: 0.85rem;
+    font-size: 0.9rem;
     line-height: 1.6;
   }
   .aboutFooter {
