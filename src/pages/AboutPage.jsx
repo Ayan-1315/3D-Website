@@ -144,12 +144,12 @@ export default function AboutPage({
             </h1>
             <p>
               <br />
-              <strong>Education:</strong> B.Tech in Computer Science and
+              <strong><b>Education:</b></strong> B.Tech in Computer Science and
               Engineering.
             </p>
             <p>
-              <strong>Technical skills:</strong> Experienced in building full
-              <strong>Core skills:</strong> Proficient in HTML, CSS, and
+              <strong><b>Technical skills:</b></strong> Experienced in building full
+              <strong><b>Core skills:</b></strong> Proficient in HTML, CSS, and
               JavaScript with strong expertise in building dynamic web
               applications using React.js and Node.js. Experienced in real-time
               communication through WebSockets / Socket.io and skilled in 3D web
@@ -160,18 +160,18 @@ export default function AboutPage({
               experiences.
             </p>
             <p>
-              <strong>Personal focus:</strong> Real-time systems, generative
+              <strong><b>Personal focus:</b></strong> Real-time systems, generative
               visuals, immersive web experiences, and building tools that make
               people feel connected to technology — not ruled by it.
             </p>
             <p>
-              <strong>Curiosity:</strong> I have a wide range of interests
+              <strong><b>Curiosity:</b></strong> I have a wide range of interests
               beyond code — space science, technology, and biology always draw
               me in, while history catches my attention every now and then. I
               love learning something new every day; that’s what keeps me going.
             </p>
             <p>
-              <strong>Dream:</strong>I’m deeply drawn to the mysteries of the
+              <strong><b>Dream:</b></strong>I’m deeply drawn to the mysteries of the
               cosmos — a curiosity that fuels my drive to pursue a career in
               space research. I want to explore the unknown, contribute to
               discoveries that expand our understanding of the universe, and
@@ -191,14 +191,14 @@ export default function AboutPage({
               impossible like it owes me an answer.
             </p>
             <p>
-              <strong>When not building:</strong> I dive into stories — lost in
+              <strong><b>When not building:</b></strong> I dive into stories — lost in
               narrative games, living through other characters, exploring worlds
               that exist only in pixels and imagination. That escape fuels my
               creativity, keeps my perspective sharp, and somehow makes every
               line of code I write feel a little more alive.
             </p>
             <p>
-              <strong>Selected projects:</strong>
+              <strong><b>Selected projects:</b></strong>
             </p>
             <ul className={styles.projectList}>
               <li>3D Websites</li>
@@ -207,7 +207,7 @@ export default function AboutPage({
               <li>Telegram Chatbot</li>
             </ul>
             <p>
-              <strong>Where I share code:</strong>{" "}
+              <strong><b>Where I share code:</b></strong>{" "}
               <a
                 href="https://github.com/Ayan-1315"
                 target="_blank"
@@ -217,7 +217,7 @@ export default function AboutPage({
               </a>
             </p>
             <p>
-              <strong>Contact:</strong> Use the{" "}
+              <strong><b>Contact:</b></strong> Use the{" "}
               <a href="/contact" onClick={handleLinkClick("/contact")}>
                 contact page
               </a>{" "}
