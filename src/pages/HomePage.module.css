@@ -256,7 +256,7 @@
 
   .colorSwatch { width: 28px; height: 28px; }
   .homePageContent {
-    align-items: flex-start;
+    align-items: center;
     max-height: 100vh;
   }
 }

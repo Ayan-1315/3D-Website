@@ -326,7 +326,7 @@
     max-width: 30vh;
   }
   .contentInner {
-    height: 88vh; /* Adjust height for mobile */
+    height: 82vh; /* Adjust height for mobile */
     padding: 20px;
     width: 95%;
   }
